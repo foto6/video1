@@ -279,6 +279,20 @@ class JsonOperationLedger:
         self.save(receipt)
         return receipt
 
+    def record_poll_metadata(
+        self,
+        receipt: OperationReceipt,
+        metadata: Mapping[str, Any],
+    ) -> OperationReceipt:
+        if receipt.state != OperationState.ACCEPTED:
+            raise OperationLedgerError(
+                "only accepted operations may persist poll metadata"
+            )
+        receipt.poll_metadata = _json_clone(metadata, "operation poll metadata")
+        receipt.updated_at = utc_now()
+        self.save(receipt)
+        return receipt
+
     def record_result(
         self,
         receipt: OperationReceipt,

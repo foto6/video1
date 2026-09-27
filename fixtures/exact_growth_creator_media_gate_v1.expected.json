@@ -32,9 +32,12 @@
     },
     "jobId": "creator-wave4-cycle-02-edit",
     "mediaOwnedRetries": 1,
+    "mediaProtocolReconciliations": 1,
+    "operationPollAttempts": 3,
     "qaPassed": true,
+    "reconciliationBlockedResponses": 1,
     "renderFingerprint": "1e4fe04ad5eb4977fa486e29435032e1495681b527c57ab0126c61422347b90c",
-    "resumeCalls": 2,
+    "resumeCalls": 3,
     "statusCalls": 0,
     "submitRequests": 1
   }

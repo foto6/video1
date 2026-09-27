@@ -178,6 +178,10 @@ class Orchestrator:
             receipt = self.operation_ledger.record_poll(receipt)
             poll = adapter.poll(context, receipt.external_operation_id or "")
             if not poll.done:
+                receipt = self.operation_ledger.record_poll_metadata(
+                    receipt,
+                    poll.metadata,
+                )
                 raise OperationPending(
                     f"external operation pending: {receipt.external_operation_id}"
                 )

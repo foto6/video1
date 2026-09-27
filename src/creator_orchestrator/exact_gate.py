@@ -218,6 +218,7 @@ def run_exact_growth_creator_media_gate(
     store = JsonJobStore(root / "jobs")
     media_client = FakeMediaJobV1Client(
         pending_polls=1,
+        reconciliation_blocked_polls=1,
         media_internal_retries=1,
     )
     crash = _CrashOnce("after_accept_persisted")
@@ -283,6 +284,12 @@ def run_exact_growth_creator_media_gate(
         for artifact in reversed(job.artifacts)
         if artifact.kind == "media_final_artifact"
     )
+    edit_key = job.completed_idempotency_keys[JobStage.EDIT.value]
+    media_receipt = runner.operation_ledger.load(
+        job.id,
+        JobStage.EDIT.value,
+        edit_key,
+    )
     analytics = next(
         artifact
         for artifact in reversed(job.artifacts)
@@ -328,6 +335,13 @@ def run_exact_growth_creator_media_gate(
             "executorInvocations": final_media.metadata["telemetry"]["sideEffects"][
                 "executorInvocations"
             ],
+            "reconciliationBlockedResponses": (
+                media_client.reconciliation_blocked_responses
+            ),
+            "mediaProtocolReconciliations": final_media.metadata["telemetry"][
+                "protocol"
+            ]["reconciliations"],
+            "operationPollAttempts": media_receipt.poll_attempts,
         },
         "creator": {
             "state": job.state.value,

@@ -91,3 +91,14 @@ The earlier generic resumable adapter/recovery tests remain in place to preserve
 ## Safety
 
 No social publishing or account mutation is added. Metricool remains queue/dry-run only, `RealPublishingDisabled` remains enforced, and no merge behavior is introduced.
+
+
+## Reconciliation-blocked recovery proof
+
+The exact Media fake can now emit the producer-conformant nonterminal state `status: "retry_wait"` with `reconciliation: {"required": true, "reason": "uncertain_render_attempt"}` and `retryOwner: "media"`.
+
+Creator persists that poll metadata on the already-accepted operation receipt, transitions the job to `waiting_retry`, and after restart continues `resume_or_poll` against the same durable Media `jobId`. It does not submit again, create a new logical render operation, or take ownership of Media reconciliation/render retries.
+
+The deterministic gate now requires this sequence: one accepted submit, one reconciliation-blocked response, restart, one non-blocked pending response, one final success response, one final artifact commit. Report counters expose `reconciliationBlockedResponses`, `mediaProtocolReconciliations`, `operationPollAttempts`, and `resumeCalls`.
+
+A negative identity-mismatch case mutates the blocked response's Media `jobId`/idempotency identity and verifies Creator fails closed before committing any final artifact.

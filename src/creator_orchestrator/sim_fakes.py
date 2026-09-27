@@ -312,20 +312,28 @@ class FakeMediaJobV1Client:
         self,
         *,
         pending_polls: int = 0,
+        reconciliation_blocked_polls: int = 0,
         response_timeout_after_acceptance_once: bool = False,
         media_internal_retries: int = 0,
+        conflicting_reconciliation_identity_once: bool = False,
     ) -> None:
         self.pending_polls = pending_polls
+        self.reconciliation_blocked_polls = reconciliation_blocked_polls
         self.response_timeout_after_acceptance_once = (
             response_timeout_after_acceptance_once
         )
         self.media_internal_retries = media_internal_retries
+        self.conflicting_reconciliation_identity_once = (
+            conflicting_reconciliation_identity_once
+        )
         self.submit_requests = 0
         self.accepted_jobs = 0
         self.resume_calls = 0
         self.status_calls = 0
         self.cancel_calls = 0
+        self.reconciliation_blocked_responses = 0
         self._timeout_used = False
+        self._conflicting_reconciliation_identity_used = False
         self._by_key: dict[str, str] = {}
         self._jobs: dict[str, dict[str, Any]] = {}
 
@@ -361,7 +369,7 @@ class FakeMediaJobV1Client:
                 "pollCount": job["poll_count"],
                 "resumeCount": job["resume_count"],
                 "cancelRequests": job["cancel_requests"],
-                "reconciliations": 0,
+                "reconciliations": job["reconciliations"],
             },
         }
 
@@ -386,7 +394,14 @@ class FakeMediaJobV1Client:
             "dryRun": dry_run,
             "renderFingerprint": job["render_fingerprint"],
             "retryOwner": "media",
-            "reconciliation": {"required": False},
+            "reconciliation": (
+                {
+                    "required": True,
+                    "reason": "uncertain_render_attempt",
+                }
+                if job["reconciliation_required"]
+                else {"required": False}
+            ),
             "failure": job.get("failure"),
             "finalArtifact": final_artifact,
             "telemetry": self._telemetry(job),
@@ -498,6 +513,9 @@ class FakeMediaJobV1Client:
                 "poll_count": 0,
                 "resume_count": 0,
                 "cancel_requests": 0,
+                "reconciliation_required": False,
+                "reconciliations": 0,
+                "nonblocked_pending_count": 0,
             }
             self._jobs[job_id] = job
             self._by_key[key] = job_id
@@ -531,10 +549,31 @@ class FakeMediaJobV1Client:
             self.resume_calls += 1
             job["resume_count"] += 1
             if job["status"] not in {"cancelled", "failed", "succeeded"}:
-                if job["resume_count"] > self.pending_polls:
-                    job["status"] = "succeeded"
-                else:
+                if job["resume_count"] <= self.reconciliation_blocked_polls:
+                    job["status"] = "retry_wait"
+                    job["reconciliation_required"] = True
+                    self.reconciliation_blocked_responses += 1
+                    response = self._snapshot(job)
+                    if (
+                        self.conflicting_reconciliation_identity_once
+                        and not self._conflicting_reconciliation_identity_used
+                    ):
+                        self._conflicting_reconciliation_identity_used = True
+                        response["jobId"] = response["jobId"] + "-conflict"
+                        response["idempotencyKey"] = (
+                            response["idempotencyKey"] + ":conflict"
+                        )
+                    return response
+
+                if job["reconciliation_required"]:
+                    job["reconciliation_required"] = False
+                    job["reconciliations"] += 1
+
+                if job["nonblocked_pending_count"] < self.pending_polls:
+                    job["nonblocked_pending_count"] += 1
                     job["status"] = "queued"
+                else:
+                    job["status"] = "succeeded"
             return self._snapshot(job)
 
         if action == "cancel":

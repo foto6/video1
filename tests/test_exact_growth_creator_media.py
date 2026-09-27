@@ -271,6 +271,128 @@ class ExactGrowthCreatorMediaTests(unittest.TestCase):
             self.assertEqual(client.accepted_jobs, 1)
             self.assertGreaterEqual(client.resume_calls, 3)
 
+    def test_reconciliation_blocked_restart_polls_same_media_job_until_success(self):
+        client = FakeMediaJobV1Client(
+            reconciliation_blocked_polls=1,
+            pending_polls=1,
+        )
+        with tempfile.TemporaryDirectory() as td:
+            crash = CrashOnce("after_accept_persisted")
+            store, first, _ = self._media_setup(td, client, hook=crash)
+            with self.assertRaises(OperationBoundaryCrash):
+                first.run_next("wave4-job")
+
+            accepted = self._receipt(store, first)
+            self.assertEqual(accepted.state, OperationState.ACCEPTED)
+            self.assertEqual(accepted.external_operation_id, "wave4-media-job")
+            self.assertEqual(client.submit_requests, 1)
+            self.assertEqual(client.accepted_jobs, 1)
+
+            store, blocked_runner, _ = self._media_setup(td, client)
+            blocked_job = blocked_runner.run_next("wave4-job")
+            self.assertEqual(blocked_job.state, JobState.WAITING_RETRY)
+            blocked_receipt = self._receipt(store, blocked_runner)
+            self.assertEqual(blocked_receipt.state, OperationState.ACCEPTED)
+            self.assertEqual(
+                blocked_receipt.external_operation_id,
+                accepted.external_operation_id,
+            )
+            self.assertEqual(
+                blocked_receipt.poll_metadata["status"],
+                "retry_wait",
+            )
+            self.assertEqual(
+                blocked_receipt.poll_metadata["reconciliation"],
+                {
+                    "required": True,
+                    "reason": "uncertain_render_attempt",
+                },
+            )
+            self.assertEqual(client.submit_requests, 1)
+            self.assertEqual(client.accepted_jobs, 1)
+            self.assertEqual(client.resume_calls, 1)
+
+            store, pending_runner, _ = self._media_setup(td, client)
+            pending_job = pending_runner.run_next("wave4-job")
+            self.assertEqual(pending_job.state, JobState.WAITING_RETRY)
+            pending_receipt = self._receipt(store, pending_runner)
+            self.assertEqual(
+                pending_receipt.external_operation_id,
+                accepted.external_operation_id,
+            )
+            self.assertEqual(pending_receipt.poll_metadata["status"], "queued")
+            self.assertEqual(
+                pending_receipt.poll_metadata["reconciliation"],
+                {"required": False},
+            )
+            self.assertEqual(client.submit_requests, 1)
+            self.assertEqual(client.accepted_jobs, 1)
+            self.assertEqual(client.resume_calls, 2)
+
+            store, final_runner, _ = self._media_setup(td, client)
+            final_job = final_runner.run_next("wave4-job")
+            self.assertEqual(final_job.state, JobState.PENDING)
+            final_receipt = self._receipt(store, final_runner)
+            self.assertEqual(final_receipt.state, OperationState.COMMITTED)
+            self.assertEqual(
+                final_receipt.external_operation_id,
+                accepted.external_operation_id,
+            )
+            self.assertEqual(final_receipt.poll_attempts, 3)
+            self.assertEqual(client.submit_requests, 1)
+            self.assertEqual(client.accepted_jobs, 1)
+            self.assertEqual(client.resume_calls, 3)
+            self.assertEqual(client.reconciliation_blocked_responses, 1)
+            final_artifacts = [
+                artifact
+                for artifact in final_job.artifacts
+                if artifact.kind == "media_final_artifact"
+            ]
+            self.assertEqual(len(final_artifacts), 1)
+            self.assertEqual(
+                final_artifacts[0].metadata["jobId"],
+                accepted.external_operation_id,
+            )
+            self.assertEqual(
+                final_artifacts[0].metadata["telemetry"]["protocol"][
+                    "reconciliations"
+                ],
+                1,
+            )
+
+    def test_reconciliation_blocked_identity_change_fails_closed(self):
+        client = FakeMediaJobV1Client(
+            reconciliation_blocked_polls=1,
+            conflicting_reconciliation_identity_once=True,
+        )
+        with tempfile.TemporaryDirectory() as td:
+            crash = CrashOnce("after_accept_persisted")
+            store, first, _ = self._media_setup(td, client, hook=crash)
+            with self.assertRaises(OperationBoundaryCrash):
+                first.run_next("wave4-job")
+            accepted = self._receipt(store, first)
+            self.assertEqual(accepted.external_operation_id, "wave4-media-job")
+
+            store, resumed, _ = self._media_setup(td, client)
+            failed = resumed.run_next("wave4-job")
+            self.assertEqual(failed.state, JobState.FAILED)
+            self.assertIn("Media jobId changed", failed.last_error)
+            receipt = self._receipt(store, resumed)
+            self.assertEqual(receipt.state, OperationState.ACCEPTED)
+            self.assertEqual(
+                receipt.external_operation_id,
+                accepted.external_operation_id,
+            )
+            self.assertEqual(client.submit_requests, 1)
+            self.assertEqual(client.accepted_jobs, 1)
+            self.assertEqual(client.resume_calls, 1)
+            self.assertFalse(
+                any(
+                    artifact.kind == "media_final_artifact"
+                    for artifact in failed.artifacts
+                )
+            )
+
     def test_restart_after_media_success_before_artifact_commit_uses_durable_result(self):
         client = FakeMediaJobV1Client(media_internal_retries=2)
         with tempfile.TemporaryDirectory() as td:
@@ -350,7 +472,10 @@ class ExactGrowthCreatorMediaTests(unittest.TestCase):
             self.assertEqual(left["growth"]["initialReplayStatus"], "duplicate")
             self.assertEqual(left["media"]["acceptedJobs"], 1)
             self.assertEqual(left["media"]["submitRequests"], 1)
-            self.assertGreaterEqual(left["media"]["resumeCalls"], 2)
+            self.assertEqual(left["media"]["reconciliationBlockedResponses"], 1)
+            self.assertEqual(left["media"]["mediaProtocolReconciliations"], 1)
+            self.assertEqual(left["media"]["operationPollAttempts"], 3)
+            self.assertEqual(left["media"]["resumeCalls"], 3)
             self.assertTrue(left["media"]["qaPassed"])
             self.assertEqual(left["media"]["mediaOwnedRetries"], 1)
             self.assertEqual(left["creator"]["state"], "complete")
