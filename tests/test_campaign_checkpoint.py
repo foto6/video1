@@ -278,6 +278,24 @@ class CampaignCheckpointTests(unittest.TestCase):
                     repo_root=ROOT,
                 )
 
+    def test_secret_filter_still_rejects_authorization_header(self):
+        config = load_campaign_fixture(SOURCE_CONFIG)
+        with tempfile.TemporaryDirectory() as td:
+            runner = CampaignRunner(td, config)
+            runner.initialize()
+            runner.step()
+            job_path = Path(td) / "jobs" / "checkpoint-repro-cycle-01.json"
+            raw = load_json(job_path)
+            raw["artifacts"][0]["metadata"]["Authorization"] = "Bearer must-not-export"
+            job_path.write_text(json.dumps(raw), encoding="utf-8")
+            with self.assertRaises(CampaignCheckpointSecretError):
+                export_campaign_checkpoint(
+                    td,
+                    campaign_id=config.campaign_id,
+                    campaign_config=config.raw,
+                    repo_root=ROOT,
+                )
+
     def test_pinned_growth_and_media_fixture_provenance_is_validated(self):
         pins = validate_producer_pins(ROOT)
         self.assertEqual(

@@ -1,0 +1,33 @@
+{
+  "plan": {
+    "artifactHash": "sha256:fc51b6d384c60b6787a167fffca900f0af748cc272515cf55ac804f8046927eb",
+    "artifactId": "publish-queue-item-77fe8cac01346135",
+    "candidateId": "release-candidate-8f974af88a41bcfa07521ff7",
+    "contractVersion": "release.dry_run_plan.v1",
+    "destinationScope": {
+      "action": "release",
+      "destination": "sim://release/channel/demo",
+      "provider": "local-release-sim"
+    },
+    "externalSideEffects": false,
+    "lineageHash": "sha256:6e4846556abc4adc46029352eea280f554b3c8533e2f496abd8f364c31da9706",
+    "planHash": "sha256:55c99ac473b9ae2856a575077cfcdfc43d9ba0076002928aed725c04bd383433",
+    "plannedAt": "2026-09-27T12:03:00+00:00",
+    "requestId": "release-request-f4e947ac5f96f212933478e1"
+  },
+  "result": {
+    "authorizationState": "pending",
+    "candidateId": "release-candidate-8f974af88a41bcfa07521ff7",
+    "completedAt": "2026-09-27T12:03:00+00:00",
+    "contractVersion": "release.dry_run_result.v1",
+    "destinationScope": {
+      "action": "release",
+      "destination": "sim://release/channel/demo",
+      "provider": "local-release-sim"
+    },
+    "externalSideEffects": 0,
+    "planHash": "sha256:55c99ac473b9ae2856a575077cfcdfc43d9ba0076002928aed725c04bd383433",
+    "requestId": "release-request-f4e947ac5f96f212933478e1",
+    "resultHash": "sha256:0206c8fa355ca17e9b5ecbf67f36803246a0e93914d7e38a17281ae6f4275c08"
+  }
+}

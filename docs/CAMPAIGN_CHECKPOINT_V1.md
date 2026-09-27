@@ -198,3 +198,12 @@ Property tests restore every boundary checkpoint into a fresh state root, contin
 ## Safety
 
 Checkpointing does not add publishing capability. The simulator remains queue-only, `RealPublishingDisabled` remains enforced, critic/revision behavior is unchanged, and existing exact Growth/Media integration continues to use the current frozen contracts.
+
+
+## Release-authorization lineage
+
+Wave 7 preserves the CampaignCheckpoint v1 top-level schema. Durable release-authorization events are mirrored as immutable `release_*` job artifacts and therefore participate in the existing per-job state hashes and artifact-lineage hash.
+
+Checkpoint validation replays and validates these release events. Checkpoint import rebuilds the local `release-authorizations/` ledger from the restored artifacts, preserving pending, approved, revoked, prepared-execution and committed-receipt states without serializing transient process state.
+
+Semantic authorization identifiers such as `authorizationId` are allowed as non-secret checkpoint data, while actual HTTP `Authorization` fields, bearer values, API keys and other credential-shaped fields remain rejected.

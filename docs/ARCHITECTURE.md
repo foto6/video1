@@ -89,3 +89,10 @@ The existing `media.render.v1` planning adapter and generic resumable adapter re
 Wave 6 adds the exact-only `creator.campaign_checkpoint.v1` format. It canonicalizes durable campaign/job/stage state, Growth seed identities, external-operation receipts, accepted Media jobs, artifact DAG and analytics identities while excluding process timestamps and failing closed on provider-secret fields. Import is idempotent for an identical checkpoint and refuses conflicting campaign identity. Restored accepted Media receipts continue the existing same-handle poll/resume rule and cannot resubmit unless the receipt proves the operation remained only `prepared`.
 
 See `docs/CAMPAIGN_CHECKPOINT_V1.md` and `fixtures/checkpoints/reproducibility_report_v1.json`.
+
+
+## Durable human release approval
+
+Wave 7 adds `release.authorization.v1` as a post-campaign release boundary. Creator can prepare a content-addressed candidate/approval request but only explicit external decisions can enter the authorization ledger. Final execution rechecks artifact hash, complete campaign lineage, scope, expiry and revocation before permitting a local-simulated adapter call.
+
+Release ledger events are mirrored into immutable job artifacts, so the existing CampaignCheckpoint v1 schema exports authorization lineage without adding provider secrets or transient state. Checkpoint import rebuilds pending/approved/revoked ledger state from those artifacts. Live release adapters remain disabled.

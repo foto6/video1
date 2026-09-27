@@ -10,6 +10,7 @@ from typing import Any, Mapping, Sequence
 
 from .lineage import LineageValidationError, validate_artifact_dag
 from .models import Artifact, STAGE_ORDER
+from .orchestrator import JsonJobStore
 from .simulator import CampaignConfig, CampaignRunner
 
 CAMPAIGN_CHECKPOINT_VERSION = "creator.campaign_checkpoint.v1"
@@ -38,13 +39,17 @@ _SECRET_KEY_MARKERS = {
     "password",
     "passwd",
     "secret",
-    "authorization",
     "apikey",
     "accesstoken",
     "refreshtoken",
     "cookie",
     "credential",
     "bearer",
+}
+_SECRET_EXACT_KEYS = {
+    "authorization",
+    "authorizationheader",
+    "proxyauthorization",
 }
 
 
@@ -138,7 +143,10 @@ def _assert_secret_free(value: Any, path: str = "$") -> None:
                     f"non-string object key at {path}"
                 )
             normalized = _normalized_key(key)
-            if any(marker in normalized for marker in _SECRET_KEY_MARKERS):
+            if (
+                normalized in _SECRET_EXACT_KEYS
+                or any(marker in normalized for marker in _SECRET_KEY_MARKERS)
+            ):
                 raise CampaignCheckpointSecretError(
                     f"secret-like field {key!r} cannot be checkpointed at {path}"
                 )
@@ -877,6 +885,11 @@ def validate_campaign_checkpoint(
         raise CampaignCheckpointIntegrityError("durable stage records mismatch")
 
     artifacts = _artifact_records(jobs, bundle["campaignState"])
+    from .release_authorization import validate_release_lineage_artifacts
+
+    validate_release_lineage_artifacts(
+        [_artifact_from_dict(artifact) for artifact in artifacts]
+    )
     expected_lineage = _lineage_records(artifacts)
     if bundle["artifactLineage"] != expected_lineage:
         raise CampaignCheckpointIntegrityError("artifact lineage mismatch")
@@ -1017,6 +1030,12 @@ def import_campaign_checkpoint(
             "checkpointHash": checkpoint_hash,
             "checkpointVersion": CAMPAIGN_CHECKPOINT_VERSION,
         }:
+            from .release_authorization import ReleaseAuthorizationLedger
+
+            ReleaseAuthorizationLedger.rebuild_from_job_artifacts(
+                root / "release-authorizations",
+                JsonJobStore(root / "jobs"),
+            )
             return CheckpointImportResult(
                 "duplicate",
                 campaign_id,
@@ -1092,6 +1111,13 @@ def import_campaign_checkpoint(
             for record in bundle["growthSeedRecords"]
         )
         _atomic_write(growth_path, growth_wire.encode("utf-8"))
+
+    from .release_authorization import ReleaseAuthorizationLedger
+
+    ReleaseAuthorizationLedger.rebuild_from_job_artifacts(
+        root / "release-authorizations",
+        JsonJobStore(root / "jobs"),
+    )
 
     marker_payload = {
         "campaignId": campaign_id,

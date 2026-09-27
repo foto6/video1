@@ -52,3 +52,8 @@ Wave 4 adds strict `growth.creator_seed.v1` ingestion and concrete `media.job.v1
 ## Reproducible campaign checkpoints
 
 `creator.campaign_checkpoint.v1` exports canonical content-addressed campaign state, durable stage/operation receipts, Growth/Media identities, lineage and producer provenance for idempotent restore/resume. Deterministic boundary fixtures and a reproducibility report live under `fixtures/checkpoints/`. See `docs/CAMPAIGN_CHECKPOINT_V1.md`.
+
+
+## Durable human approval gate
+
+`release.authorization.v1` binds a queued artifact hash and complete campaign lineage to explicit external approval, exact destination scope, expiry and idempotency. Only local simulated release execution is supported; live external mutation remains disabled. See `docs/RELEASE_AUTHORIZATION_V1.md`.
