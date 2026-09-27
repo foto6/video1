@@ -1,0 +1,21 @@
+{
+  "manifestVersion": "creator.cross_repo_fixture_manifest.v1",
+  "fixtures": [
+    {
+      "consumerPath": "fixtures/upstream/growth/creator_next_cycle_seed_v1.json",
+      "sourceRepo": "foto6/video3",
+      "sourceHead": "5c38b8844e91cc8e4f82ccf5e1aa135d32204b36",
+      "sourcePath": "fixtures/creator_next_cycle_seed_v1.json",
+      "gitBlobSha1": "6c663665313cacd10a34f84af153b2546a8dc2c0",
+      "sha256": "58e100ab79b8a52b0f1286dc0af2c83179fc918b40d82808731f234046839224"
+    },
+    {
+      "consumerPath": "fixtures/upstream/media/media.job.v1.consumer.json",
+      "sourceRepo": "foto6/video2",
+      "sourceHead": "cc542d626622c780fba2d03d094815d3dca240f9",
+      "sourcePath": "fixtures/creator-media/media.job.v1.consumer.json",
+      "gitBlobSha1": "678042975df835d258a249d3ec235d6f06b8c089",
+      "sha256": "02d6d0cc39ef746974c91cba54dfe2e84477bf68fd014cccd18525bc2f739cae"
+    }
+  ]
+}

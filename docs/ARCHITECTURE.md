@@ -75,3 +75,10 @@ Resumable asynchronous adapters use the same stage idempotency key plus a `JsonO
 This is opt-in through the structural `ResumableAdapter` protocol; ordinary synchronous adapters retain `execute(context)` unchanged. Creator's `OperationResumePolicy` bounds read-only polling/resume attempts separately from the existing synchronous `RetryPolicy`. Provider-internal retry policy remains provider-owned.
 
 The protocol-neutral `GenericResumableMediaAdapter` demonstrates the handoff while continuing to submit the frozen `media.render.v1` planning request with `dryRun: true`. Its generic submit/read client shape is not a video2 runtime contract. See `docs/EXTERNAL_OPERATION_RECOVERY.md`.
+
+
+## Exact Growth -> Creator -> Media durable integration
+
+Wave 4 pins the current Growth `growth.creator_seed.v1` and Media `media.job.v1` producer contracts. Creator consumes Growth batch identity exactly once through `JsonGrowthSeedLedger` and uses `MediaJobV1ResumableAdapter` for exact submit/status/resume_or_poll/cancel transport. Media remains retry owner for render/process/probe/QA/finalization.
+
+The existing `media.render.v1` planning adapter and generic resumable adapter remain backward compatible. Cross-repo fixture provenance and the deterministic two-cycle gate are documented in `docs/EXACT_GROWTH_CREATOR_MEDIA_DURABLE_INTEGRATION.md`.

@@ -42,3 +42,8 @@ See `docs/ARCHITECTURE.md` and `docs/AUTONOMOUS_CYCLE_SIMULATOR_V2.md`.
 ## Durable external operations
 
 Opt-in resumable adapters can persist provider-operation receipts across `prepared -> accepted -> result_obtained -> committed` without changing the synchronous adapter path. See `docs/EXTERNAL_OPERATION_RECOVERY.md`.
+
+
+## Exact producer integration
+
+Wave 4 adds strict `growth.creator_seed.v1` ingestion and concrete `media.job.v1` durable resume/poll integration using pinned producer fixtures. See `docs/EXACT_GROWTH_CREATOR_MEDIA_DURABLE_INTEGRATION.md`.

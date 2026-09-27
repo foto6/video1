@@ -308,7 +308,11 @@ class SimResearchAdapter(Adapter):
 
     def execute(self, context: StepContext) -> StepResult:
         response = self.client.research(topic=context.topic, idempotency_key=context.idempotency_key)
-        parents = tuple(a.id for a in context.artifacts if a.kind == "growth_feedback")
+        parents = tuple(
+            a.id
+            for a in context.artifacts
+            if a.kind in {"growth_feedback", "growth_feedback_batch"}
+        )
         artifact = Artifact(
             id=_artifact_id("research", context),
             kind="research",
@@ -456,7 +460,7 @@ class SimCriticAdapter(Adapter):
             if artifact.kind == "critic_decision" and artifact.metadata.get("decision") == "reject"
         )
         decision = "reject" if prior_rejects < self.planned_rejects else "accept"
-        media = _latest(context, "media_plan")
+        media = _latest(context, "media_final_artifact") or _latest(context, "media_plan")
         script = _latest(context, "script")
         parents = tuple(a.id for a in (script, media) if a is not None)
         ordinal = sum(1 for a in context.artifacts if a.kind == "critic_decision") + 1
@@ -486,7 +490,7 @@ class SimQueueAdapter(Adapter):
 
     def execute(self, context: StepContext) -> StepResult:
         critic = _latest(context, "critic_decision")
-        media = _latest(context, "media_plan")
+        media = _latest(context, "media_final_artifact") or _latest(context, "media_plan")
         if critic is None or critic.metadata.get("decision") != "accept":
             raise RealPublishingDisabled("simulator cannot queue without an accepted critic decision")
         manifest = {

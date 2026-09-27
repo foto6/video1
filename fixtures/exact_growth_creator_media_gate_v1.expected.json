@@ -1,0 +1,41 @@
+{
+  "contractVersion": "creator.exact_growth_media_gate.v1",
+  "creator": {
+    "artifactCount": 14,
+    "queueOnly": true,
+    "state": "complete"
+  },
+  "growth": {
+    "committedSeeds": 2,
+    "initialIdempotencyKey": "fb1:f0caad0fc7aeb4e27036f27c5ecdd143a7342d385557747464eacd34c4eb2340",
+    "initialReplayStatus": "duplicate",
+    "initialStatus": "committed",
+    "nextIdempotencyKey": "fb1:2d2f363c1c7c36058f416a331356f4391703fe80203cb4051599707285087c65"
+  },
+  "jobId": "wave4-cycle-02",
+  "lineage": {
+    "analyticsId": "analytics-feedback-0867da7a5ac047b8",
+    "edgeCount": 18,
+    "growthSeedId": "growth-seed-61041250841dd48d",
+    "mediaFinalId": "media-final-e0a92308f810fbda",
+    "nextGrowthSeedId": "growth-seed-24068bc9c8ffd638",
+    "nodeCount": 16
+  },
+  "media": {
+    "acceptedJobs": 1,
+    "cancelCalls": 0,
+    "executorInvocations": 2,
+    "finalArtifact": {
+      "outputPath": "outputs/creator/wave4-cycle-02.mp4",
+      "sha256": "5fe318e88e83deea663bdbae581379b2e59fc83383980ae90e9bb64044698f85",
+      "size": 2048
+    },
+    "jobId": "creator-wave4-cycle-02-edit",
+    "mediaOwnedRetries": 1,
+    "qaPassed": true,
+    "renderFingerprint": "1e4fe04ad5eb4977fa486e29435032e1495681b527c57ab0126c61422347b90c",
+    "resumeCalls": 2,
+    "statusCalls": 0,
+    "submitRequests": 1
+  }
+}

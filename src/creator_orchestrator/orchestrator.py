@@ -116,12 +116,18 @@ class Orchestrator:
         job_id: str,
         topic: str,
         *,
-        seed_artifacts: Sequence[SeedArtifactInput] = (),
+        seed_artifacts: Sequence[SeedArtifactInput | Artifact] = (),
     ) -> Job:
-        seeds = [
-            build_seed_artifact(job_id, seed, index)
-            for index, seed in enumerate(seed_artifacts)
-        ]
+        seeds: list[Artifact] = []
+        for index, seed in enumerate(seed_artifacts):
+            artifact = (
+                seed
+                if isinstance(seed, Artifact)
+                else build_seed_artifact(job_id, seed, index)
+            )
+            if any(existing.id == artifact.id for existing in seeds):
+                raise ValueError(f"duplicate seed artifact id: {artifact.id}")
+            seeds.append(artifact)
         job = Job(id=job_id, topic=topic, artifacts=seeds)
         self.store.save(job)
         return job
@@ -160,6 +166,7 @@ class Orchestrator:
         if receipt.state == OperationState.PREPARED:
             self._boundary("before_submit", receipt)
             acceptance = adapter.submit(context, receipt.request)
+            self._boundary("after_submit_before_accept_persisted", receipt)
             receipt = self.operation_ledger.accept(receipt, acceptance)
             self._boundary("after_accept_persisted", receipt)
 
