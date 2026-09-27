@@ -8,7 +8,8 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Mapping, Sequence
 
-from .models import Artifact, Evaluation, Job, JobStage, JobState, STAGE_ORDER, StepResult
+from .integration import SeedArtifactInput, build_seed_artifact
+from .models import Artifact, Evaluation, Job, JobStage, JobState
 from .ports import Adapter, EvaluationHook, StepContext
 
 
@@ -97,8 +98,18 @@ class Orchestrator:
         self.evaluation_hooks = tuple(evaluation_hooks)
         self.retry_policy = retry_policy or RetryPolicy()
 
-    def create_job(self, job_id: str, topic: str) -> Job:
-        job = Job(id=job_id, topic=topic)
+    def create_job(
+        self,
+        job_id: str,
+        topic: str,
+        *,
+        seed_artifacts: Sequence[SeedArtifactInput] = (),
+    ) -> Job:
+        seeds = [
+            build_seed_artifact(job_id, seed, index)
+            for index, seed in enumerate(seed_artifacts)
+        ]
+        job = Job(id=job_id, topic=topic, artifacts=seeds)
         self.store.save(job)
         return job
 
@@ -171,10 +182,7 @@ class Orchestrator:
             return job
 
         job = self.store.load(job_id)
-        evaluations = [
-            hook.evaluate(job, stage, result)
-            for hook in self.evaluation_hooks
-        ]
+        evaluations = [hook.evaluate(job, stage, result) for hook in self.evaluation_hooks]
         job.evaluations.extend(evaluations)
         rejected = next((item for item in evaluations if not item.approved), None)
         if rejected:
