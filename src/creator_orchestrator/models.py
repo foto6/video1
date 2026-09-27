@@ -76,6 +76,7 @@ class Job:
     state: JobState = JobState.PENDING
     stage_index: int = 0
     attempts: dict[str, int] = field(default_factory=dict)
+    idempotency_attempts: dict[str, int] = field(default_factory=dict)
     completed_idempotency_keys: dict[str, str] = field(default_factory=dict)
     artifacts: list[Artifact] = field(default_factory=list)
     evaluations: list[Evaluation] = field(default_factory=list)

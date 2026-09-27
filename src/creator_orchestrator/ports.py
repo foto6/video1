@@ -13,17 +13,15 @@ class StepContext:
     stage: JobStage
     idempotency_key: str
     artifacts: tuple[Artifact, ...]
+    attempt: int = 1
+    stage_attempt: int = 1
 
 
 class Adapter(Protocol):
     name: str
 
     def execute(self, context: StepContext) -> StepResult:
-        """Execute one workflow stage.
-
-        Implementations must treat ``context.idempotency_key`` as stable for
-        repeated delivery of the same logical stage.
-        """
+        """Execute one workflow stage using a stable idempotency key."""
 
 
 class EvaluationHook(Protocol):

@@ -1,0 +1,147 @@
+{
+  "campaignId": "round2-demo",
+  "completedCycles": [
+    1,
+    2,
+    3
+  ],
+  "reportArtifact": {
+    "created_at": "2026-09-30T02:00:00+00:00",
+    "id": "campaign-report-68dcfcf766812e26",
+    "kind": "campaign_report",
+    "metadata": {
+      "artifact_counts": {
+        "analytics_feedback": 3,
+        "asset_request": 5,
+        "campaign_report": 1,
+        "critic_decision": 5,
+        "growth_feedback": 2,
+        "idea": 3,
+        "media_plan": 5,
+        "media_request": 3,
+        "media_timeline_v1": 3,
+        "publish_queue_item": 3,
+        "research": 3,
+        "script": 5,
+        "visual_asset": 5,
+        "voice": 5,
+        "voice_request": 5
+      },
+      "campaignId": "round2-demo",
+      "contractVersion": "creator.campaign.sim.v2",
+      "critic_rejects": 2,
+      "cycle_transitions": 2,
+      "cycles": 3,
+      "duplicate_events_suppressed": 3,
+      "lineage": {
+        "edge_count": 70,
+        "leaf_ids": [
+          "analytics-feedback-4842979acd6dcc27",
+          "critic-decision-7386c5650484e0bf",
+          "critic-decision-d33e24410c71ef46",
+          "visual-asset-1e590dfd137daef2",
+          "visual-asset-dd4165c953867389",
+          "voice-5c87ddbd391008c3",
+          "voice-cca2fa4de554719b"
+        ],
+        "node_count": 55,
+        "root_ids": [
+          "research-5bffbb4a7b1331ee",
+          "seed-0-media_timeline_v1-724cd2619601ec9e",
+          "seed-1-media_timeline_v1-d6a79c0ae1664852",
+          "seed-1-media_timeline_v1-f8707d531109c2b9"
+        ]
+      },
+      "render_fingerprints": [
+        "d27fbd65bca1b4ebd5655ca7ce93c14258ae022aefbc4addce5ddbd605300327",
+        "d27fbd65bca1b4ebd5655ca7ce93c14258ae022aefbc4addce5ddbd605300327",
+        "d27fbd65bca1b4ebd5655ca7ce93c14258ae022aefbc4addce5ddbd605300327",
+        "d27fbd65bca1b4ebd5655ca7ce93c14258ae022aefbc4addce5ddbd605300327",
+        "d27fbd65bca1b4ebd5655ca7ce93c14258ae022aefbc4addce5ddbd605300327"
+      ],
+      "retries": 8,
+      "simulated_performance_feedback": [
+        {
+          "channel_id": "sim-channel",
+          "content_job_id": "round2-demo-cycle-01",
+          "contract_version": "1.0",
+          "evidence_event_ids": [
+            "cycle-1-a",
+            "cycle-1-b"
+          ],
+          "observed": {
+            "average_watch_time_seconds": 12.6875,
+            "ctr": 0.04,
+            "retention_auc": 0.53333333
+          },
+          "recommendations": [
+            "strengthen_opening_and_pacing"
+          ],
+          "score": 0.37401042,
+          "uncertainty": 0.02886751,
+          "variant_id": "cycle-01",
+          "video_id": "round2-demo-video-01"
+        },
+        {
+          "channel_id": "sim-channel",
+          "content_job_id": "round2-demo-cycle-02",
+          "contract_version": "1.0",
+          "evidence_event_ids": [
+            "cycle-2-a",
+            "cycle-2-b"
+          ],
+          "observed": {
+            "average_watch_time_seconds": 14.55882353,
+            "ctr": 0.04965517,
+            "retention_auc": 0.59310345
+          },
+          "recommendations": [
+            "strengthen_opening_and_pacing"
+          ],
+          "score": 0.43665061,
+          "uncertainty": 0.02626129,
+          "variant_id": "cycle-02",
+          "video_id": "round2-demo-video-02"
+        },
+        {
+          "channel_id": "sim-channel",
+          "content_job_id": "round2-demo-cycle-03",
+          "contract_version": "1.0",
+          "evidence_event_ids": [
+            "cycle-3-a",
+            "cycle-3-b"
+          ],
+          "observed": {
+            "average_watch_time_seconds": 16.44444444,
+            "ctr": 0.06,
+            "retention_auc": 0.65294118
+          },
+          "recommendations": [
+            "strengthen_opening_and_pacing"
+          ],
+          "score": 0.50180828,
+          "uncertainty": 0.02425356,
+          "variant_id": "cycle-03",
+          "video_id": "round2-demo-video-03"
+        }
+      ],
+      "stage_attempts": {
+        "analytics": 4,
+        "assets": 6,
+        "critic": 6,
+        "idea": 3,
+        "media": 6,
+        "queue": 4,
+        "research": 4,
+        "script": 6,
+        "voice": 6
+      }
+    },
+    "parents": [
+      "analytics-feedback-617a01044748b229",
+      "analytics-feedback-542d8233c12e2d6c",
+      "analytics-feedback-4842979acd6dcc27"
+    ]
+  },
+  "status": "complete"
+}

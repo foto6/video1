@@ -2,59 +2,67 @@
 
 ## Scope
 
-The MVP is a provider-neutral control plane for:
+The Creator Orchestrator is a provider-neutral control plane for:
 
 `research -> idea -> script -> assets -> voice -> edit -> critic -> publish queue -> analytics feedback`
 
-It deliberately does **not** publish content. The publish stage emits a queue manifest and the Metricool adapter refuses non-dry-run execution.
+The nine-stage order remains authoritative. Real publishing is disabled; the publish stage is queue/dry-run only.
 
-## Durable state machine
+## Durable job state
 
-`Job` persists the current stage index, attempts, artifacts, evaluations, errors, and completed idempotency keys. `JsonJobStore` writes each update through fsync plus atomic replace, so a process restart can resume from the durable record.
+`Job` persists stage index, aggregate stage attempts, per-idempotency-key attempts, completed idempotency keys, artifacts, evaluations and errors. `JsonJobStore` uses fsync plus atomic replacement so a restart can resume a job without replaying earlier completed stages.
 
-Stage transitions are monotonic. A stage result is evaluated, merged into artifact lineage, marked with its idempotency key, and only then advances the stage index.
+Per-idempotency-key attempt counts bound transient retries independently from aggregate stage attempts. This matters for critic revisions: rewinding a successful stage creates a new logical idempotency key without consuming the retry budget of the earlier revision.
 
-Round-1 seed artifacts are optional inputs created before stage 0. They do not add or reorder stages. Validated seed contents are defensively copied before persistence, are exposed in every subsequent `StepContext.artifacts`, and therefore participate in the same lineage-derived idempotency keys as generated artifacts.
+## Round-1 seed and Media contracts
 
-## Integration Round 1 / B3
+Optional immutable seed artifacts are created before stage 0 and therefore participate in stage-0 idempotency lineage.
 
-Two seed kinds are accepted:
+Supported seed kinds:
 
-- `growth_feedback`: strict Growth `CreatorFeedback` contract version exactly `1.0`; Creator mirrors the frozen ingress validation so unknown versions and malformed wire data fail before job persistence.
-- `media_timeline_v1`: a caller-supplied JSON timeline with `version: 1`. Creator does not infer durations, source metadata, ranges, or other Media-owned fields.
+- `growth_feedback`: strict Growth `CreatorFeedback` with `contract_version: "1.0"`.
+- `media_timeline_v1`: caller-supplied timeline with `version: 1`.
 
-The `MediaRenderPlanAdapter` is opt-in. It consumes exactly one `media_timeline_v1` seed and sends the B2 request fields `contractVersion`, `jobId`, `timeline`, `exportSpec`, `outputPath`, and `dryRun`, with `contractVersion: "media.render.v1"` and `dryRun: true`. Media remains authoritative for full timeline validation, canonicalization, command compilation, and fingerprinting.
+Creator never synthesizes missing timeline durations or source metadata. The opt-in `MediaRenderPlanAdapter` sends exactly the frozen B2 request fields for `media.render.v1` with `dryRun: true`. Media remains authoritative for timeline validation and render fingerprinting.
 
-A successful Media result is recorded as an immutable `media_plan` artifact whose direct parent is the timeline seed. The explicit `build_media_planning_orchestrator` assembly places this planning adapter at the existing edit stage for integration testing; the default assembly remains unchanged and continues to use `DescriptEditAdapter`.
+## Autonomous Content Cycle Simulator v2
 
-## Idempotency and retries
+Round 2 adds a separate deterministic campaign runtime rather than replacing the default pipeline.
 
-Each logical stage receives a stable SHA-256 idempotency key derived from job id, stage, and prior artifact lineage. Provider clients are required to use that key for deduplication. Retryable failures enter `waiting_retry`; attempt counters survive restarts. Exhausted or non-retryable failures become terminal.
+`CampaignRunner` executes multiple sequential Creator jobs. Cycle N analytics are deduplicated into a validated Growth 1.0 payload that becomes a `growth_feedback` seed for cycle N+1. The next-cycle seed has a parent edge to the prior `analytics_feedback` artifact, allowing campaign-wide lineage validation across job boundaries.
 
-The MVP cannot provide distributed exactly-once semantics across an external provider and the local store. The adapter boundary makes this explicit: providers must implement their own idempotent request semantics using the supplied key.
+`JsonCampaignStore` persists current cycle, job IDs, completed cycles, feedback payloads, handled critic decisions, analytics event digests and the final report artifact. `CampaignRunner.step()` performs at most one durable transition/stage attempt, so the process can be reconstructed between any two stages.
+
+### Bounded revisions
+
+Critic decisions are immutable `critic_decision` artifacts. A reject can rewind to a configured pre-critic stage. Historical artifacts are never deleted. `maxCriticRevisions` bounds the loop and turns excess rejects into a terminal campaign failure.
+
+### Failure injection
+
+The simulator can inject retryable failures in research, script, assets, voice, media, critic, queue and analytics. Injection uses persisted aggregate stage-attempt numbers, so restart does not repeatedly reproduce a first-attempt failure.
+
+### Provider harnesses
+
+Local deterministic fakes cover Runway, Descript, Metricool, vidIQ and Media Engine. Runway/Descript/Metricool/vidIQ fakes enforce stable idempotency semantics. The Media fake accepts only the exact `media.render.v1` six-field dry-run request and returns a deterministic render fingerprint.
+
+### Publishing safety
+
+There is no live-publishing field in the simulator contract. Unknown campaign/media fields fail closed. Queue execution always uses `action=queue_only` and `dry_run=True`; `FakeMetricool` rejects any other mode. Existing `RealPublishingDisabled` behavior is retained.
 
 ## Artifact lineage
 
-Every output is an immutable `Artifact` with producer, URI, metadata, and parent artifact IDs. This allows downstream outputs and critic/evaluation records to be traced back to source research, scripts, assets, voice, edits, and Round-1 seed inputs.
+Artifacts are immutable. `validate_artifact_dag()` verifies unique IDs, parent existence, duplicate/self-parent errors and cycles, and returns deterministic roots/leaves/topological order. Round-2 campaign validation spans all cycle jobs and the final campaign report.
 
-## Evaluation hooks
+## Campaign report
 
-Evaluation hooks run after a stage returns and before the state transition is committed. Hooks can attach score/notes and reject progress. The `critic` remains a first-class pipeline stage, while hooks support cross-cutting policy or quality checks.
-
-## Provider boundaries
-
-- **Runway**: `RunwayClient` / `RunwayAssetAdapter`
-- **Descript**: `DescriptClient` / voice and edit adapters
-- **Metricool**: `MetricoolClient` / queue-only publish adapter
-- **vidIQ**: `VidIQClient` / research and analytics adapters
-- **Media Engine**: `MediaEngineClient` / `MediaRenderPlanAdapter`, dry-run planning only
-
-No SDK is imported by the orchestration core. Clients can be implemented via MCP, HTTP APIs, local services, or test doubles without changing state-machine logic.
-
-## Safe publishing posture
-
-Real publishing is disabled in code. `MetricoolPublishQueueAdapter(dry_run=False)` raises `RealPublishingDisabled`. The default assembly has no provider clients attached and creates deterministic dry-run artifacts only. The B3 Media adapter always sends `dryRun: true` and exposes no publishing operation.
+The final `campaign_report` artifact records stage attempts, retries, critic rejects, artifact counts, cycle transitions, duplicate analytics suppressions, render fingerprints, simulated performance feedback and a lineage summary.
 
 ## Recovery model
 
-A process can reload a job from disk and call `run_next` again. A retryable provider failure preserves attempt count and stage. Terminal jobs are no-ops on repeated execution.
+- Job state survives restart at every stage.
+- Retry state is keyed by the stable logical idempotency key.
+- Critic rewind state is derivable from persisted critic artifacts plus campaign handled-decision IDs.
+- Cycle transition state and Growth feedback are persisted before the next job is created.
+- Terminal job/campaign states are idempotent on repeated execution.
+
+See `docs/AUTONOMOUS_CYCLE_SIMULATOR_V2.md` for the deterministic demo and test matrix.

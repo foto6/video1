@@ -12,6 +12,7 @@ from .integration import (
     validate_growth_feedback,
     validate_media_timeline_seed,
 )
+from .lineage import LineageReport, LineageValidationError, validate_artifact_dag
 from .models import Artifact, Evaluation, Job, JobStage, JobState, StepResult
 from .orchestrator import (
     EvaluationRejected,
@@ -19,12 +20,31 @@ from .orchestrator import (
     Orchestrator,
     RetryPolicy,
     RetryableStepError,
+    RevisionError,
 )
 from .ports import Adapter, EvaluationHook, StepContext
+from .simulator import (
+    CAMPAIGN_CONTRACT_VERSION,
+    CampaignConfig,
+    CampaignConfigError,
+    CampaignRunner,
+    CampaignSimulationError,
+    CampaignState,
+    DuplicateAnalyticsEventConflict,
+    JsonCampaignStore,
+    load_campaign_fixture,
+)
 
 __all__ = [
     "Adapter",
     "Artifact",
+    "CAMPAIGN_CONTRACT_VERSION",
+    "CampaignConfig",
+    "CampaignConfigError",
+    "CampaignRunner",
+    "CampaignSimulationError",
+    "CampaignState",
+    "DuplicateAnalyticsEventConflict",
     "Evaluation",
     "EvaluationHook",
     "EvaluationRejected",
@@ -34,7 +54,10 @@ __all__ = [
     "Job",
     "JobStage",
     "JobState",
+    "JsonCampaignStore",
     "JsonJobStore",
+    "LineageReport",
+    "LineageValidationError",
     "MEDIA_RENDER_CONTRACT_VERSION",
     "MediaEngineClient",
     "MediaIntegrationError",
@@ -42,9 +65,12 @@ __all__ = [
     "Orchestrator",
     "RetryPolicy",
     "RetryableStepError",
+    "RevisionError",
     "SeedArtifactInput",
     "StepContext",
     "StepResult",
+    "load_campaign_fixture",
+    "validate_artifact_dag",
     "validate_growth_feedback",
     "validate_media_timeline_seed",
 ]

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Mapping, Sequence
 
 from .integration import SeedArtifactInput, build_seed_artifact
-from .models import Artifact, Evaluation, Job, JobStage, JobState
+from .models import Artifact, Evaluation, Job, JobStage, JobState, STAGE_ORDER
 from .ports import Adapter, EvaluationHook, StepContext
 
 
@@ -25,6 +25,10 @@ class MissingAdapter(RuntimeError):
     pass
 
 
+class RevisionError(RuntimeError):
+    pass
+
+
 class RetryPolicy:
     def __init__(self, max_attempts: int = 3) -> None:
         if max_attempts < 1:
@@ -33,8 +37,6 @@ class RetryPolicy:
 
 
 class JsonJobStore:
-    """Small durable store using atomic file replacement."""
-
     def __init__(self, directory: str | os.PathLike[str]) -> None:
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
@@ -46,10 +48,7 @@ class JsonJobStore:
         return self.directory / f"{safe}.json"
 
     def save(self, job: Job) -> None:
-        payload = {
-            **asdict(job),
-            "state": job.state.value,
-        }
+        payload = {**asdict(job), "state": job.state.value}
         path = self._path(job.id)
         fd, temp_name = tempfile.mkstemp(prefix=path.name, dir=self.directory)
         try:
@@ -66,12 +65,7 @@ class JsonJobStore:
         data = json.loads(self._path(job_id).read_text(encoding="utf-8"))
         data["state"] = JobState(data["state"])
         data["artifacts"] = [
-            Artifact(
-                **{
-                    **artifact,
-                    "parents": tuple(artifact.get("parents", ())),
-                }
-            )
+            Artifact(**{**artifact, "parents": tuple(artifact.get("parents", ()))})
             for artifact in data.get("artifacts", [])
         ]
         data["evaluations"] = [Evaluation(**item) for item in data.get("evaluations", [])]
@@ -79,13 +73,6 @@ class JsonJobStore:
 
 
 class Orchestrator:
-    """Durable stage machine for the creator pipeline.
-
-    A job advances only after the stage result, evaluations, lineage and
-    idempotency key are persisted together. Provider adapters receive a stable
-    idempotency key so external calls can deduplicate redelivery.
-    """
-
     def __init__(
         self,
         store: JsonJobStore,
@@ -116,8 +103,22 @@ class Orchestrator:
     @staticmethod
     def _idempotency_key(job: Job, stage: JobStage) -> str:
         lineage = ",".join(a.id for a in job.artifacts)
-        raw = f"{job.id}|{stage.value}|{lineage}".encode()
-        return hashlib.sha256(raw).hexdigest()
+        return hashlib.sha256(f"{job.id}|{stage.value}|{lineage}".encode()).hexdigest()
+
+    def request_revision(self, job_id: str, stage: JobStage) -> Job:
+        target = STAGE_ORDER.index(stage)
+        critic = STAGE_ORDER.index(JobStage.CRITIC)
+        if target >= critic:
+            raise RevisionError("revision target must be before critic")
+        job = self.store.load(job_id)
+        if job.stage_index < critic:
+            raise RevisionError("revision may only be requested after critic execution")
+        job.stage_index = target
+        job.state = JobState.PENDING
+        job.last_error = None
+        job.touch()
+        self.store.save(job)
+        return job
 
     def run_next(self, job_id: str) -> Job:
         job = self.store.load(job_id)
@@ -150,6 +151,8 @@ class Orchestrator:
 
         job.state = JobState.RUNNING
         job.attempts[stage.value] = job.attempts.get(stage.value, 0) + 1
+        job.idempotency_attempts[key] = job.idempotency_attempts.get(key, 0) + 1
+        logical_attempt = job.idempotency_attempts[key]
         job.touch()
         self.store.save(job)
 
@@ -159,17 +162,19 @@ class Orchestrator:
             stage=stage,
             idempotency_key=key,
             artifacts=tuple(job.artifacts),
+            attempt=logical_attempt,
+            stage_attempt=job.attempts[stage.value],
         )
-
         try:
             result = adapter.execute(context)
         except RetryableStepError as exc:
             job = self.store.load(job_id)
             job.last_error = str(exc)
-            if job.attempts[stage.value] >= self.retry_policy.max_attempts:
-                job.state = JobState.FAILED
-            else:
-                job.state = JobState.WAITING_RETRY
+            job.state = (
+                JobState.FAILED
+                if job.idempotency_attempts.get(key, 0) >= self.retry_policy.max_attempts
+                else JobState.WAITING_RETRY
+            )
             job.touch()
             self.store.save(job)
             return job
@@ -182,7 +187,10 @@ class Orchestrator:
             return job
 
         job = self.store.load(job_id)
-        evaluations = [hook.evaluate(job, stage, result) for hook in self.evaluation_hooks]
+        evaluations = [
+            hook.evaluate(job, stage, result)
+            for hook in self.evaluation_hooks
+        ]
         job.evaluations.extend(evaluations)
         rejected = next((item for item in evaluations if not item.approved), None)
         if rejected:
