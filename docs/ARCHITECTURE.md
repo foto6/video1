@@ -66,3 +66,12 @@ The final `campaign_report` artifact records stage attempts, retries, critic rej
 - Terminal job/campaign states are idempotent on repeated execution.
 
 See `docs/AUTONOMOUS_CYCLE_SIMULATOR_V2.md` for the deterministic demo and test matrix.
+
+
+## Durable external-operation handoff
+
+Resumable asynchronous adapters use the same stage idempotency key plus a `JsonOperationLedger` receipt with `prepared`, `accepted`, `result_obtained`, and `committed` states. Once an accepted external handle is persisted, restart paths poll that handle rather than resubmitting the logical operation. A durable provider result can be committed after restart without another provider call.
+
+This is opt-in through the structural `ResumableAdapter` protocol; ordinary synchronous adapters retain `execute(context)` unchanged. Creator's `OperationResumePolicy` bounds read-only polling/resume attempts separately from the existing synchronous `RetryPolicy`. Provider-internal retry policy remains provider-owned.
+
+The protocol-neutral `GenericResumableMediaAdapter` demonstrates the handoff while continuing to submit the frozen `media.render.v1` planning request with `dryRun: true`. Its generic submit/read client shape is not a video2 runtime contract. See `docs/EXTERNAL_OPERATION_RECOVERY.md`.

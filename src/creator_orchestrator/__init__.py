@@ -1,5 +1,20 @@
 """Provider-neutral creator orchestration primitives."""
 
+from .external_ops import (
+    JsonOperationLedger,
+    OperationAcceptance,
+    OperationBoundaryCrash,
+    OperationConflictError,
+    OperationLedgerError,
+    OperationPending,
+    OperationPollResult,
+    OperationPollTimeout,
+    OperationPollingExhausted,
+    OperationReceipt,
+    OperationResumePolicy,
+    OperationState,
+    ResumableAdapter,
+)
 from .integration import (
     GROWTH_FEEDBACK_CONTRACT_VERSION,
     MEDIA_RENDER_CONTRACT_VERSION,
@@ -23,6 +38,7 @@ from .orchestrator import (
     RevisionError,
 )
 from .ports import Adapter, EvaluationHook, StepContext
+from .resumable_media import GenericResumableMediaAdapter, ResumableOperationClient
 from .simulator import (
     CAMPAIGN_CONTRACT_VERSION,
     CampaignConfig,
@@ -49,6 +65,7 @@ __all__ = [
     "EvaluationHook",
     "EvaluationRejected",
     "GROWTH_FEEDBACK_CONTRACT_VERSION",
+    "GenericResumableMediaAdapter",
     "GrowthFeedbackValidationError",
     "IntegrationContractError",
     "Job",
@@ -56,13 +73,27 @@ __all__ = [
     "JobState",
     "JsonCampaignStore",
     "JsonJobStore",
+    "JsonOperationLedger",
     "LineageReport",
     "LineageValidationError",
     "MEDIA_RENDER_CONTRACT_VERSION",
     "MediaEngineClient",
     "MediaIntegrationError",
     "MediaRenderPlanAdapter",
+    "OperationAcceptance",
+    "OperationBoundaryCrash",
+    "OperationConflictError",
+    "OperationLedgerError",
+    "OperationPending",
+    "OperationPollResult",
+    "OperationPollTimeout",
+    "OperationPollingExhausted",
+    "OperationReceipt",
+    "OperationResumePolicy",
+    "OperationState",
     "Orchestrator",
+    "ResumableAdapter",
+    "ResumableOperationClient",
     "RetryPolicy",
     "RetryableStepError",
     "RevisionError",

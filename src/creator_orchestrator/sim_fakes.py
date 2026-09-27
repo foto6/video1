@@ -215,3 +215,91 @@ class FailureInjectingAdapter(Adapter):
                 f"injected transient failure stage={alias} attempt={context.stage_attempt}"
             )
         return self.wrapped.execute(context)
+
+
+class FakeResumableMediaOperationClient:
+    """Deterministic remote-operation fake with one side-effecting submit per key."""
+
+    def __init__(
+        self,
+        *,
+        pending_polls: int = 0,
+        timeout_poll_numbers: set[int] | None = None,
+    ) -> None:
+        self.pending_polls = pending_polls
+        self.timeout_poll_numbers = set(timeout_poll_numbers or ())
+        self.submit_calls = 0
+        self.poll_calls = 0
+        self._by_key: dict[str, tuple[str, str]] = {}
+        self._operations: dict[str, dict[str, Any]] = {}
+        self._polls_by_handle: dict[str, int] = {}
+
+    def submit_operation(
+        self,
+        request: Mapping[str, Any],
+        *,
+        idempotency_key: str,
+    ) -> str:
+        request_wire = _canonical(request)
+        existing = self._by_key.get(idempotency_key)
+        if existing is not None:
+            previous_wire, handle = existing
+            if previous_wire != request_wire:
+                raise DuplicateRequestConflict(
+                    f"idempotency conflict for {idempotency_key}"
+                )
+            return handle
+
+        handle = (
+            "operation-"
+            + hashlib.sha256(
+                f"{idempotency_key}|{request_wire}".encode("utf-8")
+            ).hexdigest()[:16]
+        )
+        plan_input = {
+            "timeline": request["timeline"],
+            "exportSpec": request["exportSpec"],
+        }
+        fingerprint = hashlib.sha256(
+            _canonical(plan_input).encode("utf-8")
+        ).hexdigest()
+        result = {
+            "contractVersion": MEDIA_RENDER_CONTRACT_VERSION,
+            "jobId": request["jobId"],
+            "dryRun": True,
+            "validation": {
+                "ok": True,
+                "timelineVersion": request["timeline"]["version"],
+            },
+            "renderFingerprint": fingerprint,
+            "command": ["ffmpeg", "-i", "<resumable-dry-run-plan>"],
+        }
+        self.submit_calls += 1
+        self._by_key[idempotency_key] = (request_wire, handle)
+        self._operations[handle] = {
+            "request": json.loads(request_wire),
+            "result": result,
+        }
+        self._polls_by_handle[handle] = 0
+        return handle
+
+    def read_operation(self, external_operation_id: str) -> Mapping[str, Any]:
+        from .external_ops import OperationPollTimeout
+
+        if external_operation_id not in self._operations:
+            raise KeyError(external_operation_id)
+        self.poll_calls += 1
+        self._polls_by_handle[external_operation_id] += 1
+        poll_number = self._polls_by_handle[external_operation_id]
+        if poll_number in self.timeout_poll_numbers:
+            raise OperationPollTimeout(
+                f"simulated provider poll timeout #{poll_number}"
+            )
+        if poll_number <= self.pending_polls:
+            return {"state": "pending"}
+        return {
+            "state": "succeeded",
+            "result": json.loads(
+                _canonical(self._operations[external_operation_id]["result"])
+            ),
+        }
