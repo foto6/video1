@@ -82,3 +82,10 @@ The protocol-neutral `GenericResumableMediaAdapter` demonstrates the handoff whi
 Wave 4 pins the current Growth `growth.creator_seed.v1` and Media `media.job.v1` producer contracts. Creator consumes Growth batch identity exactly once through `JsonGrowthSeedLedger` and uses `MediaJobV1ResumableAdapter` for exact submit/status/resume_or_poll/cancel transport. Media remains retry owner for render/process/probe/QA/finalization.
 
 The existing `media.render.v1` planning adapter and generic resumable adapter remain backward compatible. Cross-repo fixture provenance and the deterministic two-cycle gate are documented in `docs/EXACT_GROWTH_CREATOR_MEDIA_DURABLE_INTEGRATION.md`.
+
+
+## Reproducible campaign checkpoint/export
+
+Wave 6 adds the exact-only `creator.campaign_checkpoint.v1` format. It canonicalizes durable campaign/job/stage state, Growth seed identities, external-operation receipts, accepted Media jobs, artifact DAG and analytics identities while excluding process timestamps and failing closed on provider-secret fields. Import is idempotent for an identical checkpoint and refuses conflicting campaign identity. Restored accepted Media receipts continue the existing same-handle poll/resume rule and cannot resubmit unless the receipt proves the operation remained only `prepared`.
+
+See `docs/CAMPAIGN_CHECKPOINT_V1.md` and `fixtures/checkpoints/reproducibility_report_v1.json`.

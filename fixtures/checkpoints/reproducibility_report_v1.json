@@ -1,0 +1,141 @@
+{
+  "checkpointVersion": "creator.campaign_checkpoint.v1",
+  "checkpoints": [
+    {
+      "checkpointHash": "sha256:37b09ccd5e3b90cd0cf443532615356aa7c220f2298618cceba562f8e2dad44b",
+      "cycleIndex": 1,
+      "jobStateHashes": [
+        {
+          "jobId": "checkpoint-repro-cycle-01",
+          "stateHash": "sha256:73788701a0088836f28e50ef31aff2f9718191a7e8cba833c8a4947e564b7e22"
+        }
+      ],
+      "lineageHash": "sha256:73e7142d934d9689ef1613a3cd0a034d9fa2b0202d280179b612acca95dd6f84",
+      "path": "fixtures/checkpoints/00_created.checkpoint.json"
+    },
+    {
+      "checkpointHash": "sha256:5b1293b0fbcd25de97db4c876a9232c327b8bd8e48221bf6f3b6a426294f4273",
+      "cycleIndex": 1,
+      "jobStateHashes": [
+        {
+          "jobId": "checkpoint-repro-cycle-01",
+          "stateHash": "sha256:d3a3a5d03120e6759b4919f3c66bd5d96633fc207b2b683ef1d25a1a2be67cc6"
+        }
+      ],
+      "lineageHash": "sha256:6fe97766204435724d6abdb05c0585e3a0423ea91bfa2e850e3e934510ef6665",
+      "path": "fixtures/checkpoints/01_research.checkpoint.json"
+    },
+    {
+      "checkpointHash": "sha256:42332bb91e5cf37513c8cee6d6bb5f1bf750533cfc3d4fb5faa810620faa6116",
+      "cycleIndex": 1,
+      "jobStateHashes": [
+        {
+          "jobId": "checkpoint-repro-cycle-01",
+          "stateHash": "sha256:44a1fc5a3c2edee5b16d63066e425b7e83ea1a6ce4bf1a4ab6393c5d874b9118"
+        }
+      ],
+      "lineageHash": "sha256:7a29728a822ec62c21272b9d1bf2dc6f38119aec0b93e3f63ef3be023174c4da",
+      "path": "fixtures/checkpoints/02_idea.checkpoint.json"
+    },
+    {
+      "checkpointHash": "sha256:020e91c09900d219ee7d0656a390eefb1a80c65dd36c401cea30161c133f04a4",
+      "cycleIndex": 1,
+      "jobStateHashes": [
+        {
+          "jobId": "checkpoint-repro-cycle-01",
+          "stateHash": "sha256:1991fcf32d1c85d16bc663ab8f8e34b769ed1f2e632f4922c00a3df7f4e4a4c3"
+        }
+      ],
+      "lineageHash": "sha256:569c4711f7231e898b55dba0bbf26dfd5666598a8ae76d263213442ce7a55cf1",
+      "path": "fixtures/checkpoints/03_script.checkpoint.json"
+    },
+    {
+      "checkpointHash": "sha256:d12591bc07781438b42408f73a57733785a9448f38a8d804cc41aa80038617f5",
+      "cycleIndex": 1,
+      "jobStateHashes": [
+        {
+          "jobId": "checkpoint-repro-cycle-01",
+          "stateHash": "sha256:8fe2f1e82b8899cf9ba7447b75727c6511ddc0b73d669183eed043154cf9c22e"
+        }
+      ],
+      "lineageHash": "sha256:69042efce90e3ff2a985e6b4d8d6a03d08e15624c2540feea5592611915e0735",
+      "path": "fixtures/checkpoints/04_assets.checkpoint.json"
+    },
+    {
+      "checkpointHash": "sha256:c4a95ee4b7bee8d167d546ba90da8dddf9443390c4a4b3e99c92e7bafc2941a6",
+      "cycleIndex": 1,
+      "jobStateHashes": [
+        {
+          "jobId": "checkpoint-repro-cycle-01",
+          "stateHash": "sha256:cfc8b3f027e366ad46e66dad94cada1265158d0abaf101fda06a7b862b437752"
+        }
+      ],
+      "lineageHash": "sha256:328f1c9f8134d385ce2370d4cc7ba9c1c05b10399cee5bef5ef228a4ee73bd1a",
+      "path": "fixtures/checkpoints/05_voice.checkpoint.json"
+    },
+    {
+      "checkpointHash": "sha256:000dbec1404acc4324bcb8fbd62e1874cf255c159c814fa347076cffba6888d9",
+      "cycleIndex": 1,
+      "jobStateHashes": [
+        {
+          "jobId": "checkpoint-repro-cycle-01",
+          "stateHash": "sha256:7ea0a0fe9a5fba28ce54904d18016f654f43d99d458b8af1c6bdc6cb84e96833"
+        }
+      ],
+      "lineageHash": "sha256:38e66f2ab462d9b21a5090154914851c080b6ef12b9e95d99f6b7d58b0996ac3",
+      "path": "fixtures/checkpoints/06_edit.checkpoint.json"
+    },
+    {
+      "checkpointHash": "sha256:370e5e391e5ca6d8ad26135488093c4ea6f94827c677e83e86d58d6cc14b13b3",
+      "cycleIndex": 1,
+      "jobStateHashes": [
+        {
+          "jobId": "checkpoint-repro-cycle-01",
+          "stateHash": "sha256:34525f063c65382e7ad32e5e0b3d4d4762a4bd116fac6026143fc993574c5cb7"
+        }
+      ],
+      "lineageHash": "sha256:cf457f62289f541dfb50efb2bb8e938339e0369d02a363f541d090e1943249e5",
+      "path": "fixtures/checkpoints/07_critic.checkpoint.json"
+    },
+    {
+      "checkpointHash": "sha256:c4f3b801eb1bf94f1f5aab53ef55d48fc5aa407486423852719a8075e4dde158",
+      "cycleIndex": 1,
+      "jobStateHashes": [
+        {
+          "jobId": "checkpoint-repro-cycle-01",
+          "stateHash": "sha256:5af62c3389f78dddd3b067f8b23dc67632f41d731fa91dac80a5e96665425eb0"
+        }
+      ],
+      "lineageHash": "sha256:d24d63c408625b9c073517f7af092e9e34bbba4c56296bd564fd84e9fac18fe2",
+      "path": "fixtures/checkpoints/08_publish_queue.checkpoint.json"
+    },
+    {
+      "checkpointHash": "sha256:3ec49ed8009e7b2e300dca46f9b5d9d0396ac34d81044202fa12e6f3875c626e",
+      "cycleIndex": 1,
+      "jobStateHashes": [
+        {
+          "jobId": "checkpoint-repro-cycle-01",
+          "stateHash": "sha256:8ca77f4d2d4124278899c800165be48ba8e8b5d7805bba6df0c6982cce80ddda"
+        }
+      ],
+      "lineageHash": "sha256:f5e0f70d0c7669feb1942db0418b89ee5956f16ae1d0e4174c6fe237dbb73e54",
+      "path": "fixtures/checkpoints/09_analytics.checkpoint.json"
+    },
+    {
+      "checkpointHash": "sha256:149712c38b92fccd0725427472b46a6f8babb095f41e9fcc9d4e4a1c450d8fd3",
+      "cycleIndex": 1,
+      "jobStateHashes": [
+        {
+          "jobId": "checkpoint-repro-cycle-01",
+          "stateHash": "sha256:8ca77f4d2d4124278899c800165be48ba8e8b5d7805bba6df0c6982cce80ddda"
+        }
+      ],
+      "lineageHash": "sha256:6e4846556abc4adc46029352eea280f554b3c8533e2f496abd8f364c31da9706",
+      "path": "fixtures/checkpoints/10_terminal.checkpoint.json"
+    }
+  ],
+  "finalCheckpointHash": "sha256:149712c38b92fccd0725427472b46a6f8babb095f41e9fcc9d4e4a1c450d8fd3",
+  "finalLineageHash": "sha256:6e4846556abc4adc46029352eea280f554b3c8533e2f496abd8f364c31da9706",
+  "producerPinsHash": "sha256:e10425c79201ede4196a8acf064a3f22a550c78909b3aa4052f81aa1b1c9412b",
+  "reportVersion": "creator.reproducibility_report.v1"
+}

@@ -1,0 +1,74 @@
+{
+  "campaignId": "checkpoint-repro",
+  "contractVersion": "creator.campaign.sim.v2",
+  "critic": {
+    "rejectsByCycle": {},
+    "revisionStage": "script"
+  },
+  "cycles": 1,
+  "failures": {},
+  "maxAttemptsPerStage": 3,
+  "maxCriticRevisions": 2,
+  "media": {
+    "exportSpec": {
+      "audioBitrate": "128k",
+      "audioCodec": "aac",
+      "pixelFormat": "yuv420p",
+      "videoBitrate": "4M",
+      "videoCodec": "libx264"
+    },
+    "outputPathTemplate": "round2-temp/{campaign_id}/{cycle}.mp4",
+    "timeline": {
+      "canvas": {
+        "durationMs": 4000,
+        "fps": 30,
+        "height": 1280,
+        "width": 720
+      },
+      "id": "round2-canonical-timeline",
+      "tracks": [
+        {
+          "id": "captions",
+          "items": [
+            {
+              "endMs": 1700,
+              "id": "caption-1",
+              "startMs": 500,
+              "style": {
+                "fontSize": 40
+              },
+              "text": "Round 2 deterministic plan"
+            }
+          ],
+          "kind": "caption"
+        },
+        {
+          "id": "video",
+          "items": [
+            {
+              "endMs": 2000,
+              "id": "clip-1",
+              "source": {
+                "inMs": 0,
+                "uri": "round2-input/clip-a.mp4"
+              },
+              "startMs": 0
+            },
+            {
+              "endMs": 4000,
+              "id": "clip-2",
+              "source": {
+                "inMs": 250,
+                "uri": "round2-input/clip-b.mp4"
+              },
+              "startMs": 2000
+            }
+          ],
+          "kind": "video"
+        }
+      ],
+      "version": 1
+    }
+  },
+  "topic": "deterministic autonomous creator simulation"
+}

@@ -47,3 +47,8 @@ Opt-in resumable adapters can persist provider-operation receipts across `prepar
 ## Exact producer integration
 
 Wave 4 adds strict `growth.creator_seed.v1` ingestion and concrete `media.job.v1` durable resume/poll integration using pinned producer fixtures. See `docs/EXACT_GROWTH_CREATOR_MEDIA_DURABLE_INTEGRATION.md`.
+
+
+## Reproducible campaign checkpoints
+
+`creator.campaign_checkpoint.v1` exports canonical content-addressed campaign state, durable stage/operation receipts, Growth/Media identities, lineage and producer provenance for idempotent restore/resume. Deterministic boundary fixtures and a reproducibility report live under `fixtures/checkpoints/`. See `docs/CAMPAIGN_CHECKPOINT_V1.md`.
