@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - agent/creator-orchestrator
+      - agent/creator-campaign-chaos
   pull_request:
 
 jobs:

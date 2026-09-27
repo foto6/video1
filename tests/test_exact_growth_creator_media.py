@@ -132,12 +132,12 @@ class ExactGrowthCreatorMediaTests(unittest.TestCase):
         by_path = {item["consumerPath"]: item for item in manifest["fixtures"]}
         expected = {
             "fixtures/upstream/growth/creator_next_cycle_seed_v1.json": (
-                "5c38b8844e91cc8e4f82ccf5e1aa135d32204b36",
+                "8d1a94cae77f2886b514477c272d7bc6de978042",
                 "6c663665313cacd10a34f84af153b2546a8dc2c0",
                 "58e100ab79b8a52b0f1286dc0af2c83179fc918b40d82808731f234046839224",
             ),
             "fixtures/upstream/media/media.job.v1.consumer.json": (
-                "cc542d626622c780fba2d03d094815d3dca240f9",
+                "c921308a9deef916d088dc7c2c1186071eccb6e8",
                 "678042975df835d258a249d3ec235d6f06b8c089",
                 "02d6d0cc39ef746974c91cba54dfe2e84477bf68fd014cccd18525bc2f739cae",
             ),
