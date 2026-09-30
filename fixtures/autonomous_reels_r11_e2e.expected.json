@@ -1,0 +1,86 @@
+{
+  "canonicalProfile": {
+    "aspectRatio": "9:16",
+    "height": 1920,
+    "hookWindowSeconds": {
+      "end": 3.0,
+      "start": 0.0
+    },
+    "platforms": [
+      "instagram_reels",
+      "tiktok",
+      "youtube_shorts"
+    ],
+    "profileDigest": "56f676ced96575d4703d93740aee593d77f3de8eea1d31c935299b9af3f1c447",
+    "targetDurationSeconds": {
+      "max": 60.0,
+      "min": 15.0
+    },
+    "width": 1080
+  },
+  "contractVersion": "creator.autonomous_reels_e2e_evidence.v1",
+  "cycle": {
+    "cycleId": "cycle-2",
+    "cycleRevision": 2,
+    "topic": "editing workflow"
+  },
+  "faultMatrix": {
+    "crashAfterEveryStage": "reopen_and_duplicate_noop",
+    "duplicateMediaResult": "duplicate_noop_conflict_rejected",
+    "expiredReleaseAuthorization": "rejected_before_provider_call",
+    "lostGrowthAcknowledgement": "duplicate_after_restart",
+    "lostPublishAcknowledgement": "provider_recovery_same_idempotency_key",
+    "publishResultAfterEffect": "one_accepted_effect",
+    "staleGrowthSeed": "rejected"
+  },
+  "publishRecovery": {
+    "acceptedEffects": 1,
+    "providerCalls": 1
+  },
+  "sourcePins": {
+    "growth": {
+      "branch": "agent/growth-r10-autonomous-reels-20261001",
+      "contractBlobSha": "f69f564c51f0ed42c5e9b0ebb9420173bd4f5bb7",
+      "contractPath": "growth_analytics/autonomous_reels.py",
+      "contractVersion": "growth.reels_next_cycle_seed.v1",
+      "producerSha": "26430780657713ab54cc6a6e53692240443b0c99",
+      "repository": "foto6/video3"
+    },
+    "media": {
+      "artifactManifestContractBlobSha": "42aed1ca4720cddd4a5e48af076bc73b663322b0",
+      "artifactManifestContractPath": "conformance/media.artifact_manifest.v1/manifest.json",
+      "branch": "agent/media-r11-autonomous-reels-20261001",
+      "jobContractBlobSha": "96b252acae743f8fe059fd634ee320f92bd9c79c",
+      "jobContractPath": "conformance/media.job.v1/consumer-manifest.json",
+      "observedProducerSha": "2366b3820c2cbf429aa734f2e623689699e73003",
+      "providerR11State": "blocked_pre_milestone_head",
+      "repository": "foto6/video2"
+    }
+  },
+  "stageCrashSnapshot": {
+    "completedStages": [
+      "brief",
+      "research_evidence",
+      "idea_hook",
+      "script",
+      "asset_plan",
+      "edit_request",
+      "media_render",
+      "critic_qa",
+      "publish_queue",
+      "publish_result",
+      "analytics_handoff"
+    ],
+    "contractVersion": "creator.autonomous_reels_state.v1",
+    "cycleId": "cycle-2",
+    "cycleRevision": 2,
+    "eventCount": 13,
+    "growthSeedCount": 1,
+    "nextStage": null,
+    "profileDigest": "56f676ced96575d4703d93740aee593d77f3de8eea1d31c935299b9af3f1c447",
+    "publishPrepared": false,
+    "publishReceiptCommitted": false,
+    "stateDigest": "a8e4b25fcc6c335ae6fd4432ff959a7cee8bafa276e01ba974bf3e544e4479e8",
+    "topic": "editing workflow"
+  }
+}
