@@ -93,14 +93,20 @@ Observed contract blobs used by the R11 conformance test:
 
 - repository `foto6/video3`;
 - branch `agent/growth-r10-autonomous-reels-20261001`;
-- producer SHA `26430780657713ab54cc6a6e53692240443b0c99`;
+- producer SHA `7209a2a9033c4ced0690b8311e6f1661681e7ca2`;
 - `growth_analytics/autonomous_reels.py`;
-- Git blob SHA `f69f564c51f0ed42c5e9b0ebb9420173bd4f5bb7`.
+- Git blob SHA `808ebeb3df424f480dea4a394174fcf7356849b8`;
+- conformance document `conformance/growth.autonomous_reels.v1/contract.json`, blob
+  `0a63ebece0fe8620a57e635143cc3ea16d095f59`.
 
-Creator validates the exact top-level field set, source class, live/synthetic eligibility,
-advisory-only authority flags, source cycle revision, Growth idempotency identity, and seed
-digest. A seed for a stale/future source revision or a different Creator cycle fails
-closed.
+Creator validates the exact current v1 top-level field set, including the R10 `evidence`
+bundle added by the final producer. The embedded `growth.shortform_publish_result.v1` and
+`growth.shortform_metric_snapshot.v1` are digest-checked and must bind the same platform
+post, cycle revision, source class and lineage; the seed metrics must match the embedded
+snapshot, and a bound decision reference must match its embedded handoff digest. Creator
+also checks live/synthetic eligibility, advisory-only authority flags, Growth idempotency
+identity, and the complete seed digest. A seed for a stale/future source revision or a
+different Creator cycle fails closed.
 
 The R11 event log records `growth_seed_consumed` before acknowledging receipt. Therefore:
 

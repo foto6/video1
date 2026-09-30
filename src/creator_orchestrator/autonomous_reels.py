@@ -14,6 +14,7 @@ MEDIA_R11_ENVELOPE_VERSION = "creator.media_r11_result_envelope.v1"
 GROWTH_R10_ENVELOPE_VERSION = "creator.growth_r10_seed_envelope.v1"
 GROWTH_NEXT_CYCLE_SEED_VERSION = "growth.reels_next_cycle_seed.v1"
 GROWTH_PUBLISH_RESULT_VERSION = "growth.shortform_publish_result.v1"
+GROWTH_METRIC_SNAPSHOT_VERSION = "growth.shortform_metric_snapshot.v1"
 MEDIA_JOB_VERSION = "media.job.v1"
 MEDIA_ARTIFACT_MANIFEST_VERSION = "media.artifact_manifest.v1"
 RELEASE_AUTHORIZATION_VERSION = "release.authorization.v1"
@@ -357,13 +358,14 @@ def validate_growth_r10_seed_envelope(
         raise ContractValidationError("Growth producer/source binding mismatch")
     _git_sha(source["producerSha"], "Growth producerSha")
     _git_sha(source["contractBlobSha"], "Growth contractBlobSha")
+
     seed = _exact(
         payload["seed"],
         {
             "contract_version", "next_cycle_id", "cycle_revision", "source_class",
             "live_performance_claim_allowed", "creator_cycle_eligible", "evidence_state",
-            "lineage", "metrics", "recommendations", "authority", "interpretation",
-            "idempotency_key", "seed_digest",
+            "lineage", "evidence", "metrics", "recommendations", "authority",
+            "interpretation", "idempotency_key", "seed_digest",
         },
         "Growth next-cycle seed",
     )
@@ -373,6 +375,7 @@ def validate_growth_r10_seed_envelope(
         raise StageOrderError("Growth seed targets a different Creator cycle")
     if seed["cycle_revision"] != expected_source_cycle_revision:
         raise StageOrderError("stale or out-of-order Growth seed revision")
+
     source_class = seed["source_class"]
     if source_class == "synthetic_fixture":
         if seed["live_performance_claim_allowed"] is not False or seed["creator_cycle_eligible"] is not False:
@@ -384,6 +387,7 @@ def validate_growth_r10_seed_envelope(
             raise ContractValidationError("live Growth seed must preserve live source scope")
     else:
         raise ContractValidationError("unsupported Growth seed source_class")
+
     authority = seed["authority"]
     if (
         not isinstance(authority, Mapping)
@@ -394,22 +398,182 @@ def validate_growth_r10_seed_envelope(
         or authority.get("requires_creator_release_authorization") is not True
     ):
         raise ContractValidationError("Growth seed authority boundary invalid")
-    lineage = seed["lineage"]
-    if not isinstance(lineage, Mapping) or not isinstance(lineage.get("decision"), Mapping):
-        raise ContractValidationError("Growth seed lineage invalid")
-    identity = {
+
+    evidence = _exact(
+        seed["evidence"],
+        {"publish_result", "metric_snapshot", "decision_handoff"},
+        "Growth seed evidence",
+    )
+    published = _exact(
+        evidence["publish_result"],
+        {
+            "contract_version", "publish_result_id", "publish_result_digest",
+            "source_class", "platform", "account_id", "post_id", "published_at",
+            "captured_at", "cycle_revision", "artifact", "provenance",
+        },
+        "Growth embedded publish result",
+    )
+    if published["contract_version"] != GROWTH_PUBLISH_RESULT_VERSION:
+        raise ContractValidationError("embedded Growth publish result version mismatch")
+    if published["cycle_revision"] != seed["cycle_revision"]:
+        raise StageOrderError("embedded publish result revision is stale")
+    if published["source_class"] != source_class:
+        raise ContractValidationError("embedded publish result source class mismatch")
+    if published["platform"] not in PLATFORMS:
+        raise ContractValidationError("embedded publish result platform unsupported")
+    publish_artifact = _exact(
+        published["artifact"],
+        {
+            "creative_artifact_id", "creative_artifact_digest", "media_artifact_id",
+            "media_artifact_digest", "media_render_fingerprint", "media_duration_seconds",
+        },
+        "Growth embedded publish artifact",
+    )
+    for field in ("creative_artifact_id", "media_artifact_id", "media_render_fingerprint"):
+        _nonempty(publish_artifact[field], f"publish artifact {field}")
+    _sha64(publish_artifact["creative_artifact_digest"], "creative_artifact_digest")
+    _sha64(publish_artifact["media_artifact_digest"], "media_artifact_digest")
+    publish_provenance = _exact(
+        published["provenance"],
+        {"provider_receipt_digest", "fixture_source_sha256", "live_performance_claim_allowed"},
+        "Growth embedded publish provenance",
+    )
+    if source_class == "synthetic_fixture":
+        if (
+            publish_provenance["provider_receipt_digest"] is not None
+            or publish_provenance["live_performance_claim_allowed"] is not False
+        ):
+            raise ContractValidationError("synthetic embedded publish provenance invalid")
+        _sha64(publish_provenance["fixture_source_sha256"], "fixture_source_sha256")
+    else:
+        _sha64(publish_provenance["provider_receipt_digest"], "provider_receipt_digest")
+        if (
+            publish_provenance["fixture_source_sha256"] is not None
+            or publish_provenance["live_performance_claim_allowed"] is not True
+        ):
+            raise ContractValidationError("live embedded publish provenance invalid")
+    publish_identity = {
+        "platform": published["platform"],
+        "account_id": published["account_id"],
+        "post_id": published["post_id"],
+        "cycle_revision": published["cycle_revision"],
+        "media_artifact_digest": publish_artifact["media_artifact_digest"],
+    }
+    if published["publish_result_id"] != "spr1:" + sha256_json(publish_identity):
+        raise ContractValidationError("embedded publish result identity mismatch")
+    publish_digest = _sha64(published["publish_result_digest"], "publish_result_digest")
+    publish_material = dict(published)
+    publish_material.pop("publish_result_digest")
+    if sha256_json(publish_material) != publish_digest:
+        raise ContractValidationError("embedded publish result digest mismatch")
+
+    snapshot = _exact(
+        evidence["metric_snapshot"],
+        {
+            "account_id", "available_metrics", "contract_version", "cycle_revision",
+            "denominators", "live_performance_claim_allowed", "normalization_sources",
+            "normalized_metrics", "platform", "post_id", "provenance",
+            "publish_result_digest", "publish_result_id", "raw_metrics",
+            "selected_metrics_event_digest", "selected_metrics_event_id",
+            "snapshot_digest", "source_class", "uncertainty", "window",
+        },
+        "Growth embedded metric snapshot",
+    )
+    if snapshot["contract_version"] != GROWTH_METRIC_SNAPSHOT_VERSION:
+        raise ContractValidationError("embedded Growth metric snapshot version mismatch")
+    if snapshot["cycle_revision"] != seed["cycle_revision"]:
+        raise StageOrderError("embedded metric snapshot revision is stale")
+    if snapshot["source_class"] != source_class:
+        raise ContractValidationError("embedded metric snapshot source class mismatch")
+    if snapshot["live_performance_claim_allowed"] is not seed["live_performance_claim_allowed"]:
+        raise ContractValidationError("embedded metric snapshot live scope mismatch")
+    for field in ("platform", "account_id", "post_id", "publish_result_id", "publish_result_digest"):
+        expected = published[field] if field in published else None
+        if snapshot[field] != expected:
+            raise ContractValidationError(f"embedded metric snapshot {field} binding mismatch")
+    _sha64(snapshot["selected_metrics_event_digest"], "selected_metrics_event_digest")
+    _nonempty(snapshot["selected_metrics_event_id"], "selected_metrics_event_id")
+    metric_window = _exact(snapshot["window"], {"start", "end"}, "metric snapshot window")
+    _nonempty(metric_window["start"], "metric window start")
+    _nonempty(metric_window["end"], "metric window end")
+    snapshot_digest = _sha64(snapshot["snapshot_digest"], "metric snapshot digest")
+    snapshot_material = dict(snapshot)
+    snapshot_material.pop("snapshot_digest")
+    if sha256_json(snapshot_material) != snapshot_digest:
+        raise ContractValidationError("embedded metric snapshot digest mismatch")
+
+    lineage = _exact(
+        seed["lineage"],
+        {
+            "creative_artifact_id", "creative_artifact_digest", "media_artifact_id",
+            "media_artifact_digest", "media_render_fingerprint", "media_duration_seconds",
+            "publish_result_id", "publish_result_digest", "platform", "account_id",
+            "post_id", "published_at", "metric_snapshot_digest", "metric_window", "decision",
+        },
+        "Growth seed lineage",
+    )
+    bindings = {
+        "creative_artifact_id": publish_artifact["creative_artifact_id"],
+        "creative_artifact_digest": publish_artifact["creative_artifact_digest"],
+        "media_artifact_id": publish_artifact["media_artifact_id"],
+        "media_artifact_digest": publish_artifact["media_artifact_digest"],
+        "media_render_fingerprint": publish_artifact["media_render_fingerprint"],
+        "media_duration_seconds": publish_artifact["media_duration_seconds"],
+        "publish_result_id": published["publish_result_id"],
+        "publish_result_digest": published["publish_result_digest"],
+        "platform": published["platform"],
+        "account_id": published["account_id"],
+        "post_id": published["post_id"],
+        "published_at": published["published_at"],
+        "metric_snapshot_digest": snapshot["snapshot_digest"],
+        "metric_window": snapshot["window"],
+    }
+    for field, expected in bindings.items():
+        if lineage[field] != expected:
+            raise ContractValidationError(f"Growth lineage {field} does not match embedded evidence")
+
+    decision = lineage["decision"]
+    if not isinstance(decision, Mapping):
+        raise ContractValidationError("Growth decision reference missing")
+    if decision.get("state") == "bound":
+        handoff = evidence["decision_handoff"]
+        if not isinstance(handoff, Mapping):
+            raise ContractValidationError("bound Growth decision lacks embedded handoff")
+        if decision.get("handoff_digest") != handoff.get("handoff_digest"):
+            raise ContractValidationError("Growth decision handoff digest mismatch")
+    elif decision.get("state") == "none":
+        if evidence["decision_handoff"] is not None:
+            raise ContractValidationError("unbound Growth decision contains embedded handoff")
+    else:
+        raise ContractValidationError("unsupported Growth decision reference state")
+
+    metrics = _exact(
+        seed["metrics"],
+        {"normalized", "normalization_sources", "denominators", "uncertainty", "available_metrics"},
+        "Growth seed metrics",
+    )
+    if (
+        metrics["normalized"] != snapshot["normalized_metrics"]
+        or metrics["normalization_sources"] != snapshot["normalization_sources"]
+        or metrics["denominators"] != snapshot["denominators"]
+        or metrics["uncertainty"] != snapshot["uncertainty"]
+        or metrics["available_metrics"] != snapshot["available_metrics"]
+    ):
+        raise ContractValidationError("Growth seed metrics do not match embedded metric snapshot")
+
+    expected_id = "grs1:" + sha256_json({
         "next_cycle_id": seed["next_cycle_id"],
         "cycle_revision": seed["cycle_revision"],
-        "publish_result_digest": lineage.get("publish_result_digest"),
-        "metric_snapshot_digest": lineage.get("metric_snapshot_digest"),
-        "decision_handoff_digest": lineage["decision"].get("handoff_digest"),
-    }
-    if seed["idempotency_key"] != "grs1:" + sha256_json(identity):
+        "publish_result_digest": lineage["publish_result_digest"],
+        "metric_snapshot_digest": lineage["metric_snapshot_digest"],
+        "decision_handoff_digest": decision.get("handoff_digest"),
+    })
+    if seed["idempotency_key"] != expected_id:
         raise ContractValidationError("Growth seed idempotency identity mismatch")
-    _sha64(seed["seed_digest"], "Growth seed_digest")
+    provided = _sha64(seed["seed_digest"], "Growth seed_digest")
     material = dict(seed)
     material.pop("seed_digest")
-    if sha256_json(material) != seed["seed_digest"]:
+    if sha256_json(material) != provided:
         raise ContractValidationError("Growth seed digest mismatch")
     _reject_secrets(payload)
     return _clone(payload)

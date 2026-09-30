@@ -12,8 +12,8 @@ import creator_orchestrator.autonomous_reels as m
 MEDIA_HEAD = m.MEDIA_R11_PREMILESTONE_HEAD
 MEDIA_JOB_BLOB = "96b252acae743f8fe059fd634ee320f92bd9c79c"
 MEDIA_MANIFEST_BLOB = "42aed1ca4720cddd4a5e48af076bc73b663322b0"
-GROWTH_HEAD = "26430780657713ab54cc6a6e53692240443b0c99"
-GROWTH_BLOB = "f69f564c51f0ed42c5e9b0ebb9420173bd4f5bb7"
+GROWTH_HEAD = "7209a2a9033c4ced0690b8311e6f1661681e7ca2"
+GROWTH_BLOB = "808ebeb3df424f480dea4a394174fcf7356849b8"
 
 
 def provenance(name: str) -> dict:
@@ -111,6 +111,91 @@ def media_envelope(p: dict, *, source_class: str = "synthetic_fixture", producer
 
 
 def growth_seed_envelope(*, next_cycle_id: str = "cycle-2", revision: int = 1) -> dict:
+    platform = "instagram_reels"
+    account_id = "fixture-account"
+    post_id = "fixture-post"
+    media_digest = "8" * 64
+    published = {
+        "contract_version": m.GROWTH_PUBLISH_RESULT_VERSION,
+        "source_class": "synthetic_fixture",
+        "platform": platform,
+        "account_id": account_id,
+        "post_id": post_id,
+        "published_at": "2026-09-30T00:00:00Z",
+        "captured_at": "2026-09-30T00:05:00Z",
+        "cycle_revision": revision,
+        "artifact": {
+            "creative_artifact_id": "creative-r10-fixture",
+            "creative_artifact_digest": "a" * 64,
+            "media_artifact_id": f"sha256:{media_digest}",
+            "media_artifact_digest": media_digest,
+            "media_render_fingerprint": "render-r10-fixture",
+            "media_duration_seconds": 30.0,
+        },
+        "provenance": {
+            "provider_receipt_digest": None,
+            "fixture_source_sha256": "b" * 64,
+            "live_performance_claim_allowed": False,
+        },
+    }
+    publish_identity = {
+        "platform": platform,
+        "account_id": account_id,
+        "post_id": post_id,
+        "cycle_revision": revision,
+        "media_artifact_digest": media_digest,
+    }
+    published["publish_result_id"] = "spr1:" + m.sha256_json(publish_identity)
+    published["publish_result_digest"] = m.sha256_json(published)
+
+    snapshot = {
+        "account_id": account_id,
+        "available_metrics": ["views"],
+        "contract_version": m.GROWTH_METRIC_SNAPSHOT_VERSION,
+        "cycle_revision": revision,
+        "denominators": {},
+        "live_performance_claim_allowed": False,
+        "normalization_sources": {},
+        "normalized_metrics": {"views": 5000},
+        "platform": platform,
+        "post_id": post_id,
+        "provenance": {
+            "complete_export": True,
+            "observational": True,
+            "provider": "fixture",
+        },
+        "publish_result_digest": published["publish_result_digest"],
+        "publish_result_id": published["publish_result_id"],
+        "raw_metrics": {"views": 5000},
+        "selected_metrics_event_digest": "c" * 64,
+        "selected_metrics_event_id": "spm1:fixture",
+        "source_class": "synthetic_fixture",
+        "uncertainty": {},
+        "window": {
+            "start": "2026-09-30T00:00:00Z",
+            "end": "2026-10-01T00:00:00Z",
+        },
+    }
+    snapshot["snapshot_digest"] = m.sha256_json(snapshot)
+
+    decision = {"state": "none", "handoff_digest": None}
+    lineage = {
+        "creative_artifact_id": published["artifact"]["creative_artifact_id"],
+        "creative_artifact_digest": published["artifact"]["creative_artifact_digest"],
+        "media_artifact_id": published["artifact"]["media_artifact_id"],
+        "media_artifact_digest": published["artifact"]["media_artifact_digest"],
+        "media_render_fingerprint": published["artifact"]["media_render_fingerprint"],
+        "media_duration_seconds": published["artifact"]["media_duration_seconds"],
+        "publish_result_id": published["publish_result_id"],
+        "publish_result_digest": published["publish_result_digest"],
+        "platform": platform,
+        "account_id": account_id,
+        "post_id": post_id,
+        "published_at": published["published_at"],
+        "metric_snapshot_digest": snapshot["snapshot_digest"],
+        "metric_window": snapshot["window"],
+        "decision": decision,
+    }
     seed = {
         "contract_version": m.GROWTH_NEXT_CYCLE_SEED_VERSION,
         "next_cycle_id": next_cycle_id,
@@ -119,13 +204,28 @@ def growth_seed_envelope(*, next_cycle_id: str = "cycle-2", revision: int = 1) -
         "live_performance_claim_allowed": False,
         "creator_cycle_eligible": False,
         "evidence_state": "directional_observational",
-        "lineage": {
-            "publish_result_digest": "8" * 64,
-            "metric_snapshot_digest": "9" * 64,
-            "decision": {"handoff_digest": "a" * 64},
+        "lineage": lineage,
+        "evidence": {
+            "publish_result": published,
+            "metric_snapshot": snapshot,
+            "decision_handoff": None,
         },
-        "metrics": {"normalized": {"views": 5000}},
-        "recommendations": [{"action": "preserve_shareable_hook", "certainty": "directional_not_causal"}],
+        "metrics": {
+            "normalized": snapshot["normalized_metrics"],
+            "normalization_sources": snapshot["normalization_sources"],
+            "denominators": snapshot["denominators"],
+            "uncertainty": snapshot["uncertainty"],
+            "available_metrics": snapshot["available_metrics"],
+        },
+        "recommendations": [
+            {
+                "action": "preserve_shareable_hook",
+                "certainty": "directional_not_causal",
+                "state": "observational_signal",
+                "evidence_refs": [f"metric_snapshot:{snapshot['snapshot_digest']}#raw_metrics.views"],
+                "rationale": "synthetic conformance signal",
+            }
+        ],
         "authority": {
             "auto_publish": False,
             "external_mutation": False,
