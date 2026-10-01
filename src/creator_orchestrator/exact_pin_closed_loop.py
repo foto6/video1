@@ -234,6 +234,16 @@ def _adapt_media_export(
         raise ClosedLoopError("Media helper result contract mismatch")
     if result.get("actualMediaProducerInvoked") is not True:
         raise ClosedLoopError("Media helper did not invoke real producer")
+    bridge_cwd = Path(result.get("bridgeCwd", "")).resolve()
+    sandbox_root = Path(result.get("sandboxRoot", "")).resolve()
+    if bridge_cwd != sandbox_root:
+        raise ClosedLoopError(
+            "Media bridge cwd is not bound to candidate sandbox root"
+        )
+    if result.get("sourceUri") != "inputs/source.mp4":
+        raise ClosedLoopError(
+            "Media timeline source URI must remain sandbox-relative"
+        )
     export = result["renderExport"]
     if export["contractVersion"] != "media.render_export.v1":
         raise ClosedLoopError("Media export contract mismatch")
@@ -273,6 +283,8 @@ def _adapt_media_export(
             "mediaR15ExportDigest": result["renderExportDigest"],
             "mediaR15ProducerSha": MEDIA_SHA,
             "actualMediaProducerInvoked": True,
+            "bridgeCwdBoundToSandbox": True,
+            "sourceUri": "inputs/source.mp4",
             "humanLevelQuality": "HUMAN_LEVEL_UNPROVEN",
         },
         "human_ground_truth": False,

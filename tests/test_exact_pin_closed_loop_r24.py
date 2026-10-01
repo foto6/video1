@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -112,6 +113,44 @@ class R24ClosedLoopUnitTests(unittest.TestCase):
                     },
                 )
 
+    @unittest.skipUnless(
+        os.environ.get("R24_MEDIA_CHECKOUT"),
+        "exact Media R15 checkout not configured",
+    )
+    def test_exact_media_path_policy_rejects_traversal(self):
+        policy = (
+            Path(os.environ["R24_MEDIA_CHECKOUT"])
+            / "src"
+            / "runtime"
+            / "path-policy.js"
+        ).resolve()
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td).resolve()
+            script = (
+                "import { resolveSandboxedPath } from "
+                + json.dumps(policy.as_uri())
+                + ";"
+                + "try {"
+                + " resolveSandboxedPath('../outside.mp4', {sandboxRoot:"
+                + json.dumps(str(root))
+                + "}); process.exit(9);"
+                + "} catch (error) {"
+                + " if (error?.code !== 'path_outside_sandbox') {"
+                + "  console.error(error?.code || error?.message || error);"
+                + "  process.exit(8);"
+                + " }"
+                + "}"
+            )
+            proc = subprocess.run(
+                ["node", "--input-type=module", "-e", script],
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+                timeout=20,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+
     def test_wrong_media_producer_sha_fails_closed(self):
         with tempfile.TemporaryDirectory() as td:
             final_path = Path(td) / "final.mp4"
@@ -173,6 +212,20 @@ class R24ClosedLoopIntegrationTests(unittest.TestCase):
             self.assertFalse(first["liveProviderMutation"])
             self.assertTrue((out / "final.mp4").is_file())
             self.assertTrue((out / "editor-publish-handoff.json").is_file())
+            bundle = json.loads(
+                (out / "editor-final-bundle.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            provenance = bundle["render"]["render_provenance"]
+            self.assertTrue(provenance["bridgeCwdBoundToSandbox"])
+            self.assertEqual(
+                provenance["sourceUri"],
+                "inputs/source.mp4",
+            )
+            self.assertFalse(
+                Path(provenance["sourceUri"]).is_absolute()
+            )
             with contextlib.chdir(foreign_cwd):
                 second = r24.run_closed_loop(
                     source_path=source,

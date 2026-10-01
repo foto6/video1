@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -46,7 +46,8 @@ if (gitHead(checkout) !== MEDIA_SHA) {
   die("Media checkout HEAD mismatch; expected " + MEDIA_SHA);
 }
 
-const request = JSON.parse(readFileSync(path.resolve(args.request), "utf8"));
+const requestPath = path.resolve(args.request);
+const request = JSON.parse(readFileSync(requestPath, "utf8"));
 if (request.contractVersion !== "creator.media_r15_render_request.r24.v1") {
   die("Media request contract mismatch");
 }
@@ -54,7 +55,16 @@ if (request.mediaProducerSha !== MEDIA_SHA) {
   die("Media request producer SHA mismatch");
 }
 const root = path.resolve(args.out);
+const requestedSourcePath = path.resolve(request.source.path);
 mkdirSync(root, { recursive: true });
+
+// All caller-relative inputs are resolved before this point. This script is a
+// dedicated child process, so its cwd can be scoped to the candidate sandbox
+// without mutating the Python caller or any sibling process.
+process.chdir(root);
+if (process.cwd() !== root) {
+  die("failed to bind Media bridge cwd to candidate sandbox root");
+}
 
 const media = await import(pathToFileURL(path.join(checkout, "src", "index.js")).href);
 const finalPath = path.join(root, "final.mp4");
@@ -74,7 +84,10 @@ if (existsSync(finalPath) && existsSync(sidecarPath)) {
     renderExport: record,
     renderExportDigest: media.renderExportDigest(record),
     actualMediaProducerInvoked: true,
-    logicalEffects: 0
+    logicalEffects: 0,
+    bridgeCwd: process.cwd(),
+    sandboxRoot: root,
+    sourceUri: "inputs/source.mp4"
   }));
   process.exit(0);
 }
@@ -82,14 +95,14 @@ if (existsSync(finalPath) && existsSync(sidecarPath)) {
 mkdirSync(path.join(root, "inputs"), { recursive: true });
 mkdirSync(path.join(root, "outputs"), { recursive: true });
 const copiedSource = path.join(root, "inputs", "source.mp4");
-copyFileSync(path.resolve(request.source.path), copiedSource);
+copyFileSync(requestedSourcePath, copiedSource);
 const sourceDigest = digest(copiedSource);
 
-// Media R15 validates absolute paths against sandboxRoot, but its ffmpeg
-// compiler passes timeline source.uri directly to the child process. Bind the
-// timeline to the canonical copied file inside this candidate sandbox so
-// execution is independent of the caller/process cwd without widening the
-// sandbox.
+// Media R15 resolves timeline source.uri against sandboxRoot for validation,
+// while its process executor passes that URI unchanged to ffmpeg. Keep the
+// source sandbox-relative, then bind this dedicated bridge process cwd to the
+// same candidate root before protocol execution so validation and ffmpeg open
+// the exact same copied bytes on every platform.
 const canonicalCopiedSource = path.resolve(copiedSource);
 const sandboxRelativeSource = path.relative(root, canonicalCopiedSource);
 if (
@@ -192,10 +205,6 @@ const store = new media.PersistentRenderJobStore({
   filePath: path.join(root, "jobs.json")
 });
 const executor = new media.DeterministicProcessExecutor({
-  spawnImpl: (binary, argv, options = {}) => spawn(binary, argv, {
-    ...options,
-    cwd: root
-  }),
   defaultTimeoutMs: 180000,
   maxOutputBytes: 2 * 1024 * 1024
 });
@@ -237,10 +246,9 @@ const submit = {
     dryRun: false
   }
 };
-// Media R15's path policy interprets relative timeline URIs against
-// sandboxRoot, while ffmpeg receives the URI unchanged. The injected process
-// executor gives only the render child this same sandbox cwd, so validation and
-// execution resolve the identical source without depending on the caller cwd.
+// Media R15's path policy interprets this relative URI against sandboxRoot.
+// ffmpeg receives the same relative URI and inherits this bridge process cwd,
+// which is now exactly sandboxRoot.
 const first = await protocol.handle(submit);
 const duplicate = await protocol.handle(structuredClone(submit));
 if (first.duplicate !== false || duplicate.duplicate !== true) {
@@ -290,5 +298,8 @@ console.log(JSON.stringify({
   renderExportDigest: media.renderExportDigest(record),
   creativePlanDigest: creative.planDigest,
   actualMediaProducerInvoked: true,
-  logicalEffects: 1
+  logicalEffects: 1,
+  bridgeCwd: process.cwd(),
+  sandboxRoot: root,
+  sourceUri: sandboxSourceUri
 }));

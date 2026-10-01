@@ -35,16 +35,21 @@
   },
   "pathBindingFix": {
     "mediaProducerSha": "a17f782da8144d1e890ac83195396a3192df93c2",
-    "mediaPathPolicy": "relative source paths resolve under sandboxRoot; absolute-looking paths remain fail-closed per pinned Media R15",
-    "ffmpegCompiler": "passes timeline source.uri directly; injected Media render spawn uses cwd=candidate sandbox",
+    "mediaPathPolicyBlobSha": "1ae66954996ea5cef7b12a5a906b91dd6a4a62fe",
+    "mediaProcessExecutorBlobSha": "da55e1f6d1887c2f00c223e823d8071c2c1ff01e",
+    "verifiedMediaPathPolicy": "relative sources resolve under sandboxRoot; Windows-absolute syntax on non-Windows and traversal remain fail-closed",
+    "verifiedMediaProcessExecutor": "spawn omits cwd, so child inherits bridge process cwd",
     "sourceCopy": "<candidate sandbox>/inputs/source.mp4",
     "copiedShaAndSizeVerified": true,
     "sandboxEscapeCheck": true,
+    "traversalRegression": true,
     "cwdIndependentRegression": true,
-    "sourceUri": "inputs/source.mp4 derived via path.relative(candidateSandbox, copiedSource)",
+    "sourceUri": "inputs/source.mp4",
     "absoluteSourceUriUsed": false,
-    "bridgeProcessCwdChanged": false,
-    "renderChildCwdBoundToSandbox": true
+    "bridgeProcessCwdChanged": true,
+    "bridgeProcessDedicatedChild": true,
+    "bridgeCwdBoundToSandbox": true,
+    "producerPathPolicyWeakened": false
   },
   "failedRunSuperseded": {
     "runId": "36874191186",
@@ -91,5 +96,12 @@
     "technicalQaStillRequired": true,
     "sourceShaAndSizeStillVerified": true,
     "reason": "reduce exact-render CPU wall time under hosted runner SIGTERM budget"
+  },
+  "followUp": {
+    "requestedFailedRun": "36874191186",
+    "requestedFailedJob": "110409289799",
+    "implementation": "resolve external paths first, process.chdir(candidateSandbox) in dedicated bridge, keep timeline URI sandbox-relative",
+    "realArtifactRehearsalRequired": true,
+    "skipped": false
   }
 }
