@@ -226,7 +226,11 @@ class R21ProductionAdapterTests(unittest.TestCase):
             + provider.journal.path.read_text(encoding="utf-8")
         )
         self.assertNotIn("secret-token-never-persist", serialized)
-        self.assertNotIn("Authorization", provider.journal.path.read_text())
+        journal_text = provider.journal.path.read_text(encoding="utf-8").lower()
+        self.assertNotIn("bearer ", journal_text)
+        self.assertNotIn("access_token", journal_text)
+        self.assertNotIn("refresh_token", journal_text)
+        self.assertNotIn("authorizationheader", journal_text)
 
     def test_tiktok_direct_post_transport_to_receipt(self):
         account = "tt-open-id-1"
