@@ -1,0 +1,53 @@
+{
+  "contractVersion": "creator.gemini_native_video_provider.r18b.v1",
+  "semanticContract": "creator.semantic_video_analysis.r18.v1",
+  "adapterContract": "creator.semantic_adapter_result.r18.v1",
+  "provider": "google_gemini",
+  "providerDefault": "disabled",
+  "configuration": {
+    "requiredForLive": [
+      "GEMINI_API_KEY",
+      "explicit provider selection"
+    ],
+    "model": "GEMINI_MODEL",
+    "mode": [
+      "static",
+      "agentic"
+    ],
+    "static": [
+      "fps",
+      "clipStartSeconds",
+      "clipEndSeconds"
+    ],
+    "agentic": "explicit supported-model capability flag"
+  },
+  "nativeVideo": {
+    "localMp4Upload": true,
+    "filesApi": true,
+    "remotePoll": true,
+    "remoteCleanup": true,
+    "structuredJson": true
+  },
+  "validatedObservations": [
+    "transcriptSegments",
+    "visualSubjects",
+    "importantObjects",
+    "semanticEvents"
+  ],
+  "failureStates": [
+    "provider_unavailable",
+    "provider_timeout",
+    "provider_invalid_output",
+    "provider_ready"
+  ],
+  "ci": {
+    "fakeTransportOnly": true,
+    "network": false,
+    "paidCalls": false,
+    "test": "tests/test_gemini_video_provider_r18b.py"
+  },
+  "readiness": {
+    "semanticPipeline": "SEMANTIC_PIPELINE_READY",
+    "humanLevelQuality": "HUMAN_LEVEL_UNPROVEN"
+  }
+}

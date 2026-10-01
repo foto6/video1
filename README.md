@@ -99,3 +99,24 @@ creator-mvp --input ./source.mp4 --brief "Turn this into a concise proof-first v
 R18 never invents missing ASR/CV/VLM semantics. Local ffmpeg shot/silence evidence is used when available; unavailable semantic categories are listed explicitly. The output now retains the original R17 artifacts plus \`director-report.json\`.
 
 Readiness is \`SEMANTIC_PIPELINE_READY\`; human-level editing quality remains \`HUMAN_LEVEL_UNPROVEN\`. See \`docs/SEMANTIC_DIRECTOR_R18.md\`.
+
+
+## Optional Gemini native-video semantics
+
+R18B adds a concrete Google Gemini native-video provider behind the existing semantic adapter boundary. It is disabled by default.
+
+```bash
+export GEMINI_API_KEY="..."
+export GEMINI_MODEL="gemini-3.8-flash"
+creator-mvp --input ./source.mp4 --brief "Find the proof" --out ./mvp-out --style auto --semantic-provider gemini --gemini-mode static --gemini-fps 2 --media-repo ../video2
+```
+
+The real MP4 is uploaded as video input; it is not replaced by contact-sheet text. Static FPS/clipping are configurable. Agentic mode is optional and requires an explicit model-capability flag. CI uses only `FakeGeminiVideoTransport` and performs no Gemini network or paid calls.
+
+Live smoke is separately gated:
+
+```bash
+CREATOR_GEMINI_VIDEO_ENABLE=1 GEMINI_API_KEY="..." creator-gemini-video-smoke --input ./source.mp4 --live
+```
+
+Without all live gates it returns `BLOCKED` and does not attempt network access. Human-level quality remains `HUMAN_LEVEL_UNPROVEN`. See `docs/GEMINI_NATIVE_VIDEO_R18B.md`.

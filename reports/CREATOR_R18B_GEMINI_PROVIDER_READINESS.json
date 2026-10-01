@@ -1,0 +1,51 @@
+{
+  "reportVersion": "creator.gemini_native_video_provider.r18b.readiness.v1",
+  "creatorBaseSha": "7934b4938dc56936166a1e232afc491f690e7497",
+  "semanticPipelineState": "SEMANTIC_PIPELINE_READY",
+  "humanLevelQuality": "HUMAN_LEVEL_UNPROVEN",
+  "provider": {
+    "version": "creator.gemini_native_video_provider.r18b.v1",
+    "provider": "google_gemini",
+    "enabledByDefault": false,
+    "enablement": "explicit --semantic-provider gemini",
+    "apiKeyEnv": "GEMINI_API_KEY",
+    "modelEnv": "GEMINI_MODEL",
+    "defaultMode": "static",
+    "nativeLocalMp4Upload": true,
+    "contactSheetOnly": false,
+    "staticFpsConfigurable": true,
+    "staticClipConfigurable": true,
+    "agenticOptional": true,
+    "agenticCapabilityExplicit": true
+  },
+  "failureStates": [
+    "provider_unavailable",
+    "provider_timeout",
+    "provider_invalid_output",
+    "provider_ready"
+  ],
+  "ci": {
+    "networkCalls": false,
+    "paidCalls": false,
+    "transport": "FakeGeminiVideoTransport",
+    "exactMediaProducerSha": "ad4e0ba487a3cabc84dd339d412e19a0db0f9add",
+    "semanticPlanChangeProof": true
+  },
+  "liveSmoke": {
+    "command": "creator-gemini-video-smoke",
+    "requiresLiveFlag": true,
+    "requiresEnableEnv": true,
+    "requiresApiKey": true,
+    "defaultWithoutCredentials": "BLOCKED"
+  },
+  "safety": {
+    "publishing": false,
+    "credentialsCommitted": false,
+    "authHeadersLogged": false,
+    "secretArtifacts": false,
+    "mediaRepoMutation": false,
+    "growthRepoMutation": false,
+    "desktopCommander": false,
+    "mergeRelease": false
+  }
+}

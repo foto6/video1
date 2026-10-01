@@ -140,6 +140,42 @@ jobs:
           export CREATOR_MEDIA_R13_DIR="$GITHUB_WORKSPACE/.deps/media-r13"
           python -m unittest discover -s tests -p 'test_semantic_director_r18.py' -v
 
+  focused-r18b:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout exact Media R13 producer
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: ad4e0ba487a3cabc84dd339d412e19a0db0f9add
+          path: .deps/media-r13
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Creator entrypoints
+        run: python -m pip install -e .
+      - name: Run R18B fake-transport tests only
+        env:
+          GEMINI_API_KEY: ""
+        run: |
+          export CREATOR_MEDIA_R13_DIR="$GITHUB_WORKSPACE/.deps/media-r13"
+          python -m unittest discover -s tests -p 'test_gemini_video_provider_r18b.py' -v
+      - name: Prove live smoke is blocked without credentials
+        env:
+          GEMINI_API_KEY: ""
+          CREATOR_GEMINI_VIDEO_ENABLE: ""
+        run: |
+          set +e
+          creator-gemini-video-smoke --input /tmp/not-present.mp4 > /tmp/gemini-smoke.json
+          code=$?
+          set -e
+          test "$code" -eq 2
+          python -c "import json; r=json.load(open('/tmp/gemini-smoke.json')); assert r['state']=='BLOCKED'; assert r['networkAttempted'] is False"
+
   full:
     runs-on: ubuntu-latest
     steps:

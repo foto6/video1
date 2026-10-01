@@ -679,6 +679,7 @@ def analyze_video(
         "height": height,
         "fps": fps,
         "hasAudio": has_audio,
+        "brief": brief,
         "briefDigest": reels.sha256_text(brief),
     }
     results = []

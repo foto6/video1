@@ -14,6 +14,7 @@ from typing import Any, Mapping, Sequence
 from . import autonomous_reels as reels
 from . import media_r13_compat as m13
 from . import semantic_director as director
+from . import gemini_video_provider as gemini_video
 
 MVP_VERSION = "creator.mvp_pipeline.r17.v1"
 SCRIPT_VERSION = "creator.mvp_local_script.r17.v1"
@@ -439,6 +440,11 @@ def run_pipeline(
     media_repo: str | None = None,
     keep_work: bool = False,
     semantic_adapters: director.SemanticAdapters | None = None,
+    semantic_provider: str = "local",
+    gemini_mode: str = "static",
+    gemini_fps: float = 1.0,
+    gemini_clip_start_seconds: float = 0.0,
+    gemini_clip_end_seconds: float | None = None,
 ) -> dict[str, Any]:
     if style not in {"auto", *STYLE_MAP}:
         raise BadInput(
@@ -452,6 +458,22 @@ def run_pipeline(
     probe = probe_input(source)
     brief, fallback = normalize_brief(brief_arg)
     script = build_local_script(brief, duration_ms=probe.duration_ms)
+    if semantic_provider not in {"local", "gemini"}:
+        raise BadInput("--semantic-provider must be local or gemini")
+    if semantic_adapters is None and semantic_provider == "gemini":
+        try:
+            gemini_config = gemini_video.GeminiNativeVideoConfig.from_env(
+                explicitly_enabled=True,
+                mode=gemini_mode,
+                fps=gemini_fps,
+                clip_start_seconds=gemini_clip_start_seconds,
+                clip_end_seconds=gemini_clip_end_seconds,
+            )
+        except ValueError as exc:
+            raise BadInput(f"invalid Gemini semantic config: {exc}") from exc
+        semantic_adapters = gemini_video.build_semantic_adapters(
+            config=gemini_config,
+        )
     try:
         semantic_analysis = director.analyze_video(
             source,
@@ -539,6 +561,10 @@ def run_pipeline(
             "mediaHints": edit_directives["mediaHints"],
             "unavailableEvidence": semantic_analysis["unavailableEvidence"],
             "humanLevelQuality": director.HUMAN_LEVEL_STATE,
+            "providerSelection": semantic_provider,
+            "geminiMode": (
+                gemini_mode if semantic_provider == "gemini" else None
+            ),
         },
         "targetDurationMs": probe.duration_ms,
         "publishingEnabled": False,
@@ -682,6 +708,10 @@ def run_pipeline(
             "humanLevelQuality": director.HUMAN_LEVEL_STATE,
             "chosenStyle": editorial_decision,
             "unavailableEvidence": semantic_analysis["unavailableEvidence"],
+            "providerSelection": semantic_provider,
+            "geminiMode": (
+                gemini_mode if semantic_provider == "gemini" else None
+            ),
         },
         "media": {
             **media_pin,
@@ -757,6 +787,38 @@ def _parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--semantic-provider",
+        choices=("local", "gemini"),
+        default="local",
+        help=(
+            "local is deterministic/no-network; gemini is opt-in and "
+            "requires GEMINI_API_KEY"
+        ),
+    )
+    parser.add_argument(
+        "--gemini-mode",
+        choices=("static", "agentic"),
+        default="static",
+        help="Gemini video processing mode when --semantic-provider gemini",
+    )
+    parser.add_argument(
+        "--gemini-fps",
+        type=float,
+        default=1.0,
+        help="static Gemini video sampling FPS",
+    )
+    parser.add_argument(
+        "--gemini-clip-start",
+        type=float,
+        default=0.0,
+        help="static Gemini clip start in seconds",
+    )
+    parser.add_argument(
+        "--gemini-clip-end",
+        type=float,
+        help="optional static Gemini clip end in seconds",
+    )
+    parser.add_argument(
         "--keep-work",
         action="store_true",
         help="preserve the managed work directory after success",
@@ -774,6 +836,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             style=args.style,
             media_repo=args.media_repo,
             keep_work=args.keep_work,
+            semantic_provider=args.semantic_provider,
+            gemini_mode=args.gemini_mode,
+            gemini_fps=args.gemini_fps,
+            gemini_clip_start_seconds=args.gemini_clip_start,
+            gemini_clip_end_seconds=args.gemini_clip_end,
         )
     except MvpError as exc:
         print(f"creator-mvp: {exc}", file=sys.stderr)
