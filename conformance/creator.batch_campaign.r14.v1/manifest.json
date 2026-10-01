@@ -1,0 +1,62 @@
+{
+  "contractVersion": "creator.batch_campaign.r14.v1",
+  "ledgerVersion": "creator.batch_campaign_ledger.r14.v1",
+  "configVersion": "creator.batch_campaign_config.r14.v1",
+  "reportVersion": "creator.batch_campaign_report.r14.v1",
+  "creatorBase": {
+    "repository": "foto6/video1",
+    "producerSha": "e8bc2ed365d6ca4c512079ff9cccd7543575f052"
+  },
+  "preservedContracts": {
+    "creatorR11State": "creator.autonomous_reels_state.v1",
+    "creatorR12PublishProvider": "creator.publish_provider.v1",
+    "creatorR12PublishReceipt": "creator.publish_provider_receipt.v2",
+    "creatorR13IntegrationAcceptance": "creator.integration_acceptance.r13.v1",
+    "releaseAuthorization": "release.authorization.v1"
+  },
+  "growthR11": {
+    "repository": "foto6/video3",
+    "producerSha": "c4ed94d3e76b75d36bf8cc8280f6937f455133a6",
+    "manifestBlobSha": "8b47817cb344c4a1670d338fca351c1056e8ba6f",
+    "implementationBlobSha": "3fde5ed6fbae9356cc232613a8a81ea442c74315",
+    "r10ContractBlobSha": "0a63ebece0fe8620a57e635143cc3ea16d095f59",
+    "authority": "advisory_only"
+  },
+  "media": {
+    "failClosedWithoutAcceptedR13Pin": true,
+    "syntheticRequiresExplicitConformanceMode": true,
+    "sourceClassPreservedIntoPublishRequest": true
+  },
+  "budgetCategories": [
+    "generation_units",
+    "render_seconds",
+    "provider_actions"
+  ],
+  "concurrencyKinds": [
+    "generation",
+    "media",
+    "provider"
+  ],
+  "summaryStates": [
+    "ready",
+    "blocked_media",
+    "qa_failed",
+    "awaiting_release",
+    "published",
+    "analytics_pending"
+  ],
+  "syntheticReplay": {
+    "batchSize": 12,
+    "platformMix": {
+      "instagram_reels": 4,
+      "tiktok": 4,
+      "youtube_shorts": 4
+    },
+    "injectedDuplicateCandidates": 2,
+    "mediaFailures": 1,
+    "qaFailures": 1,
+    "lostPublishAcknowledgements": 1,
+    "livePublishing": false,
+    "credentials": false
+  }
+}

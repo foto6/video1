@@ -1,0 +1,31 @@
+{
+  "reportVersion": "creator.batch_campaign_replay.r14.v1",
+  "seed": "creator-r14-synthetic-12-20261001",
+  "expected": {
+    "batchSize": 12,
+    "candidateCountWithInjectedDuplicates": 14,
+    "duplicateCandidatesRejected": 2,
+    "states": {
+      "ready": 1,
+      "blocked_media": 1,
+      "qa_failed": 1,
+      "awaiting_release": 1,
+      "published": 7,
+      "analytics_pending": 1
+    },
+    "mediaTerminalFailures": 1,
+    "qaFailures": 1,
+    "lostPublishAcknowledgementRestarts": 1,
+    "publishLogicalEffects": 8,
+    "publishSubmitCalls": 8,
+    "mediaLogicalEffects": 12
+  },
+  "invariants": {
+    "livePublishing": false,
+    "credentialMaterialDurable": false,
+    "growthCanAuthorizePublication": false,
+    "budgetCheckedBeforeExternalWork": true,
+    "perItemFailureIsolation": true,
+    "campaignRestartSafe": true
+  }
+}

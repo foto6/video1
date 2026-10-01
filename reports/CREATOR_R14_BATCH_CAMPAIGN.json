@@ -1,0 +1,11 @@
+{
+  "reportVersion": "creator.batch_campaign_readiness.r14.v1",
+  "creatorR13BaseSha": "e8bc2ed365d6ca4c512079ff9cccd7543575f052",
+  "implementationState": "R14_BATCH_ACCEPTANCE_READY",
+  "mediaProductionGate": "PRESERVE_R13_FAIL_CLOSED",
+  "growthAuthority": "ADVISORY_ONLY",
+  "livePublishing": false,
+  "credentials": false,
+  "mergeRelease": false,
+  "syntheticReplayCommand": "PYTHONPATH=src python -m creator_orchestrator.batch_campaign synthetic-12 --work-dir /tmp/creator-r14-batch"
+}

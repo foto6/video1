@@ -7,6 +7,7 @@ on:
       - agent/creator-r11-autonomous-reels-20261001
       - agent/creator-r12-publish-providers-20261001
       - agent/creator-r13-integration-acceptance-20261001
+      - agent/creator-r14-batch-campaign-20261001
   pull_request:
 
 jobs:
@@ -39,6 +40,21 @@ jobs:
           python-version: '3.11'
       - name: Run Creator R13 integration acceptance tests
         run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_integration_acceptance_r13.py' -v
+
+  focused-r14:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run Creator R14 batch campaign tests
+        run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_batch_campaign_r14.py' -v
+      - name: Run deterministic 12-reel replay command
+        run: |
+          work_dir="$(mktemp -d)"
+          PYTHONPATH=src python -m creator_orchestrator.batch_campaign synthetic-12 --work-dir "$work_dir" > "$work_dir/report.json"
+          python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['states']=={'ready':1,'blocked_media':1,'qa_failed':1,'awaiting_release':1,'published':7,'analytics_pending':1}" "$work_dir/report.json"
 
   full:
     runs-on: ubuntu-latest
