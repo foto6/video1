@@ -17,6 +17,7 @@ on:
       - agent/creator-r21-publish-execution-20261001
       - agent/creator-r22-autonomous-editor-loop-20261001
       - agent/creator-r23-editor-publish-handoff-20261001
+      - agent/creator-r24-exact-pin-closed-loop-20261001
   pull_request:
 
 jobs:
@@ -290,6 +291,48 @@ jobs:
         run: |
           creator-editor-publish-r23 --help
           PYTHONPATH=src python -m unittest discover -s tests -p 'test_editor_publish_handoff_r23.py' -v
+
+  focused-r24-exact-pin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Checkout exact Media R15
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: a17f782da8144d1e890ac83195396a3192df93c2
+          path: .r24-media
+      - name: Checkout exact Growth R18
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video3
+          ref: 2d3bf275c5b456d53384073fb7ec1ed992e6b996
+          path: .r24-growth
+      - name: Install runtime prerequisites
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python -m pip install -e .
+          npm --prefix .r24-media install --ignore-scripts
+      - name: Generate source fixture
+        run: |
+          mkdir -p .r24-fixture
+          ffmpeg -hide_banner -nostdin -y -f lavfi -i "testsrc2=s=360x640:r=30:d=15.2" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15.2" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
+      - name: Run R24 unit and exact-pin integration tests
+        env:
+          R24_MEDIA_CHECKOUT: ${{ github.workspace }}/.r24-media
+          R24_GROWTH_CHECKOUT: ${{ github.workspace }}/.r24-growth
+          R24_SOURCE_VIDEO: ${{ github.workspace }}/.r24-fixture/source.mp4
+        run: |
+          creator-closed-loop-r24 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_exact_pin_closed_loop_r24.py' -v
+      - name: Run reproducible real-artifact rehearsal
+        run: |
+          creator-closed-loop-r24 --source .r24-fixture/source.mp4 --brief "Make the proof concise" --media-checkout .r24-media --growth-checkout .r24-growth --out .r24-rehearsal --candidates 2 > .r24-rehearsal.stdout.json
+          python -c "import json; r=json.load(open('.r24-rehearsal/closed_loop_rehearsal.v1.json')); assert r['state']=='publish_handoff_ready'; assert r['realMediaRenderEffects'] >= 1; assert r['reeditRounds'] <= 2; assert r['providerInvoked'] is False; assert r['liveProviderMutation'] is False"
+          ffprobe -v error -show_entries stream=codec_type,width,height -show_entries format=duration -of json .r24-rehearsal/final.mp4 > .r24-rehearsal/final.ffprobe.json
 
   full:
     runs-on: ubuntu-latest

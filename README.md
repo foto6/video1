@@ -191,3 +191,14 @@ creator-editor-publish-r23 --media ./final.mp4 --editor-bundle ./terminal-result
 ```
 
 The command uses synthetic providers only and cannot perform a live social post. See `docs/EDITOR_PUBLISH_HANDOFF_R23.md`.
+
+
+## Exact-pin real-artifact closed loop
+
+R24 can execute the R22/R23 closed loop against explicit immutable sibling checkouts:
+
+```bash
+creator-closed-loop-r24 --source ./source.mp4 --brief "Make the proof concise" --media-checkout ../video2-r15 --growth-checkout ../video3-r18 --out ./r24-out --candidates 2
+```
+
+The runner refuses any checkout not exactly at Media R15 `a17f782d...` or Growth R18 `2d3bf275...`, verifies the pinned contract blobs, renders real MP4 candidates through the Media runtime, consumes Growth's actual candidate-decision implementation, enforces at most two targeted re-edit rounds, and prepares an R23 handoff only for an eligible winner. It never invokes a publish provider.

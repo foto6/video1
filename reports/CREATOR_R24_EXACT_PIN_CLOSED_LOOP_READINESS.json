@@ -1,0 +1,36 @@
+{
+  "reportVersion": "creator.closed_loop_rehearsal.r24.readiness.v1",
+  "state": "EXACT_PIN_REAL_ARTIFACT_RUNNER_IMPLEMENTED",
+  "requiredExternalInputs": [
+    "exact Media R15 checkout",
+    "exact Growth R18 checkout",
+    "ffmpeg",
+    "ffprobe",
+    "source MP4"
+  ],
+  "exactPins": {
+    "mediaSha": "a17f782da8144d1e890ac83195396a3192df93c2",
+    "mediaCi": "36860193113",
+    "growthSha": "2d3bf275c5b456d53384073fb7ec1ed992e6b996",
+    "growthCi": "36859378847"
+  },
+  "gates": {
+    "exactHeadAndContractBlobCheck": true,
+    "realMediaRuntimeInvocation": true,
+    "renderExportByteHashCheck": true,
+    "growthDecisionRevisionMonotonic": true,
+    "maxTwoReeditRounds": true,
+    "winnerOnlyPublishHandoff": true,
+    "restartRecoveryFromR15Sidecar": true,
+    "duplicateLedgerConflictDetection": true,
+    "noProviderInvocation": true
+  },
+  "safety": {
+    "liveSocialPost": false,
+    "providerMutation": false,
+    "credentials": false,
+    "captcha2fa": false,
+    "crossRepoMutation": false,
+    "humanLevelClaim": false
+  }
+}
