@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import tempfile
@@ -151,16 +152,20 @@ class R24ClosedLoopIntegrationTests(unittest.TestCase):
         growth = Path(os.environ["R24_GROWTH_CHECKOUT"])
         source = Path(os.environ["R24_SOURCE_VIDEO"])
         with tempfile.TemporaryDirectory() as td:
-            out = Path(td) / "run"
-            first = r24.run_closed_loop(
-                source_path=source,
-                brief="Make the proof concise.",
-                media_checkout=media,
-                growth_checkout=growth,
-                out_dir=out,
-                candidates=2,
-                scenario="winner",
-            )
+            root = Path(td)
+            out = root / "run"
+            foreign_cwd = root / "foreign-cwd"
+            foreign_cwd.mkdir()
+            with contextlib.chdir(foreign_cwd):
+                first = r24.run_closed_loop(
+                    source_path=source,
+                    brief="Make the proof concise.",
+                    media_checkout=media,
+                    growth_checkout=growth,
+                    out_dir=out,
+                    candidates=2,
+                    scenario="winner",
+                )
             self.assertEqual(first["state"], "publish_handoff_ready")
             self.assertGreaterEqual(first["realMediaRenderEffects"], 1)
             self.assertLessEqual(first["reeditRounds"], 2)
@@ -168,15 +173,16 @@ class R24ClosedLoopIntegrationTests(unittest.TestCase):
             self.assertFalse(first["liveProviderMutation"])
             self.assertTrue((out / "final.mp4").is_file())
             self.assertTrue((out / "editor-publish-handoff.json").is_file())
-            second = r24.run_closed_loop(
-                source_path=source,
-                brief="Make the proof concise.",
-                media_checkout=media,
-                growth_checkout=growth,
-                out_dir=out,
-                candidates=2,
-                scenario="winner",
-            )
+            with contextlib.chdir(foreign_cwd):
+                second = r24.run_closed_loop(
+                    source_path=source,
+                    brief="Make the proof concise.",
+                    media_checkout=media,
+                    growth_checkout=growth,
+                    out_dir=out,
+                    candidates=2,
+                    scenario="winner",
+                )
             self.assertEqual(second["state"], "publish_handoff_ready")
             self.assertEqual(second["realMediaRenderEffects"], 0)
             self.assertEqual(

@@ -32,5 +32,19 @@
     "captcha2fa": false,
     "crossRepoMutation": false,
     "humanLevelClaim": false
+  },
+  "pathBindingFix": {
+    "mediaProducerSha": "a17f782da8144d1e890ac83195396a3192df93c2",
+    "mediaPathPolicy": "absolute source paths permitted only when inside sandboxRoot",
+    "ffmpegCompiler": "passes timeline source.uri directly",
+    "sourceCopy": "<candidate sandbox>/inputs/source.mp4",
+    "copiedShaAndSizeVerified": true,
+    "sandboxEscapeCheck": true,
+    "cwdIndependentRegression": true
+  },
+  "failedRunSuperseded": {
+    "runId": "36865352531",
+    "jobId": "110379387849",
+    "rootCause": "relative timeline source.uri was interpreted by ffmpeg from process cwd"
   }
 }

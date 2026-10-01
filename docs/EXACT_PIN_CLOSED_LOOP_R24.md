@@ -87,3 +87,15 @@ Re-running the same output directory recovers existing Media R15 render sidecars
 ## Safety
 
 The rehearsal uses no credentials and performs no provider/network side effect. Opaque R23 credential references are inert metadata only. No HUMAN_LEVEL or live-publishing claim is made.
+
+
+## Exact-pin source path binding
+
+The exact Media R15 producer at `a17f782da8144d1e890ac83195396a3192df93c2` has two relevant path semantics:
+
+- `src/runtime/path-policy.js::resolveSandboxedPath` resolves sources against the configured `sandboxRoot` and permits an absolute path only when it remains inside that sandbox.
+- `src/ffmpeg.js::compileFfmpegCommand` passes each timeline `source.uri` directly to ffmpeg rather than substituting the path-policy resolved value.
+
+Therefore a timeline URI such as `inputs/source.mp4` is validation-safe but execution-cwd-sensitive. R24 now copies the source to `<candidate sandbox>/inputs/source.mp4`, verifies the copied SHA-256 and byte size exactly, asserts the canonical copy is still inside the candidate sandbox, and binds `source.uri` to that canonical sandbox-contained absolute path.
+
+This does not permit external absolute paths or traversal. Media R15's existing sandbox check remains authoritative. The focused integration regression changes the caller cwd to an unrelated directory before invoking the exact-pinned render and proves both first execution and idempotent resume still resolve the same source.

@@ -84,6 +84,20 @@ mkdirSync(path.join(root, "outputs"), { recursive: true });
 const copiedSource = path.join(root, "inputs", "source.mp4");
 copyFileSync(path.resolve(request.source.path), copiedSource);
 const sourceDigest = digest(copiedSource);
+
+// Media R15 validates absolute paths against sandboxRoot, but its ffmpeg
+// compiler passes timeline source.uri directly to the child process. Bind the
+// timeline to the canonical copied file inside this candidate sandbox so
+// execution is independent of the caller/process cwd without widening the
+// sandbox.
+const canonicalCopiedSource = path.resolve(copiedSource);
+const sandboxRelativeSource = path.relative(root, canonicalCopiedSource);
+if (
+  sandboxRelativeSource.startsWith("..")
+  || path.isAbsolute(sandboxRelativeSource)
+) {
+  die("copied source escaped Media sandbox root");
+}
 if (
   sourceDigest.sha256 !== request.source.sha256
   || sourceDigest.size !== request.source.sizeBytes
@@ -111,7 +125,7 @@ const baseTimeline = {
         role: "body",
         source: {
           id: request.source.sourceId,
-          uri: "inputs/source.mp4",
+          uri: canonicalCopiedSource,
           inMs: 0,
           outMs: durationMs,
           sha256: sourceDigest.sha256,
