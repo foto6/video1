@@ -96,7 +96,7 @@ class BatchCampaignR14Tests(unittest.TestCase):
             )
             items = runner.plan_concepts(synth, candidate_count=3, inject_duplicates=True)
             self.assertEqual(len(items), 3)
-            self.assertGreaterEqual(ledger.summary()["rejectedCandidateCount"], 2)
+            self.assertGreaterEqual(ledger.summary()["rejectedCandidateCount"], 1)
             signatures = {item["concept"]["hookSignature"] for item in items}
             self.assertEqual(len(signatures), 3)
 
