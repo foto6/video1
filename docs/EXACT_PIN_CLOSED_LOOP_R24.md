@@ -99,3 +99,8 @@ The exact Media R15 producer at `a17f782da8144d1e890ac83195396a3192df93c2` has t
 Therefore a timeline URI such as `inputs/source.mp4` is the correct producer path contract but execution-cwd-sensitive unless the ffmpeg child inherits the Media sandbox root. R24 now copies the source to `<candidate sandbox>/inputs/source.mp4`, verifies the copied SHA-256 and byte size exactly, derives `source.uri` as the normalized path relative to that sandbox, asserts the canonical copy cannot escape the sandbox, and injects the exact Media process executor with `cwd=<candidate sandbox>` for the render child only. The spawned ffmpeg process therefore resolves the exact path Media validated, regardless of the caller cwd, without changing the bridge process cwd globally.
 
 Absolute source paths are not used: Media R15's cross-platform path policy rejects Windows-absolute syntax on non-Windows runtimes and remains authoritative for traversal/protected-path rejection. The focused integration regression changes the caller cwd to an unrelated directory before invoking the exact-pinned render and proves both first execution and idempotent resume still resolve the same source.
+
+
+## CI real-artifact fixture bound
+
+The exact-pin integration remains a real Media R15 execution. CI uses a deterministic 15-second, non-black 9:16 MP4 with 48 kHz audio as the source fixture. The fixture is deliberately low-complexity (180x320 at 10 fps) because the hosted runner repeatedly terminated longer high-entropy renders with SIGTERM 143. Media R15 still scales/renders the canonical output, writes and validates `media.render_export.v1`, runs technical/creative QA, and Creator still verifies the copied source SHA/size and final artifact hashes. No artifact or provider result is mocked.

@@ -317,7 +317,7 @@ jobs:
       - name: Generate source fixture
         run: |
           mkdir -p .r24-fixture
-          ffmpeg -hide_banner -nostdin -y -f lavfi -i "testsrc2=s=360x640:r=30:d=15.2" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15.2" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
+          ffmpeg -hide_banner -nostdin -y -f lavfi -i "color=c=0x224466:s=180x320:r=10:d=15" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
       - name: Run R24 unit plus winner/resume exact-pin integration
         env:
           R24_MEDIA_CHECKOUT: ${{ github.workspace }}/.r24-media
@@ -368,7 +368,7 @@ jobs:
       - name: Generate source fixture
         run: |
           mkdir -p .r24-fixture
-          ffmpeg -hide_banner -nostdin -y -f lavfi -i "testsrc2=s=360x640:r=30:d=15.2" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15.2" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
+          ffmpeg -hide_banner -nostdin -y -f lavfi -i "color=c=0x224466:s=180x320:r=10:d=15" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
       - name: Run exact-pin nonwinner scenario
         env:
           R24_MEDIA_CHECKOUT: ${{ github.workspace }}/.r24-media
@@ -413,7 +413,7 @@ jobs:
       - name: Generate source fixture
         run: |
           mkdir -p .r24-fixture
-          ffmpeg -hide_banner -nostdin -y -f lavfi -i "testsrc2=s=360x640:r=30:d=15.2" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15.2" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
+          ffmpeg -hide_banner -nostdin -y -f lavfi -i "color=c=0x224466:s=180x320:r=10:d=15" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
       - name: Run reproducible real-artifact rehearsal
         run: |
           heartbeat() {

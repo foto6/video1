@@ -78,5 +78,18 @@
       ],
       "rehearsal": "focused-r24-exact-pin-rehearsal"
     }
+  },
+  "ciRealFixture": {
+    "sourceType": "real generated MP4",
+    "video": "non-black constant 9:16 frame",
+    "sourceResolution": "180x320",
+    "sourceFps": 10,
+    "durationSeconds": 15,
+    "audio": "48kHz sine",
+    "exactMediaR15StillInvoked": true,
+    "renderExportStillValidated": true,
+    "technicalQaStillRequired": true,
+    "sourceShaAndSizeStillVerified": true,
+    "reason": "reduce exact-render CPU wall time under hosted runner SIGTERM budget"
   }
 }
