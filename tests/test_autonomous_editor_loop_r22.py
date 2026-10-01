@@ -217,6 +217,39 @@ class R22AutonomousEditorLoopTests(unittest.TestCase):
             self.assertIn("contradictory", terminal["reason"])
             self.assertTrue(terminal["humanReviewRequired"])
 
+    def test_duplicate_durable_event_is_idempotent_and_conflict_fails(self):
+        analysis, _, directives = r22.synthetic_semantic_context()
+        source = {
+            "sourceId": "duplicate-source",
+            "sha256": analysis["source"]["sha256"],
+            "durationMs": analysis["source"]["durationMs"],
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            ledger = r22.LoopLedger(
+                Path(temp) / "loop.jsonl",
+                loop_id="duplicate-loop",
+                source=source,
+                brief_digest=analysis["briefDigest"],
+                semantic_digest=analysis["analysisDigest"],
+                directives_digest=directives["directivesDigest"],
+                config=r22.LoopConfig(),
+            )
+            payload = {"value": "same"}
+            self.assertEqual(
+                ledger.append_once("duplicate:key", "test_event", payload),
+                "committed",
+            )
+            self.assertEqual(
+                ledger.append_once("duplicate:key", "test_event", payload),
+                "duplicate",
+            )
+            with self.assertRaises(r22.EditorLoopConflict):
+                ledger.append_once(
+                    "duplicate:key",
+                    "test_event",
+                    {"value": "changed"},
+                )
+
     def test_config_enforces_bounds(self):
         with self.assertRaises(r22.EditorLoopError):
             r22.LoopConfig(candidate_count=1).validate()

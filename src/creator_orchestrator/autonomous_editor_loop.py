@@ -1334,11 +1334,21 @@ class AutonomousEditorLoop:
                 )
                 return result
 
-            reedit_plans = []
-            for record in sorted(
+            ranked_for_reedit = sorted(
                 eligible_records,
-                key=lambda item: item["candidateId"],
-            )[:2]:
+                key=lambda item: (
+                    -float(
+                        evaluate_critic(
+                            item["critic"],
+                            config=self.ledger.config,
+                        )["score"]
+                        or -1.0
+                    ),
+                    item["candidateId"],
+                ),
+            )
+            reedit_plans = []
+            for record in ranked_for_reedit[:2]:
                 reedit_plans.append(
                     build_reedit_plan(
                         parent_plan=record["plan"],
