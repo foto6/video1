@@ -1,0 +1,86 @@
+{
+  "fixtureVersion": "creator.semantic_fixture.r18.v1",
+  "id": "cinematic-montage",
+  "durationMs": 12000,
+  "expectedMode": "cinematic_minimal",
+  "asr": [],
+  "shot": [
+    {
+      "evidenceType": "shot_boundary",
+      "startMs": 1500,
+      "endMs": 1501,
+      "value": {
+        "boundaryMs": 1500
+      },
+      "confidence": 0.92
+    },
+    {
+      "evidenceType": "shot_boundary",
+      "startMs": 3000,
+      "endMs": 3001,
+      "value": {
+        "boundaryMs": 3000
+      },
+      "confidence": 0.92
+    },
+    {
+      "evidenceType": "shot_boundary",
+      "startMs": 4500,
+      "endMs": 4501,
+      "value": {
+        "boundaryMs": 4500
+      },
+      "confidence": 0.92
+    },
+    {
+      "evidenceType": "shot_boundary",
+      "startMs": 6000,
+      "endMs": 6001,
+      "value": {
+        "boundaryMs": 6000
+      },
+      "confidence": 0.92
+    },
+    {
+      "evidenceType": "shot_boundary",
+      "startMs": 7500,
+      "endMs": 7501,
+      "value": {
+        "boundaryMs": 7500
+      },
+      "confidence": 0.92
+    },
+    {
+      "evidenceType": "shot_boundary",
+      "startMs": 9000,
+      "endMs": 9001,
+      "value": {
+        "boundaryMs": 9000
+      },
+      "confidence": 0.92
+    },
+    {
+      "evidenceType": "motion_energy",
+      "startMs": 0,
+      "endMs": 12000,
+      "value": {
+        "normalizedEnergy": 0.78,
+        "basis": "fixture"
+      },
+      "confidence": 0.9
+    }
+  ],
+  "cv": [],
+  "vlm": [
+    {
+      "evidenceType": "semantic_event",
+      "startMs": 0,
+      "endMs": 2500,
+      "value": {
+        "event": "hook",
+        "basis": "fixture semantic analyzer"
+      },
+      "confidence": 0.76
+    }
+  ]
+}

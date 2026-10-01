@@ -84,3 +84,18 @@ creator-mvp --input ".\source.mp4" --brief "Turn this into a concise proof-first
 The output directory contains exactly the operator-facing artifacts \`final.mp4\`, \`preview.mp4\`, \`qa.json\`, and \`run-summary.json\`. If Media R13 is checked out as sibling \`../video2\`, the \`--media-repo\` argument can be omitted.
 
 External AI is not needed for the baseline: when unavailable, the command explicitly records \`deterministic_local_fallback\` and never labels that text as model output. See \`docs/MVP_ONE_COMMAND_R17.md\` for exact Media pins, exit codes, cleanup semantics, and E2E evidence.
+
+
+## Semantic auto-director
+
+Creator R18 adds source-bound semantic directing before the existing R17 Media R13 render. The same \`creator-mvp\` command now supports evidence-based automatic style selection:
+
+\`\`\`bash
+creator-mvp --input ./source.mp4 --brief "Turn this into a concise proof-first vertical short" --out ./mvp-out --style auto --media-repo ../video2
+\`\`\`
+
+\`--style auto\` is the default. Explicit \`clean\`, \`aggressive\`, \`cinematic\`, or \`hybrid\` still wins over the auto-director, with material disagreement recorded in \`director-report.json\`.
+
+R18 never invents missing ASR/CV/VLM semantics. Local ffmpeg shot/silence evidence is used when available; unavailable semantic categories are listed explicitly. The output now retains the original R17 artifacts plus \`director-report.json\`.
+
+Readiness is \`SEMANTIC_PIPELINE_READY\`; human-level editing quality remains \`HUMAN_LEVEL_UNPROVEN\`. See \`docs/SEMANTIC_DIRECTOR_R18.md\`.

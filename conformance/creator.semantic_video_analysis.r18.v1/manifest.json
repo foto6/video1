@@ -1,0 +1,62 @@
+{
+  "contractVersion": "creator.semantic_video_analysis.r18.v1",
+  "adapterResultVersion": "creator.semantic_adapter_result.r18.v1",
+  "directorReportVersion": "creator.semantic_video_director.r18.v1",
+  "creatorBaseSha": "d8b7c0f72381912f6c477ebc6eaa9ac43d81166e",
+  "evidenceCategories": [
+    "transcriptSegments",
+    "sentenceBoundaries",
+    "shotBoundaries",
+    "visualSubjects",
+    "importantObjects",
+    "motionEnergy",
+    "audioEnergy",
+    "semanticEvents"
+  ],
+  "semanticEvents": [
+    "hook",
+    "setup",
+    "proof_demo",
+    "explanation",
+    "punchline_payoff",
+    "cta_candidate",
+    "low_information"
+  ],
+  "adapterBoundaries": [
+    "ASR",
+    "scene_shot_detector",
+    "CV_saliency_person_object_tracking",
+    "optional_VLM_semantic_analyzer"
+  ],
+  "editorialModes": [
+    "clean_podcast",
+    "aggressive_shortform",
+    "cinematic_minimal",
+    "hybrid"
+  ],
+  "fixtures": {
+    "talking-head-explainer": "fixtures/semantic_director_r18/talking-head-explainer.json",
+    "product-demo": "fixtures/semantic_director_r18/product-demo.json",
+    "story-punchline": "fixtures/semantic_director_r18/story-punchline.json",
+    "cinematic-montage": "fixtures/semantic_director_r18/cinematic-montage.json",
+    "static-low-energy": "fixtures/semantic_director_r18/static-low-energy.json"
+  },
+  "integration": {
+    "r17Entrypoint": "creator-mvp",
+    "structuredHintsToMedia": true,
+    "mediaQaBypass": false,
+    "exactMediaProducerSha": "ad4e0ba487a3cabc84dd339d412e19a0db0f9add",
+    "mediaCompatibilityContract": "media.creator_consumer_compat.r13.v1"
+  },
+  "readiness": {
+    "semanticPipeline": "SEMANTIC_PIPELINE_READY",
+    "humanLevelQuality": "HUMAN_LEVEL_UNPROVEN"
+  },
+  "safety": {
+    "publishing": false,
+    "credentials": false,
+    "syntheticHumanQualityClaim": false,
+    "mediaGrowthMutation": false,
+    "mergeRelease": false
+  }
+}

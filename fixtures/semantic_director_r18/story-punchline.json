@@ -1,0 +1,91 @@
+{
+  "fixtureVersion": "creator.semantic_fixture.r18.v1",
+  "id": "story-punchline",
+  "durationMs": 12000,
+  "expectedMode": "aggressive_shortform",
+  "asr": [
+    {
+      "evidenceType": "transcript_segment",
+      "startMs": 0,
+      "endMs": 4500,
+      "value": {
+        "text": "First I thought the setup was completely normal.",
+        "speechEnergy": 0.8
+      },
+      "confidence": 0.93
+    },
+    {
+      "evidenceType": "transcript_segment",
+      "startMs": 4500,
+      "endMs": 9000,
+      "value": {
+        "text": "But then everything changed and finally the reveal landed.",
+        "speechEnergy": 0.86
+      },
+      "confidence": 0.94
+    },
+    {
+      "evidenceType": "transcript_segment",
+      "startMs": 9000,
+      "endMs": 12000,
+      "value": {
+        "text": "That was the punchline.",
+        "speechEnergy": 0.83
+      },
+      "confidence": 0.92
+    }
+  ],
+  "shot": [
+    {
+      "evidenceType": "shot_boundary",
+      "startMs": 4300,
+      "endMs": 4301,
+      "value": {
+        "boundaryMs": 4300
+      },
+      "confidence": 0.86
+    },
+    {
+      "evidenceType": "shot_boundary",
+      "startMs": 8900,
+      "endMs": 8901,
+      "value": {
+        "boundaryMs": 8900
+      },
+      "confidence": 0.88
+    },
+    {
+      "evidenceType": "motion_energy",
+      "startMs": 0,
+      "endMs": 12000,
+      "value": {
+        "normalizedEnergy": 0.35,
+        "basis": "fixture"
+      },
+      "confidence": 0.84
+    }
+  ],
+  "cv": [],
+  "vlm": [
+    {
+      "evidenceType": "semantic_event",
+      "startMs": 0,
+      "endMs": 4500,
+      "value": {
+        "event": "setup",
+        "basis": "fixture semantic analyzer"
+      },
+      "confidence": 0.92
+    },
+    {
+      "evidenceType": "semantic_event",
+      "startMs": 8500,
+      "endMs": 12000,
+      "value": {
+        "event": "punchline_payoff",
+        "basis": "fixture semantic analyzer"
+      },
+      "confidence": 0.96
+    }
+  ]
+}

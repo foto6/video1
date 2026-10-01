@@ -1,0 +1,105 @@
+{
+  "fixtureVersion": "creator.semantic_fixture.r18.v1",
+  "id": "product-demo",
+  "durationMs": 12000,
+  "expectedMode": "hybrid",
+  "asr": [
+    {
+      "evidenceType": "transcript_segment",
+      "startMs": 0,
+      "endMs": 3500,
+      "value": {
+        "text": "Watch what happens when I tap this control.",
+        "speechEnergy": 0.85
+      },
+      "confidence": 0.94
+    },
+    {
+      "evidenceType": "transcript_segment",
+      "startMs": 3500,
+      "endMs": 8000,
+      "value": {
+        "text": "Here is the result and the screen confirms it.",
+        "speechEnergy": 0.8
+      },
+      "confidence": 0.93
+    }
+  ],
+  "shot": [
+    {
+      "evidenceType": "shot_boundary",
+      "startMs": 3900,
+      "endMs": 3901,
+      "value": {
+        "boundaryMs": 3900
+      },
+      "confidence": 0.9
+    },
+    {
+      "evidenceType": "motion_energy",
+      "startMs": 0,
+      "endMs": 12000,
+      "value": {
+        "normalizedEnergy": 0.32,
+        "basis": "fixture"
+      },
+      "confidence": 0.88
+    }
+  ],
+  "cv": [
+    {
+      "evidenceType": "important_object",
+      "startMs": 500,
+      "endMs": 9000,
+      "value": {
+        "kind": "product",
+        "label": "device",
+        "box": {
+          "x": 0.42,
+          "y": 0.36,
+          "width": 0.32,
+          "height": 0.3
+        }
+      },
+      "confidence": 0.95
+    },
+    {
+      "evidenceType": "important_object",
+      "startMs": 3200,
+      "endMs": 9000,
+      "value": {
+        "kind": "screen",
+        "label": "interface",
+        "box": {
+          "x": 0.48,
+          "y": 0.28,
+          "width": 0.4,
+          "height": 0.45
+        }
+      },
+      "confidence": 0.94
+    }
+  ],
+  "vlm": [
+    {
+      "evidenceType": "semantic_event",
+      "startMs": 500,
+      "endMs": 8000,
+      "value": {
+        "event": "proof_demo",
+        "basis": "fixture semantic analyzer"
+      },
+      "confidence": 0.96
+    },
+    {
+      "evidenceType": "semantic_event",
+      "startMs": 0,
+      "endMs": 2200,
+      "value": {
+        "event": "hook",
+        "basis": "fixture semantic analyzer"
+      },
+      "confidence": 0.9
+    }
+  ]
+}

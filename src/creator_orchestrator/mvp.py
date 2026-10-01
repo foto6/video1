@@ -13,6 +13,7 @@ from typing import Any, Mapping, Sequence
 
 from . import autonomous_reels as reels
 from . import media_r13_compat as m13
+from . import semantic_director as director
 
 MVP_VERSION = "creator.mvp_pipeline.r17.v1"
 SCRIPT_VERSION = "creator.mvp_local_script.r17.v1"
@@ -34,6 +35,7 @@ STYLE_MAP = {
     "clean": "clean_podcast",
     "aggressive": "aggressive_shortform",
     "cinematic": "cinematic_minimal",
+    "hybrid": "clean_podcast",
 }
 
 
@@ -433,14 +435,15 @@ def run_pipeline(
     input_path: str | Path,
     brief_arg: str,
     out_dir: str | Path,
-    style: str = "clean",
+    style: str = "auto",
     media_repo: str | None = None,
     keep_work: bool = False,
+    semantic_adapters: director.SemanticAdapters | None = None,
 ) -> dict[str, Any]:
-    if style not in STYLE_MAP:
+    if style not in {"auto", *STYLE_MAP}:
         raise BadInput(
             f"unsupported style {style!r}; choose one of: "
-            + ", ".join(sorted(STYLE_MAP))
+            + ", ".join(["auto", *sorted(STYLE_MAP)])
         )
     source = Path(input_path).expanduser().resolve()
     out_root = Path(out_dir).expanduser().resolve()
@@ -449,6 +452,35 @@ def run_pipeline(
     probe = probe_input(source)
     brief, fallback = normalize_brief(brief_arg)
     script = build_local_script(brief, duration_ms=probe.duration_ms)
+    try:
+        semantic_analysis = director.analyze_video(
+            source,
+            input_sha256=probe.sha256,
+            duration_ms=probe.duration_ms,
+            width=probe.width,
+            height=probe.height,
+            fps=probe.fps,
+            has_audio=probe.has_audio,
+            brief=brief,
+            adapters=semantic_adapters,
+        )
+        editorial_decision = director.select_editorial_mode(
+            semantic_analysis,
+            override=style,
+        )
+        edit_directives = director.generate_edit_directives(
+            semantic_analysis,
+            editorial_decision,
+        )
+        director_report = director.build_director_report(
+            semantic_analysis,
+            editorial_decision,
+            edit_directives,
+        )
+    except director.SemanticDirectorError as exc:
+        raise InsufficientEvidence(
+            f"semantic director rejected evidence: {exc}"
+        ) from exc
     media_path = resolve_media_repo(media_repo)
     media_pin = validate_media_checkout(media_path)
 
@@ -461,6 +493,12 @@ def run_pipeline(
     _write_json_atomic(
         work / ".creator-mvp-managed.json",
         {"runId": run_id, "version": MVP_VERSION},
+        run_id=run_id,
+    )
+    director_path = out_root / "director-report.json"
+    _write_json_atomic(
+        director_path,
+        director_report,
         run_id=run_id,
     )
     inputs = work / "inputs"
@@ -487,7 +525,20 @@ def run_pipeline(
         "script": script,
         "style": {
             "operatorStyle": style,
-            "mediaStyle": STYLE_MAP[style],
+            "autoMode": editorial_decision["autoDirector"]["mode"],
+            "editorialMode": editorial_decision["effectiveMode"],
+            "mediaStyle": editorial_decision["mediaBaseStyle"],
+            "autoConfidence": editorial_decision["autoDirector"]["confidence"],
+            "override": editorial_decision["override"],
+        },
+        "semanticDirector": {
+            "contractVersion": director.SEMANTIC_ANALYSIS_VERSION,
+            "analysisDigest": semantic_analysis["analysisDigest"],
+            "decision": editorial_decision,
+            "directives": edit_directives,
+            "mediaHints": edit_directives["mediaHints"],
+            "unavailableEvidence": semantic_analysis["unavailableEvidence"],
+            "humanLevelQuality": director.HUMAN_LEVEL_STATE,
         },
         "targetDurationMs": probe.duration_ms,
         "publishingEnabled": False,
@@ -590,6 +641,13 @@ def run_pipeline(
         "technicalQa": technical,
         "creativeQa": creative,
         "sourceEvidence": evidence,
+        "semanticDirector": {
+            "analysisDigest": semantic_analysis["analysisDigest"],
+            "directorReportDigest": director_report["reportDigest"],
+            "readiness": director.READINESS_STATE,
+            "humanLevelQuality": director.HUMAN_LEVEL_STATE,
+            "unavailableEvidence": semantic_analysis["unavailableEvidence"],
+        },
         "gates": {
             "input_ok": True,
             "media_pin_ok": True,
@@ -617,6 +675,14 @@ def run_pipeline(
         },
         "script": script,
         "style": request["style"],
+        "semanticDirector": {
+            "analysisDigest": semantic_analysis["analysisDigest"],
+            "directorReportDigest": director_report["reportDigest"],
+            "readiness": director.READINESS_STATE,
+            "humanLevelQuality": director.HUMAN_LEVEL_STATE,
+            "chosenStyle": editorial_decision,
+            "unavailableEvidence": semantic_analysis["unavailableEvidence"],
+        },
         "media": {
             **media_pin,
             "compatibilityEnvelopeContract": envelope["contractVersion"],
@@ -624,6 +690,7 @@ def run_pipeline(
             "renderFingerprint": envelope["renderFingerprint"],
             "timelineDigest": envelope["timelineDigest"],
             "artifactManifestDigest": envelope["artifactManifestDigest"],
+            "creativePlan": response.get("creativePlan"),
         },
         "outputs": {
             "final": {
@@ -637,6 +704,7 @@ def run_pipeline(
                 "size": preview_path.stat().st_size,
             },
             "qa": str(qa_path),
+            "directorReport": str(director_path),
         },
         "gates": dict(qa["gates"]),
         "fallback": fallback,
@@ -674,9 +742,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--out", required=True, help="operator output directory")
     parser.add_argument(
         "--style",
-        choices=tuple(STYLE_MAP),
-        default="clean",
-        help="deterministic Media creative style",
+        choices=("auto", *tuple(STYLE_MAP)),
+        default="auto",
+        help=(
+            "auto selects an evidence-based editorial mode; an explicit style "
+            "overrides the director and disagreement is reported"
+        ),
     )
     parser.add_argument(
         "--media-repo",

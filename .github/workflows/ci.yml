@@ -11,6 +11,7 @@ on:
       - agent/creator-r15-candidate-tournament-20261001
       - agent/creator-r16-media-r13-production-pin-20261001
       - agent/creator-r17-mvp-one-command-20261001
+      - agent/creator-r18-semantic-director-20261001
   pull_request:
 
 jobs:
@@ -113,6 +114,31 @@ jobs:
           export CREATOR_MEDIA_R13_DIR="$GITHUB_WORKSPACE/.deps/media-r13"
           creator-mvp --help
           python -m unittest discover -s tests -p 'test_creator_mvp_r17.py' -v
+
+  focused-r18:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout exact Media R13 producer
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: ad4e0ba487a3cabc84dd339d412e19a0db0f9add
+          path: .deps/media-r13
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install ffmpeg and Creator entrypoint
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python -m pip install -e .
+      - name: Run Creator R18 semantic director tests
+        run: |
+          export CREATOR_MEDIA_R13_DIR="$GITHUB_WORKSPACE/.deps/media-r13"
+          python -m unittest discover -s tests -p 'test_semantic_director_r18.py' -v
 
   full:
     runs-on: ubuntu-latest

@@ -1,0 +1,21 @@
+{
+  "fixtureVersion": "creator.semantic_fixture.r18.v1",
+  "id": "static-low-energy",
+  "durationMs": 12000,
+  "expectedMode": "clean_podcast",
+  "asr": [],
+  "shot": [
+    {
+      "evidenceType": "motion_energy",
+      "startMs": 0,
+      "endMs": 12000,
+      "value": {
+        "normalizedEnergy": 0.02,
+        "basis": "fixture"
+      },
+      "confidence": 0.92
+    }
+  ],
+  "cv": [],
+  "vlm": []
+}

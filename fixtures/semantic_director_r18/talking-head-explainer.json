@@ -1,0 +1,90 @@
+{
+  "fixtureVersion": "creator.semantic_fixture.r18.v1",
+  "id": "talking-head-explainer",
+  "durationMs": 12000,
+  "expectedMode": "clean_podcast",
+  "asr": [
+    {
+      "evidenceType": "transcript_segment",
+      "startMs": 0,
+      "endMs": 4000,
+      "value": {
+        "text": "Here is why this works and what you need to know.",
+        "speechEnergy": 0.82
+      },
+      "confidence": 0.94
+    },
+    {
+      "evidenceType": "transcript_segment",
+      "startMs": 4000,
+      "endMs": 8000,
+      "value": {
+        "text": "The reason is simple and I will explain each step.",
+        "speechEnergy": 0.8
+      },
+      "confidence": 0.93
+    },
+    {
+      "evidenceType": "transcript_segment",
+      "startMs": 8000,
+      "endMs": 12000,
+      "value": {
+        "text": "Now you can apply the same method yourself.",
+        "speechEnergy": 0.78
+      },
+      "confidence": 0.91
+    }
+  ],
+  "shot": [
+    {
+      "evidenceType": "motion_energy",
+      "startMs": 0,
+      "endMs": 12000,
+      "value": {
+        "normalizedEnergy": 0.08,
+        "basis": "fixture"
+      },
+      "confidence": 0.9
+    }
+  ],
+  "cv": [
+    {
+      "evidenceType": "visual_subject",
+      "startMs": 0,
+      "endMs": 12000,
+      "value": {
+        "kind": "person",
+        "label": "speaker",
+        "box": {
+          "x": 0.25,
+          "y": 0.12,
+          "width": 0.5,
+          "height": 0.72
+        }
+      },
+      "confidence": 0.96
+    }
+  ],
+  "vlm": [
+    {
+      "evidenceType": "semantic_event",
+      "startMs": 0,
+      "endMs": 2500,
+      "value": {
+        "event": "hook",
+        "basis": "fixture semantic analyzer"
+      },
+      "confidence": 0.88
+    },
+    {
+      "evidenceType": "semantic_event",
+      "startMs": 3500,
+      "endMs": 9000,
+      "value": {
+        "event": "explanation",
+        "basis": "fixture semantic analyzer"
+      },
+      "confidence": 0.9
+    }
+  ]
+}

@@ -103,6 +103,7 @@ for (const name of [
   "buildCreatorConsumerEnvelope",
   "compileCreativeEditPlan",
   "evaluateCreativeQuality",
+  "fingerprint",
   "materializeShortformArtifacts",
   "stableStringify"
 ]) {
@@ -117,6 +118,15 @@ if (request.publishingEnabled !== false || request.growthEnabled !== false || re
 }
 if (!["clean_podcast", "aggressive_shortform", "cinematic_minimal"].includes(request.style?.mediaStyle)) {
   throw new Error("unsupported Media creative style");
+}
+if (request.semanticDirector?.contractVersion !== "creator.semantic_video_analysis.r18.v1") {
+  throw new Error("Creator R18 semantic director contract is required");
+}
+if (request.semanticDirector?.humanLevelQuality !== "HUMAN_LEVEL_UNPROVEN") {
+  throw new Error("Creator R18 must not claim human-level semantic quality");
+}
+if (!request.semanticDirector?.mediaHints || typeof request.semanticDirector.mediaHints !== "object") {
+  throw new Error("Creator R18 semantic Media hints are required");
 }
 
 const sourceRef = relativeInside(workDir, request.source?.relativePath, "source");
@@ -186,15 +196,24 @@ const baseTimeline = {
   canvas: { width: 1080, height: 1920, fps: 30, durationMs: request.targetDurationMs },
   tracks
 };
+const semanticHints = request.semanticDirector.mediaHints;
+const creativeHints = {
+  sentenceBoundariesMs: Array.isArray(semanticHints.sentenceBoundariesMs) && semanticHints.sentenceBoundariesMs.length
+    ? semanticHints.sentenceBoundariesMs
+    : sentenceBoundaries(request.targetDurationMs),
+  beatMarkersMs: Array.isArray(semanticHints.beatMarkersMs) && semanticHints.beatMarkersMs.length
+    ? semanticHints.beatMarkersMs
+    : beatMarkers(request.targetDurationMs),
+  silenceRanges: Array.isArray(semanticHints.silenceRanges) ? semanticHints.silenceRanges : [],
+  saliency: Array.isArray(semanticHints.saliency) ? semanticHints.saliency : [],
+  captionTokens: Array.isArray(semanticHints.captionTokens) ? semanticHints.captionTokens : []
+};
 const creative = media.compileCreativeEditPlan({
   style: request.style.mediaStyle,
   timeline: baseTimeline,
-  loopFriendly: false,
+  loopFriendly: request.semanticDirector.directives?.loop?.proposed === true,
   cta: false,
-  hints: {
-    sentenceBoundariesMs: sentenceBoundaries(request.targetDurationMs),
-    beatMarkersMs: beatMarkers(request.targetDurationMs)
-  }
+  hints: creativeHints
 });
 
 const exportSpec = {
@@ -294,7 +313,14 @@ const response = {
   previewRelativePath: preview.relative,
   envelope,
   artifactManifest,
-  creativePlan: { contractVersion: creative.contractVersion, planDigest: creative.planDigest, style: creative.style },
+  creativePlan: {
+    contractVersion: creative.contractVersion,
+    planDigest: creative.planDigest,
+    style: creative.style,
+    semanticAnalysisDigest: request.semanticDirector.analysisDigest,
+    semanticDirectivesDigest: request.semanticDirector.directives?.directivesDigest ?? null,
+    semanticHintsDigest: media.fingerprint(creativeHints)
+  },
   mediaArtifactManifestDigest: media.artifactManifestDigest(artifactManifest),
   duplicateSubmitObserved: true,
   livePublishing: false
