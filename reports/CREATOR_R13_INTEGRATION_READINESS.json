@@ -1,0 +1,55 @@
+{
+  "reportVersion": "creator.integration_acceptance.r13.v1",
+  "observedAt": "2026-10-01",
+  "overall": "BLOCKED_MEDIA",
+  "gates": {
+    "creatorR11": {
+      "state": "GREEN",
+      "baselineSha": "3594a907bb0c16469f33909af102714bdecaaafd",
+      "mediaFailClosedPreserved": true
+    },
+    "creatorR12": {
+      "state": "GREEN",
+      "producerSha": "3594a907bb0c16469f33909af102714bdecaaafd",
+      "publishProviderContract": "creator.publish_provider.v1"
+    },
+    "growthR11": {
+      "state": "GREEN",
+      "repository": "foto6/video3",
+      "branch": "agent/growth-r11-provider-ingest-20261001",
+      "producerSha": "c4ed94d3e76b75d36bf8cc8280f6937f455133a6",
+      "conformanceManifestPath": "conformance/growth.provider_metrics_ingest.v1/manifest.json",
+      "conformanceManifestBlobSha": "8b47817cb344c4a1670d338fca351c1056e8ba6f",
+      "implementationPath": "growth_analytics/provider_ingest.py",
+      "implementationBlobSha": "3fde5ed6fbae9356cc232613a8a81ea442c74315",
+      "r10ContractPath": "conformance/growth.autonomous_reels.v1/contract.json",
+      "r10ContractBlobSha": "0a63ebece0fe8620a57e635143cc3ea16d095f59",
+      "r10ProducerSha": "7209a2a9033c4ced0690b8311e6f1661681e7ca2",
+      "r10ImplementationBlobSha": "808ebeb3df424f480dea4a394174fcf7356849b8",
+      "fixtureBlobShas": {
+        "instagram_reels": "9c411453e66a59d0388a142a4b874348f4d0f1d8",
+        "tiktok": "3e5fe2212ab8b120209bd73abf509bf9eab188b8",
+        "youtube_shorts": "95bb85583cbed8e7d04d54d71c13d7b75fa53ef9"
+      },
+      "providerAccess": "read_only",
+      "syntheticMayClaimLivePerformance": false
+    },
+    "mediaR11": {
+      "state": "BLOCKED_MEDIA",
+      "reason": "candidate branch has contract artifacts but no accepted exact-head successful CI evidence",
+      "acceptedProducerSha": null,
+      "observedCandidate": {
+        "repository": "foto6/video2",
+        "branch": "agent/media-r11-autonomous-reels-20261001",
+        "producerSha": "530e0ea43288840d2d66609ca2407640522df3f7",
+        "shortformConformanceManifestBlobSha": "07c38a048d23490b8e55924697650e9969bf089f",
+        "creatorConsumerBlobSha": "8d979c9a8f59259c5092c20b0c48c153f41b64a8",
+        "jobContractBlobSha": "96b252acae743f8fe059fd634ee320f92bd9c79c",
+        "artifactManifestContractBlobSha": "42aed1ca4720cddd4a5e48af076bc73b663322b0",
+        "exactHeadCiRunId": null,
+        "exactHeadCiConclusion": null
+      }
+    }
+  },
+  "productionReadinessClaim": false
+}

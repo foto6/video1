@@ -1,0 +1,56 @@
+{
+  "contractVersion": "creator.integration_acceptance.r13.v1",
+  "ledgerVersion": "creator.integration_acceptance_ledger.v1",
+  "harnessPath": "src/creator_orchestrator/integration_acceptance.py",
+  "focusedTestPath": "tests/test_integration_acceptance_r13.py",
+  "readinessReportPath": "reports/CREATOR_R13_INTEGRATION_READINESS.json",
+  "boundaries": [
+    "creator_to_media_request",
+    "media_to_creator_result",
+    "creator_to_publish_provider",
+    "publish_provider_to_creator_receipt",
+    "creator_to_growth_handoff",
+    "growth_r11_provider_metrics",
+    "growth_to_creator_next_cycle_seed"
+  ],
+  "contracts": {
+    "creatorR11State": "creator.autonomous_reels_state.v1",
+    "mediaEnvelope": "creator.media_r11_result_envelope.v1",
+    "releaseAuthorization": "release.authorization.v1",
+    "publishProvider": "creator.publish_provider.v1",
+    "publishReceipt": "creator.publish_provider_receipt.v2",
+    "publishGrowthHandoff": "creator.publish_provider_growth_handoff.v1",
+    "growthProviderMetrics": "growth.shortform_platform_metrics.v1",
+    "growthNextCycleSeed": "growth.reels_next_cycle_seed.v1"
+  },
+  "growthR11": {
+    "repository": "foto6/video3",
+    "branch": "agent/growth-r11-provider-ingest-20261001",
+    "producerSha": "c4ed94d3e76b75d36bf8cc8280f6937f455133a6",
+    "manifestBlobSha": "8b47817cb344c4a1670d338fca351c1056e8ba6f",
+    "implementationBlobSha": "3fde5ed6fbae9356cc232613a8a81ea442c74315",
+    "r10ContractBlobSha": "0a63ebece0fe8620a57e635143cc3ea16d095f59"
+  },
+  "mediaGate": {
+    "default": "BLOCKED_MEDIA",
+    "requiresExactProducerSha": true,
+    "requiresJobContractBlobSha": true,
+    "requiresArtifactManifestContractBlobSha": true,
+    "requiresShortformConformanceBlobSha": true,
+    "requiresCreatorConsumerBlobSha": true,
+    "requiresExactHeadCiSuccess": true,
+    "syntheticEvidenceMayClaimProduction": false
+  },
+  "platformMocks": [
+    "instagram_reels",
+    "tiktok",
+    "youtube_shorts"
+  ],
+  "safety": {
+    "livePublishing": false,
+    "credentials": false,
+    "mediaRepoMutation": false,
+    "growthRepoMutation": false,
+    "mergeRelease": false
+  }
+}
