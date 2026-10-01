@@ -57,3 +57,30 @@ Wave 4 adds strict `growth.creator_seed.v1` ingestion and concrete `media.job.v1
 ## Durable human approval gate
 
 `release.authorization.v1` binds a queued artifact hash and complete campaign lineage to explicit external approval, exact destination scope, expiry and idempotency. Only local simulated release execution is supported; live external mutation remains disabled. See `docs/RELEASE_AUTHORIZATION_V1.md`.
+
+
+## First MVP: one-command vertical render
+
+Creator R17 turns one local source video plus a short brief into a finished vertical MP4 through the exact pinned Media R13 producer. Publishing, Growth, analytics, and credentials remain disabled.
+
+Install this checkout once:
+
+\`\`\`bash
+python -m pip install -e .
+\`\`\`
+
+Linux:
+
+\`\`\`bash
+creator-mvp --input ./source.mp4 --brief "Turn this into a concise proof-first vertical short" --out ./mvp-out --style clean --media-repo ../video2
+\`\`\`
+
+Windows PowerShell:
+
+\`\`\`powershell
+creator-mvp --input ".\source.mp4" --brief "Turn this into a concise proof-first vertical short" --out ".\mvp-out" --style clean --media-repo "..\video2"
+\`\`\`
+
+The output directory contains exactly the operator-facing artifacts \`final.mp4\`, \`preview.mp4\`, \`qa.json\`, and \`run-summary.json\`. If Media R13 is checked out as sibling \`../video2\`, the \`--media-repo\` argument can be omitted.
+
+External AI is not needed for the baseline: when unavailable, the command explicitly records \`deterministic_local_fallback\` and never labels that text as model output. See \`docs/MVP_ONE_COMMAND_R17.md\` for exact Media pins, exit codes, cleanup semantics, and E2E evidence.

@@ -8,5 +8,8 @@ version = "0.1.0"
 description = "Durable dry-run creator workflow orchestrator"
 requires-python = ">=3.11"
 
+[project.scripts]
+creator-mvp = "creator_orchestrator.mvp:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]

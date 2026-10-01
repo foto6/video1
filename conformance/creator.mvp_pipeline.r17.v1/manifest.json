@@ -1,0 +1,57 @@
+{
+  "contractVersion": "creator.mvp_pipeline.r17.v1",
+  "summaryVersion": "creator.mvp_run_summary.r17.v1",
+  "qaVersion": "creator.mvp_qa.r17.v1",
+  "localScriptVersion": "creator.mvp_local_script.r17.v1",
+  "creatorBaseSha": "4a176c56b68b8949651eb45e5bd26d2cbdbd02ee",
+  "entrypoint": "creator-mvp",
+  "styles": {
+    "clean": "clean_podcast",
+    "aggressive": "aggressive_shortform",
+    "cinematic": "cinematic_minimal"
+  },
+  "media": {
+    "repository": "foto6/video2",
+    "branch": "agent/media-r13-creator-compat-20261001",
+    "producerSha": "ad4e0ba487a3cabc84dd339d412e19a0db0f9add",
+    "ciRunId": "36801556474",
+    "ciConclusion": "success",
+    "compatibilityContract": "media.creator_consumer_compat.r13.v1",
+    "exactPinValidationBeforeRender": true
+  },
+  "outputs": [
+    "final.mp4",
+    "preview.mp4",
+    "qa.json",
+    "run-summary.json"
+  ],
+  "readinessGates": [
+    "input_ok",
+    "media_pin_ok",
+    "render_ok",
+    "technical_qa_ok",
+    "creative_qa_ok",
+    "artifact_export_ok"
+  ],
+  "exitCodes": {
+    "success": 0,
+    "bad_input": 2,
+    "missing_dependency": 3,
+    "media_mismatch": 4,
+    "render_failed": 5,
+    "technical_qa_failed": 6,
+    "creative_qa_failed": 7,
+    "insufficient_evidence": 8,
+    "internal": 9
+  },
+  "safety": {
+    "deterministicFallbackLabeled": true,
+    "livePublishing": false,
+    "growth": false,
+    "analytics": false,
+    "credentials": false,
+    "deleteUserSource": false,
+    "mediaRepoMutation": false,
+    "growthRepoMutation": false
+  }
+}

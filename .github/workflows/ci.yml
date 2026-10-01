@@ -10,6 +10,7 @@ on:
       - agent/creator-r14-batch-campaign-20261001
       - agent/creator-r15-candidate-tournament-20261001
       - agent/creator-r16-media-r13-production-pin-20261001
+      - agent/creator-r17-mvp-one-command-20261001
   pull_request:
 
 jobs:
@@ -87,12 +88,53 @@ jobs:
           PYTHONPATH=src python -m creator_orchestrator.candidate_tournament real-r13 --work-dir "$work_dir" > "$work_dir/report.json"
           python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['state']=='REAL_MEDIA_R13_COMPATIBILITY_GREEN'; assert r['productionMediaReady'] is True; assert r['acceptedCandidate']['technicalQaPassed'] is True; assert r['acceptedCandidate']['creativeQualityPassed'] is True; assert r['tournamentAcceptance']['realCandidateCount']==1; assert r['tournamentAcceptance']['decisionState']=='insufficient_evidence'; assert r['tournamentAcceptance']['fakeRealRendersCreated']==0; assert r['livePublishingEnabled'] is False" "$work_dir/report.json"
 
+  focused-r17:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout exact Media R13 producer
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: ad4e0ba487a3cabc84dd339d412e19a0db0f9add
+          path: .deps/media-r13
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install Creator MVP entrypoint
+        run: python -m pip install -e .
+      - name: Run Creator R17 MVP tests and real-video E2E
+        run: |
+          export CREATOR_MEDIA_R13_DIR="$GITHUB_WORKSPACE/.deps/media-r13"
+          creator-mvp --help
+          python -m unittest discover -s tests -p 'test_creator_mvp_r17.py' -v
+
   full:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout exact Media R13 producer for R17 E2E
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: ad4e0ba487a3cabc84dd339d412e19a0db0f9add
+          path: .deps/media-r13
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install ffmpeg and Creator entrypoint
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python -m pip install -e .
       - name: Run full unit test suite
-        run: PYTHONPATH=src python -m unittest discover -s tests -v
+        run: |
+          export CREATOR_MEDIA_R13_DIR="$GITHUB_WORKSPACE/.deps/media-r13"
+          python -m unittest discover -s tests -v
