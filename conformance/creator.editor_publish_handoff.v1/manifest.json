@@ -1,0 +1,33 @@
+{
+  "contractVersion": "creator.editor_publish_handoff.v1",
+  "creatorBaseSha": "351df0d455557fb20b47f0fd2ab806c4281ed5ee",
+  "producer": "foto6/video1",
+  "schemaPath": "conformance/creator.editor_publish_handoff.v1/schema.json",
+  "runtimeValidator": "src/creator_orchestrator/editor_publish_handoff.py::validate_editor_publish_handoff",
+  "consumes": {
+    "editorBundle": "creator.autonomous_edit_final_bundle.r22.v1",
+    "releaseAuthorization": "release.authorization.v1",
+    "publishRequest": "creator.publish_request.v1",
+    "publishProvider": "creator.publish_provider.v1",
+    "providerReceipt": "creator.publish_provider_receipt.v2"
+  },
+  "durableState": "creator.editor_publish_handoff_ledger.v1",
+  "eligibility": {
+    "allowed": [
+      "final_bundle + winner"
+    ],
+    "blocked": [
+      "tie",
+      "insufficient_evidence",
+      "human_review_required",
+      "objective_render_failure"
+    ]
+  },
+  "guarantees": {
+    "exactFinalMp4Sha": true,
+    "publishIntentBeforeProviderSideEffect": true,
+    "recoverBeforeResubmit": true,
+    "opaqueCredentialRefsOnly": true,
+    "livePublishingExecuted": false
+  }
+}

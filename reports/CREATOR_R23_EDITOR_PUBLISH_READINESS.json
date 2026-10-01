@@ -1,0 +1,38 @@
+{
+  "reportVersion": "creator.editor_publish_handoff.r23.readiness.v1",
+  "creatorBaseSha": "351df0d455557fb20b47f0fd2ab806c4281ed5ee",
+  "state": "SYNTHETIC_EDITOR_TO_PUBLISH_HANDOFF_READY",
+  "contracts": {
+    "handoff": "creator.editor_publish_handoff.v1",
+    "editor": "creator.autonomous_edit_final_bundle.r22.v1",
+    "publishRequest": "creator.publish_request.v1",
+    "provider": "creator.publish_provider.v1",
+    "receipt": "creator.publish_provider_receipt.v2"
+  },
+  "gates": {
+    "terminalWinnerOnly": true,
+    "exactFinalMp4Hash": true,
+    "releaseAuthorizationWinnerBinding": true,
+    "releaseAuthorizationBundleBinding": true,
+    "targetAccountRequestBinding": true,
+    "durableIntentBeforeSideEffect": true,
+    "recoverBeforeResubmit": true
+  },
+  "tests": [
+    "lost_ack_restart",
+    "duplicate_handoff",
+    "provider_timeout",
+    "authorization_required",
+    "account_mismatch",
+    "wrong_artifact_sha",
+    "ineligible_editor_states",
+    "real_mp4_synthetic_e2e"
+  ],
+  "safety": {
+    "livePublishingExecuted": false,
+    "credentialsPersisted": false,
+    "captcha2faBypass": false,
+    "mediaGrowthMutation": false,
+    "mergeRelease": false
+  }
+}

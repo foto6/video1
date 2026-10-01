@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.editor_publish_handoff.v1",
+  "title": "Creator Editor Publish Handoff v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "handoffId",
+    "source",
+    "editor",
+    "finalArtifact",
+    "releaseAuthorization",
+    "target",
+    "publishRequest",
+    "livePublishingExecuted",
+    "handoffDigest"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.editor_publish_handoff.v1"
+    },
+    "handoffId": {
+      "type": "string",
+      "pattern": "^eph1:[0-9a-f]{64}$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "sourceSha256",
+        "loopId",
+        "semanticAnalysisDigest",
+        "semanticDirectivesDigest"
+      ],
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "loopId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "semanticAnalysisDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "semanticDirectivesDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "editor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bundleDigest",
+        "decisionDigest",
+        "winnerCandidateId",
+        "roundIndex",
+        "renderSha256",
+        "timelineDigest",
+        "artifactManifestDigest",
+        "technicalQaDigest"
+      ],
+      "properties": {
+        "bundleDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "decisionDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "winnerCandidateId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "roundIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "renderSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "timelineDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "artifactManifestDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "technicalQaDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "finalArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fileName",
+        "sha256",
+        "sizeBytes",
+        "durationSeconds",
+        "contentType",
+        "aspectRatio"
+      ],
+      "properties": {
+        "fileName": {
+          "const": "final.mp4"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "durationSeconds": {
+          "type": "number",
+          "minimum": 15,
+          "maximum": 60
+        },
+        "contentType": {
+          "const": "video/mp4"
+        },
+        "aspectRatio": {
+          "const": "9:16"
+        }
+      }
+    },
+    "releaseAuthorization": {
+      "type": "object"
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "platform",
+        "accountId",
+        "destination",
+        "credentialRef",
+        "authorizationRef"
+      ],
+      "properties": {
+        "platform": {
+          "enum": [
+            "instagram_reels",
+            "tiktok",
+            "youtube_shorts"
+          ]
+        },
+        "accountId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "destination": {
+          "type": "string",
+          "minLength": 1
+        },
+        "credentialRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authorizationRef": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "publishRequest": {
+      "type": "object"
+    },
+    "livePublishingExecuted": {
+      "const": false
+    },
+    "handoffDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

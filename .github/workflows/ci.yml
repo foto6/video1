@@ -16,6 +16,7 @@ on:
       - agent/creator-r20-benchmark-export-20261001
       - agent/creator-r21-publish-execution-20261001
       - agent/creator-r22-autonomous-editor-loop-20261001
+      - agent/creator-r23-editor-publish-handoff-20261001
   pull_request:
 
 jobs:
@@ -273,6 +274,22 @@ jobs:
           work_dir="$(mktemp -d)"
           creator-editor-loop-r22 --work-dir "$work_dir" > "$work_dir/stdout.json"
           python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['terminalState']=='final_bundle'; assert r['terminalRoundIndex']==2; assert r['restartCount']==2; assert r['mediaAcceptedEffects']==8; assert r['mediaSubmitCalls']==8; assert r['criticAcceptedEffects']==8; assert r['criticSubmitCalls']==8; assert r['productionMediaRenderExportReady'] is False; assert r['humanLevelQualityClaimed'] is False" "$work_dir/stdout.json"
+
+  focused-r23:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ffmpeg and Creator
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python -m pip install -e .
+      - name: Run R23 editor-to-publish handoff tests
+        run: |
+          creator-editor-publish-r23 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_editor_publish_handoff_r23.py' -v
 
   full:
     runs-on: ubuntu-latest

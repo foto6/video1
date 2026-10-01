@@ -13,6 +13,7 @@ creator-mvp = "creator_orchestrator.mvp:main"
 creator-gemini-video-smoke = "creator_orchestrator.gemini_video_provider:main"
 creator-publish-sandbox = "creator_orchestrator.publish_execution:main"
 creator-editor-loop-r22 = "creator_orchestrator.autonomous_editor_loop:main"
+creator-editor-publish-r23 = "creator_orchestrator.editor_publish_handoff:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

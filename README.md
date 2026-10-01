@@ -178,3 +178,16 @@ creator-editor-loop-r22 --work-dir /tmp/creator-r22
 ```
 
 It exercises two targeted re-edit rounds plus lost-ack restart recovery. Tie, contradictory, or insufficient evidence cannot fabricate a winner after the configured bound. No publishing or `HUMAN_LEVEL` claim is part of R22. See `docs/AUTONOMOUS_EDITOR_LOOP_R22.md`.
+
+
+## Editor-to-publish handoff
+
+R23 adds `creator.editor_publish_handoff.v1`, which accepts only a terminal R22 winner, binds its exact `final.mp4` SHA and release authorization, persists publish intent, then delegates to the unchanged R12/R21 recover-before-submit provider flow.
+
+Synthetic validation command:
+
+```bash
+creator-editor-publish-r23 --media ./final.mp4 --editor-bundle ./terminal-result.json --authorization ./release.authorization.v1.json --platform tiktok --account-id account-r23 --destination privacy:SELF_ONLY --credential-ref vault-ref://tiktok/r23 --authorization-ref oauth-grant-ref://tiktok/r23 --caption "R23 synthetic handoff" --out ./r23-out
+```
+
+The command uses synthetic providers only and cannot perform a live social post. See `docs/EDITOR_PUBLISH_HANDOFF_R23.md`.
