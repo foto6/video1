@@ -416,11 +416,9 @@ class SemanticDirectorR18Tests(unittest.TestCase):
 
     @unittest.skipUnless(
         os.environ.get("CREATOR_MEDIA_R13_DIR"),
-        "exact Media R13 checkout required for adapter-backed render integration",
+        "exact Media R13 checkout required for adapter-backed plan integration",
     )
     def test_adapter_evidence_changes_actual_media_creative_plan(self):
-        ffmpeg = shutil.which("ffmpeg")
-        self.assertIsNotNone(ffmpeg)
         media_repo = Path(
             os.environ["CREATOR_MEDIA_R13_DIR"]
         ).resolve()
@@ -495,93 +493,123 @@ class SemanticDirectorR18Tests(unittest.TestCase):
                 ("semanticEvents",),
             ),
         )
+        fallback_analysis = sd.analyze_video(
+            "fixture.mp4",
+            input_sha256="d" * 64,
+            duration_ms=6000,
+            width=1080,
+            height=1920,
+            fps=30.0,
+            has_audio=False,
+            brief="same source",
+            adapters=unavailable_adapters(),
+        )
+        fallback_decision = sd.select_editorial_mode(
+            fallback_analysis
+        )
+        fallback_directives = sd.generate_edit_directives(
+            fallback_analysis,
+            fallback_decision,
+        )
+        enriched_analysis = sd.analyze_video(
+            "fixture.mp4",
+            input_sha256="d" * 64,
+            duration_ms=6000,
+            width=1080,
+            height=1920,
+            fps=30.0,
+            has_audio=False,
+            brief="same source",
+            adapters=adapters,
+        )
+        enriched_decision = sd.select_editorial_mode(
+            enriched_analysis
+        )
+        enriched_directives = sd.generate_edit_directives(
+            enriched_analysis,
+            enriched_decision,
+        )
+        self.assertEqual(
+            fallback_decision["effectiveMode"],
+            "clean_podcast",
+        )
+        self.assertEqual(
+            enriched_decision["effectiveMode"],
+            "aggressive_shortform",
+        )
+
         with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            source = root / "semantic-source.mp4"
-            generated = subprocess.run(
+            request = Path(temp) / "compare.json"
+            request.write_text(
+                json.dumps({
+                    "fallback": {
+                        "mediaStyle":
+                            fallback_decision["mediaBaseStyle"],
+                        "hints":
+                            fallback_directives["mediaHints"],
+                        "loopFriendly":
+                            fallback_directives["loop"]["proposed"],
+                    },
+                    "enriched": {
+                        "mediaStyle":
+                            enriched_decision["mediaBaseStyle"],
+                        "hints":
+                            enriched_directives["mediaHints"],
+                        "loopFriendly":
+                            enriched_directives["loop"]["proposed"],
+                    },
+                }),
+                encoding="utf-8",
+            )
+            helper = (
+                Path(__file__).resolve().parents[1]
+                / "tools"
+                / "semantic-plan-compare-r18.mjs"
+            )
+            compared = subprocess.run(
                 [
-                    ffmpeg,
-                    "-hide_banner",
-                    "-nostdin",
-                    "-y",
-                    "-f", "lavfi",
-                    "-i", "testsrc2=s=360x640:r=30:d=6",
-                    "-f", "lavfi",
-                    "-i",
-                    "sine=frequency=440:sample_rate=48000:duration=6",
-                    "-shortest",
-                    "-threads", "1",
-                    "-c:v", "libx264",
-                    "-preset", "ultrafast",
-                    "-pix_fmt", "yuv420p",
-                    "-c:a", "aac",
-                    str(source),
+                    "node",
+                    str(helper),
+                    "--media-repo",
+                    str(media_repo),
+                    "--input",
+                    str(request),
                 ],
                 text=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 check=False,
-                timeout=60,
+                timeout=30,
             )
-            self.assertEqual(
-                generated.returncode,
-                0,
-                generated.stderr[-4000:],
-            )
-            source_sha = hashlib.sha256(source.read_bytes()).hexdigest()
+        self.assertEqual(
+            compared.returncode,
+            0,
+            compared.stderr[-4000:],
+        )
+        result = json.loads(compared.stdout)
+        self.assertEqual(
+            result["producerSha"],
+            "ad4e0ba487a3cabc84dd339d412e19a0db0f9add",
+        )
+        self.assertEqual(
+            result["fallback"]["style"],
+            "clean_podcast",
+        )
+        self.assertEqual(
+            result["enriched"]["style"],
+            "aggressive_shortform",
+        )
+        self.assertNotEqual(
+            result["fallback"]["planDigest"],
+            result["enriched"]["planDigest"],
+        )
+        self.assertNotEqual(
+            result["fallback"]["hintDigest"],
+            result["enriched"]["hintDigest"],
+        )
+        self.assertFalse(result["fallback"]["loopFriendly"])
+        self.assertTrue(result["enriched"]["loopFriendly"])
 
-            fallback = mvp.run_pipeline(
-                input_path=source,
-                brief_arg="Tell the same short story.",
-                out_dir=root / "fallback",
-                style="auto",
-                media_repo=str(media_repo),
-                semantic_adapters=unavailable_adapters(),
-            )
-            enriched = mvp.run_pipeline(
-                input_path=source,
-                brief_arg="Tell the same short story.",
-                out_dir=root / "enriched",
-                style="auto",
-                media_repo=str(media_repo),
-                semantic_adapters=adapters,
-            )
-
-            self.assertEqual(
-                fallback["style"]["editorialMode"],
-                "clean_podcast",
-            )
-            self.assertEqual(
-                enriched["style"]["editorialMode"],
-                "aggressive_shortform",
-            )
-            self.assertNotEqual(
-                fallback["media"]["creativePlan"]["planDigest"],
-                enriched["media"]["creativePlan"]["planDigest"],
-            )
-            self.assertNotEqual(
-                fallback["media"]["creativePlan"]["semanticHintsDigest"],
-                enriched["media"]["creativePlan"]["semanticHintsDigest"],
-            )
-            self.assertEqual(
-                source_sha,
-                hashlib.sha256(source.read_bytes()).hexdigest(),
-            )
-            director_report = json.loads(
-                (
-                    root
-                    / "enriched"
-                    / "director-report.json"
-                ).read_text(encoding="utf-8")
-            )
-            self.assertEqual(
-                director_report["readiness"],
-                "SEMANTIC_PIPELINE_READY",
-            )
-            self.assertEqual(
-                director_report["humanLevelQuality"],
-                "HUMAN_LEVEL_UNPROVEN",
-            )
 
 
 if __name__ == "__main__":

@@ -114,7 +114,7 @@ R18 includes:
 
 The fixture tests validate evidence provenance, chosen mode and semantic directives.
 
-The adapter-backed integration test goes further: it generates a real MP4, runs the exact Media R13 pipeline with sparse fallback evidence, then reruns the same source with ASR/shot/VLM fixture adapters. It proves that semantic evidence changes the effective editorial mode, the Media semantic-hints digest and the actual Media creative-plan digest.
+The adapter-backed integration test goes further: it feeds sparse fallback evidence and ASR/shot/VLM fixture-adapter evidence into the exact pinned Media R13 creative-plan compiler using the same canonical source timeline. It proves that semantic evidence changes the effective editorial mode, Media hint digest, loop decision and actual Media creative-plan digest. The separate R17 E2E remains the real generated-MP4 render proof, avoiding redundant renders in R18 CI.
 
 ## Safety
 
