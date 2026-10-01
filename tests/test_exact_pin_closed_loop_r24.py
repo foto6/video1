@@ -85,6 +85,9 @@ class R24ClosedLoopUnitTests(unittest.TestCase):
             result = {
                 "contractVersion": "creator.media_r15_render_result.r24.v1",
                 "actualMediaProducerInvoked": True,
+                "bridgeCwd": str(Path(td).resolve()),
+                "sandboxRoot": str(Path(td).resolve()),
+                "sourceUri": "inputs/source.mp4",
                 "renderExport": {
                     "contractVersion": "media.render_export.v1",
                     "producer": {"repository": "foto6/video2", "sha": r24.MEDIA_SHA},
@@ -159,6 +162,9 @@ class R24ClosedLoopUnitTests(unittest.TestCase):
             result = {
                 "contractVersion": "creator.media_r15_render_result.r24.v1",
                 "actualMediaProducerInvoked": True,
+                "bridgeCwd": str(Path(td).resolve()),
+                "sandboxRoot": str(Path(td).resolve()),
+                "sourceUri": "inputs/source.mp4",
                 "renderExport": {
                     "contractVersion": "media.render_export.v1",
                     "producer": {"repository": "foto6/video2", "sha": "0" * 40},
