@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.semantic_export.v1",
+  "title": "Creator Semantic Export v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "repository",
+    "commit_sha",
+    "source_id",
+    "source_sha256",
+    "brief_digest",
+    "analysis_contract",
+    "director_report_contract",
+    "semantic_timeline",
+    "unavailable_evidence",
+    "auto_style",
+    "effective_style",
+    "style_confidence",
+    "edit_directives",
+    "analysis_digest",
+    "directives_digest",
+    "generation_mode"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": "creator.semantic_export.v1"
+    },
+    "repository": {
+      "const": "foto6/video1"
+    },
+    "commit_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "brief_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "analysis_contract": {
+      "const": "creator.semantic_video_analysis.r18.v1"
+    },
+    "director_report_contract": {
+      "const": "creator.semantic_video_director.r18.v1"
+    },
+    "semantic_timeline": {
+      "type": "object"
+    },
+    "unavailable_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "auto_style": {
+      "enum": [
+        "clean_podcast",
+        "aggressive_shortform",
+        "cinematic_minimal",
+        "hybrid"
+      ]
+    },
+    "effective_style": {
+      "enum": [
+        "clean_podcast",
+        "aggressive_shortform",
+        "cinematic_minimal",
+        "hybrid"
+      ]
+    },
+    "style_confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "edit_directives": {
+      "type": "object"
+    },
+    "analysis_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "directives_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "generation_mode": {
+      "enum": [
+        "gemini_native_video",
+        "deterministic_local",
+        "deterministic_local_fallback"
+      ]
+    }
+  }
+}

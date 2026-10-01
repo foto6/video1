@@ -15,6 +15,7 @@ from . import autonomous_reels as reels
 from . import media_r13_compat as m13
 from . import semantic_director as director
 from . import gemini_video_provider as gemini_video
+from . import semantic_export as benchmark_export
 
 MVP_VERSION = "creator.mvp_pipeline.r17.v1"
 SCRIPT_VERSION = "creator.mvp_local_script.r17.v1"
@@ -576,6 +577,7 @@ def run_pipeline(
     gemini_fps: float = 1.0,
     gemini_clip_start_seconds: float = 0.0,
     gemini_clip_end_seconds: float | None = None,
+    source_id: str | None = None,
 ) -> dict[str, Any]:
     if style not in {"auto", *STYLE_MAP}:
         raise BadInput(
@@ -669,7 +671,30 @@ def run_pipeline(
             semantic_digest=semantic_analysis["analysisDigest"],
             style_decision_digest=style_artifact["styleDecisionDigest"],
         )
-    except director.SemanticDirectorError as exc:
+        creator_commit_sha = benchmark_export.current_creator_commit(
+            _repo_root()
+        )
+        canonical_source_id = (
+            source_id.strip()
+            if isinstance(source_id, str) and source_id.strip()
+            else benchmark_export.default_source_id(probe.sha256)
+        )
+        semantic_benchmark_export = benchmark_export.build_semantic_export(
+            commit_sha=creator_commit_sha,
+            source_id=canonical_source_id,
+            source_sha256=probe.sha256,
+            source_duration_ms=probe.duration_ms,
+            brief_digest=semantic_analysis["briefDigest"],
+            semantic_analysis=semantic_analysis,
+            director_report=director_report,
+            style_decision=editorial_decision,
+            edit_directives=edit_directives,
+            provider_identity=provider_identity,
+        )
+    except (
+        director.SemanticDirectorError,
+        benchmark_export.SemanticExportError,
+    ) as exc:
         raise InsufficientEvidence(
             f"semantic director rejected evidence: {exc}"
         ) from exc
@@ -690,6 +715,7 @@ def run_pipeline(
     semantic_path = out_root / "semantic-timeline.json"
     directives_path = out_root / "editorial-directives.json"
     style_decision_path = out_root / "style-decision.json"
+    semantic_export_path = out_root / "creator.semantic_export.v1.json"
     director_path = out_root / "director-report.json"
     _write_json_atomic(
         semantic_path,
@@ -704,6 +730,11 @@ def run_pipeline(
     _write_json_atomic(
         style_decision_path,
         style_artifact,
+        run_id=run_id,
+    )
+    _write_json_atomic(
+        semantic_export_path,
+        semantic_benchmark_export,
         run_id=run_id,
     )
     _write_json_atomic(
@@ -945,6 +976,7 @@ def run_pipeline(
             "semanticTimeline": str(semantic_path),
             "editorialDirectives": str(directives_path),
             "styleDecision": str(style_decision_path),
+            "semanticExport": str(semantic_export_path),
             "directorReport": str(director_path),
             "contentAwareRun": str(content_aware_path),
         },
@@ -977,6 +1009,20 @@ def run_pipeline(
                 "editorialDirectivesDigest"
             ],
             "humanLevelQuality": director.HUMAN_LEVEL_STATE,
+            "benchmarkExport": {
+                "contractVersion": benchmark_export.CONTRACT_VERSION,
+                "sourceId": canonical_source_id,
+                "commitSha": creator_commit_sha,
+                "analysisDigest": semantic_benchmark_export[
+                    "analysis_digest"
+                ],
+                "directivesDigest": semantic_benchmark_export[
+                    "directives_digest"
+                ],
+                "generationMode": semantic_benchmark_export[
+                    "generation_mode"
+                ],
+            },
         },
         "media": {
             "repository": media_pin["repository"],
@@ -1097,6 +1143,13 @@ def _parser() -> argparse.ArgumentParser:
         help="optional static Gemini clip end in seconds",
     )
     parser.add_argument(
+        "--source-id",
+        help=(
+            "optional benchmark source_id; defaults to a deterministic ID "
+            "derived from the source SHA"
+        ),
+    )
+    parser.add_argument(
         "--keep-work",
         action="store_true",
         help="preserve the managed work directory after success",
@@ -1119,6 +1172,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             gemini_fps=args.gemini_fps,
             gemini_clip_start_seconds=args.gemini_clip_start,
             gemini_clip_end_seconds=args.gemini_clip_end,
+            source_id=args.source_id,
         )
     except MvpError as exc:
         print(f"creator-mvp: {exc}", file=sys.stderr)

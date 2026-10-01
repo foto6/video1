@@ -1,0 +1,38 @@
+{
+  "reportVersion": "creator.semantic_export.r20.readiness.v1",
+  "creatorBaseSha": "ec5d1d51f277e9fcb0fe609bf6f2092b3836a0e0",
+  "exportContract": "creator.semantic_export.v1",
+  "canonicalFile": "creator.semantic_export.v1.json",
+  "benchmarkAuthority": {
+    "repository": "foto6/boss",
+    "branch": "agent/human-editing-gate-supervisor-20261001-v2",
+    "head": "e0763bebf2aad9402f8de8c60edb1b9eb8c4be8e",
+    "protocol": "boss.human_editing_gate.v1"
+  },
+  "behaviorChange": false,
+  "runtimeSource": "R19 content-aware semantic/director objects",
+  "validator": {
+    "exactTopLevelKeys": true,
+    "exactCommitBinding": true,
+    "sourceShaBinding": true,
+    "briefDigestBinding": true,
+    "analysisDigestBinding": true,
+    "directivesDigestBinding": true,
+    "sourceBoundedTimestamps": true
+  },
+  "generationModes": [
+    "gemini_native_video",
+    "deterministic_local",
+    "deterministic_local_fallback"
+  ],
+  "e2eRealGeneratedVideos": [
+    "talking_head_like",
+    "fast_motion_action",
+    "landscape_screen_like"
+  ],
+  "claims": {
+    "fakeThirtySourceCorpus": false,
+    "fakeHumanRatings": false,
+    "humanLevelQuality": "HUMAN_LEVEL_UNPROVEN"
+  }
+}

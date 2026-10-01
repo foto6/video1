@@ -135,3 +135,16 @@ If Gemini native-video is explicitly configured with `CREATOR_GEMINI_VIDEO_ENABL
 In addition to the R17 render outputs, runs now emit `semantic-timeline.json`, `editorial-directives.json`, `style-decision.json`, and the benchmark-consumable `content-aware-run.json`. Manual `--style` overrides still win and remain provenance-bound.
 
 R19 claims content-aware evidence only. Human-level quality remains `HUMAN_LEVEL_UNPROVEN`. See `docs/CONTENT_AWARE_MVP_R19.md`.
+
+
+## Canonical benchmark semantic export
+
+R20 adds the benchmark-owned Creator producer export required by `boss.human_editing_gate.v1`:
+
+`creator.semantic_export.v1.json`
+
+It is emitted directly from the R19 runtime semantic/director state and contains exactly the benchmark-supported fields. The export binds the exact Creator Git commit, source SHA, brief digest, semantic/directive digests, explicit unavailable evidence, and a generation mode that distinguishes Gemini evidence from deterministic local fallback.
+
+A benchmark corpus may pass its frozen ID with `--source-id`; otherwise Creator derives a deterministic source ID from the source SHA. Existing R19 artifacts and one-command behavior remain unchanged.
+
+See `docs/SEMANTIC_EXPORT_R20.md` and `conformance/creator.semantic_export.v1/`.

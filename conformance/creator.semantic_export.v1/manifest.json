@@ -1,0 +1,45 @@
+{
+  "contractVersion": "creator.semantic_export.v1",
+  "schemaPath": "conformance/creator.semantic_export.v1/schema.json",
+  "validator": "src/creator_orchestrator/semantic_export.py::validate_semantic_export",
+  "producer": {
+    "repository": "foto6/video1",
+    "branch": "agent/creator-r20-benchmark-export-20261001"
+  },
+  "consumerAuthority": {
+    "repository": "foto6/boss",
+    "branch": "agent/human-editing-gate-supervisor-20261001-v2",
+    "head": "e0763bebf2aad9402f8de8c60edb1b9eb8c4be8e",
+    "protocol": "boss.human_editing_gate.v1",
+    "protocolBlob": "8eb2e400f9997e1fefa5ebb9500d8e13d54f51ed"
+  },
+  "exactTopLevelKeys": [
+    "contract_version",
+    "repository",
+    "commit_sha",
+    "source_id",
+    "source_sha256",
+    "brief_digest",
+    "analysis_contract",
+    "director_report_contract",
+    "semantic_timeline",
+    "unavailable_evidence",
+    "auto_style",
+    "effective_style",
+    "style_confidence",
+    "edit_directives",
+    "analysis_digest",
+    "directives_digest",
+    "generation_mode"
+  ],
+  "constraints": {
+    "exactCreatorCommit": true,
+    "sourceShaBound": true,
+    "briefDigestBound": true,
+    "timestampsSourceBounded": true,
+    "unavailableEvidenceExplicit": true,
+    "modelOrFixtureHumanGroundTruth": false,
+    "fakeThirtySourceCorpus": false,
+    "fakeHumanRatings": false
+  }
+}
