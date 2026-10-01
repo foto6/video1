@@ -305,7 +305,7 @@ class GeminiNativeVideoProviderR18BTests(unittest.TestCase):
                     "startMs": 0,
                     "endMs": 6000,
                     "value": {
-                        "normalizedEnergy": 0.4,
+                        "normalizedEnergy": 0.7,
                         "basis": "same deterministic evidence",
                     },
                     "confidence": 0.9,
