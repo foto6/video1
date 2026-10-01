@@ -189,28 +189,38 @@ class R24ClosedLoopIntegrationTests(unittest.TestCase):
                 second["finalRenderSha256"], first["finalRenderSha256"]
             )
 
-    def test_terminal_nonwinner_branches_never_prepare_publish(self):
+    def _assert_terminal_nonwinner(self, scenario, expected):
         media = Path(os.environ["R24_MEDIA_CHECKOUT"])
         growth = Path(os.environ["R24_GROWTH_CHECKOUT"])
         source = Path(os.environ["R24_SOURCE_VIDEO"])
-        for scenario, expected in (
-            ("tie", "tie"),
-            ("insufficient_evidence", "insufficient_evidence"),
-            ("human_review_required", "human_review_required"),
-        ):
-            with self.subTest(scenario=scenario), tempfile.TemporaryDirectory() as td:
-                report = r24.run_closed_loop(
-                    source_path=source,
-                    brief="Bounded branch test",
-                    media_checkout=media,
-                    growth_checkout=growth,
-                    out_dir=Path(td),
-                    candidates=2,
-                    scenario=scenario,
-                )
-                self.assertEqual(report["state"], expected)
-                self.assertIsNone(report["publishHandoffDigest"])
-                self.assertFalse(report["liveProviderMutation"])
+        with tempfile.TemporaryDirectory() as td:
+            report = r24.run_closed_loop(
+                source_path=source,
+                brief="Bounded branch test",
+                media_checkout=media,
+                growth_checkout=growth,
+                out_dir=Path(td),
+                candidates=2,
+                scenario=scenario,
+            )
+            self.assertEqual(report["state"], expected)
+            self.assertIsNone(report["publishHandoffDigest"])
+            self.assertFalse(report["liveProviderMutation"])
+
+    def test_tie_never_prepares_publish(self):
+        self._assert_terminal_nonwinner("tie", "tie")
+
+    def test_insufficient_evidence_never_prepares_publish(self):
+        self._assert_terminal_nonwinner(
+            "insufficient_evidence",
+            "insufficient_evidence",
+        )
+
+    def test_human_review_required_never_prepares_publish(self):
+        self._assert_terminal_nonwinner(
+            "human_review_required",
+            "human_review_required",
+        )
 
 
 if __name__ == "__main__":

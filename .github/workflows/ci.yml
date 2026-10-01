@@ -311,39 +311,113 @@ jobs:
           repository: foto6/video3
           ref: 2d3bf275c5b456d53384073fb7ec1ed992e6b996
           path: .r24-growth
-      - name: Install runtime prerequisites
+      - name: Install exact-pin runtime prerequisites
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg
-          python -m pip install -e .
-          npm --prefix .r24-media install --ignore-scripts
+          sudo apt-get install -y ffmpeg
       - name: Generate source fixture
         run: |
           mkdir -p .r24-fixture
           ffmpeg -hide_banner -nostdin -y -f lavfi -i "testsrc2=s=360x640:r=30:d=15.2" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15.2" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
-      - name: Run R24 unit and exact-pin integration tests
+      - name: Run R24 unit plus winner/resume exact-pin integration
         env:
           R24_MEDIA_CHECKOUT: ${{ github.workspace }}/.r24-media
           R24_GROWTH_CHECKOUT: ${{ github.workspace }}/.r24-growth
           R24_SOURCE_VIDEO: ${{ github.workspace }}/.r24-fixture/source.mp4
         run: |
           heartbeat() {
-            while sleep 10; do
-              echo "R24 exact-pin real render still active"
-            done
+            while sleep 10; do echo "R24 winner/resume render still active"; done
           }
           heartbeat &
           heartbeat_pid=$!
           trap 'kill "$heartbeat_pid" 2>/dev/null || true' EXIT
-          creator-closed-loop-r24 --help
-          PYTHONPATH=src python -m unittest discover -s tests -p 'test_exact_pin_closed_loop_r24.py' -v
+          PYTHONPATH=src:tests python -m unittest \
+            test_exact_pin_closed_loop_r24.R24ClosedLoopUnitTests \
+            test_exact_pin_closed_loop_r24.R24ClosedLoopIntegrationTests.test_exact_pin_real_artifact_winner_and_resume \
+            -v
           kill "$heartbeat_pid" 2>/dev/null || true
           trap - EXIT
+
+  focused-r24-exact-pin-nonwinner:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test:
+          - test_tie_never_prepares_publish
+          - test_insufficient_evidence_never_prepares_publish
+          - test_human_review_required_never_prepares_publish
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Checkout exact Media R15
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: a17f782da8144d1e890ac83195396a3192df93c2
+          path: .r24-media
+      - name: Checkout exact Growth R18
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video3
+          ref: 2d3bf275c5b456d53384073fb7ec1ed992e6b996
+          path: .r24-growth
+      - name: Install exact-pin runtime prerequisites
+        run: sudo apt-get install -y ffmpeg
+      - name: Generate source fixture
+        run: |
+          mkdir -p .r24-fixture
+          ffmpeg -hide_banner -nostdin -y -f lavfi -i "testsrc2=s=360x640:r=30:d=15.2" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15.2" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
+      - name: Run exact-pin nonwinner scenario
+        env:
+          R24_MEDIA_CHECKOUT: ${{ github.workspace }}/.r24-media
+          R24_GROWTH_CHECKOUT: ${{ github.workspace }}/.r24-growth
+          R24_SOURCE_VIDEO: ${{ github.workspace }}/.r24-fixture/source.mp4
+        run: |
+          heartbeat() {
+            while sleep 10; do echo "R24 nonwinner render still active"; done
+          }
+          heartbeat &
+          heartbeat_pid=$!
+          trap 'kill "$heartbeat_pid" 2>/dev/null || true' EXIT
+          PYTHONPATH=src:tests python -m unittest \
+            "test_exact_pin_closed_loop_r24.R24ClosedLoopIntegrationTests.${{ matrix.test }}" \
+            -v
+          kill "$heartbeat_pid" 2>/dev/null || true
+          trap - EXIT
+
+  focused-r24-exact-pin-rehearsal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Checkout exact Media R15
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: a17f782da8144d1e890ac83195396a3192df93c2
+          path: .r24-media
+      - name: Checkout exact Growth R18
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video3
+          ref: 2d3bf275c5b456d53384073fb7ec1ed992e6b996
+          path: .r24-growth
+      - name: Install exact-pin runtime prerequisites
+        run: |
+          sudo apt-get install -y ffmpeg
+          python -m pip install -e .
+      - name: Generate source fixture
+        run: |
+          mkdir -p .r24-fixture
+          ffmpeg -hide_banner -nostdin -y -f lavfi -i "testsrc2=s=360x640:r=30:d=15.2" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15.2" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
       - name: Run reproducible real-artifact rehearsal
         run: |
           heartbeat() {
-            while sleep 10; do
-              echo "R24 exact-pin rehearsal still active"
-            done
+            while sleep 10; do echo "R24 exact-pin rehearsal still active"; done
           }
           heartbeat &
           heartbeat_pid=$!

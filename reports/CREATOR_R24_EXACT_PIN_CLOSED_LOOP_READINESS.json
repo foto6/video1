@@ -64,5 +64,19 @@
     "changesApplicationSemantics": false,
     "skipsIntegration": false,
     "fakeArtifact": false
+  },
+  "ciExactPinPartitioning": {
+    "reason": "hosted runner repeatedly sent SIGTERM to monolithic exact-pin job during real render",
+    "changesApplicationSemantics": false,
+    "skipsIntegration": false,
+    "jobs": {
+      "winnerResume": "focused-r24-exact-pin",
+      "nonwinnerMatrix": [
+        "tie",
+        "insufficient_evidence",
+        "human_review_required"
+      ],
+      "rehearsal": "focused-r24-exact-pin-rehearsal"
+    }
   }
 }
