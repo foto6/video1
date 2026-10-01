@@ -5,6 +5,7 @@ on:
     branches:
       - agent/creator-orchestrator
       - agent/creator-r11-autonomous-reels-20261001
+      - agent/creator-r12-publish-providers-20261001
   pull_request:
 
 jobs:
@@ -17,6 +18,16 @@ jobs:
           python-version: '3.11'
       - name: Run Creator R11 autonomous reels tests
         run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_autonomous_reels_r11.py' -v
+
+  focused-r12:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run Creator R12 publish provider tests
+        run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_publish_providers_r12.py' -v
 
   full:
     runs-on: ubuntu-latest

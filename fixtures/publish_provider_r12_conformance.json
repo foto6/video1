@@ -1,0 +1,71 @@
+{
+  "contractVersion": "creator.publish_provider_conformance_fixture.v1",
+  "cases": [
+    {
+      "platform": "instagram_reels",
+      "accountId": "fixture-instagram-account",
+      "destination": "fixture-instagram-profile",
+      "credentialRef": "vault-ref://instagram/fixture-account",
+      "authorizationLineage": {
+        "credentialRef": "vault-ref://instagram/fixture-account",
+        "authorizationRef": "oauth-grant-ref://instagram/fixture-account"
+      },
+      "media": {
+        "sourceClass": "synthetic_fixture",
+        "contentId": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "contentSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "sizeBytes": 1234567,
+        "contentType": "video/mp4",
+        "durationSeconds": 30,
+        "aspectRatio": "9:16",
+        "manifestDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "caption": "R12 Instagram fixture caption",
+      "cta": "Follow for the next part"
+    },
+    {
+      "platform": "tiktok",
+      "accountId": "fixture-tiktok-account",
+      "destination": "fixture-tiktok-profile",
+      "credentialRef": "vault-ref://tiktok/fixture-account",
+      "authorizationLineage": {
+        "credentialRef": "vault-ref://tiktok/fixture-account",
+        "authorizationRef": "oauth-grant-ref://tiktok/fixture-account"
+      },
+      "media": {
+        "sourceClass": "synthetic_fixture",
+        "contentId": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "contentSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "sizeBytes": 2345678,
+        "contentType": "video/mp4",
+        "durationSeconds": 42,
+        "aspectRatio": "9:16",
+        "manifestDigest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "caption": "R12 TikTok fixture caption",
+      "cta": "Save this workflow"
+    },
+    {
+      "platform": "youtube_shorts",
+      "accountId": "fixture-youtube-account",
+      "destination": "fixture-youtube-channel",
+      "credentialRef": "vault-ref://youtube/fixture-account",
+      "authorizationLineage": {
+        "credentialRef": "vault-ref://youtube/fixture-account",
+        "authorizationRef": "oauth-grant-ref://youtube/fixture-account"
+      },
+      "media": {
+        "sourceClass": "synthetic_fixture",
+        "contentId": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "contentSha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sizeBytes": 3456789,
+        "contentType": "video/mp4",
+        "durationSeconds": 55,
+        "aspectRatio": "9:16",
+        "manifestDigest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      "caption": "R12 YouTube Shorts fixture caption",
+      "cta": "Subscribe for the next build"
+    }
+  ]
+}
