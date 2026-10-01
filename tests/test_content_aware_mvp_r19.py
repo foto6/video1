@@ -40,7 +40,7 @@ def generate_talking_head_like(ffmpeg: str, path: Path):
 
 
 def generate_action(ffmpeg: str, path: Path):
-    colors = ["black", "white", "black", "white", "black", "white"]
+    colors = ["white", "yellow", "cyan", "magenta", "red", "lime"]
     args = [ffmpeg, "-hide_banner", "-nostdin", "-y"]
     for color in colors:
         args += [
