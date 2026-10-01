@@ -1,0 +1,42 @@
+{
+  "contractVersion": "creator.autonomous_editor_loop.r22.v1",
+  "ledgerVersion": "creator.autonomous_editor_loop_ledger.r22.v1",
+  "planVersion": "creator.autonomous_edit_plan.r22.v1",
+  "decisionVersion": "creator.autonomous_edit_decision.r22.v1",
+  "finalBundleVersion": "creator.autonomous_edit_final_bundle.r22.v1",
+  "humanReviewVersion": "creator.autonomous_edit_human_review.r22.v1",
+  "creatorBaseSha": "bad92b942e58ec885811dae1a048dc01ce86d2bd",
+  "preservedThrough": "R21",
+  "mediaConsumer": {
+    "requiredContract": "media.render_export.v1",
+    "adapterBoundary": "MediaRenderExportAdapter",
+    "observedRepository": "foto6/video2",
+    "observedBranch": "agent/media-r15-benchmark-render-export-20261001",
+    "observedGreenHead": "e2b6af0d647c3677a13cdc4189bb8c85ffbca980",
+    "observedCiRunId": "36832896059",
+    "contractPresentAtObservedHead": false,
+    "productionState": "BLOCKED_MISSING_MEDIA_RENDER_EXPORT_V1"
+  },
+  "growthConsumer": {
+    "contract": "growth.critic_export.v1",
+    "adapterBoundary": "GrowthCriticExportAdapter",
+    "repository": "foto6/video3",
+    "branch": "agent/growth-r16-benchmark-export-20261001",
+    "producerSha": "cb50a3d78a18e6db1ebef1be69fdf11ff2e27385",
+    "ciRunId": "36832188760",
+    "manifestBlobSha": "8f76d27c893658b3838eb2dcbe696a926a60dab3",
+    "schemaBlobSha": "8b6f67dfaa015a824acd09e9a70121c8198ec72a",
+    "implementationBlobSha": "be8342d3dd2d722855eaaf6902c9800da261b4c3"
+  },
+  "bounds": {
+    "candidateCountMin": 2,
+    "candidateCountMax": 4,
+    "maxReeditRounds": 2
+  },
+  "safety": {
+    "publishing": false,
+    "humanLevelClaim": false,
+    "guessedMovingSha": false,
+    "mediaGrowthMutation": false
+  }
+}

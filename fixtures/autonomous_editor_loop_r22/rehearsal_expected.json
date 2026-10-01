@@ -1,0 +1,18 @@
+{
+  "reportVersion": "creator.autonomous_editor_loop_rehearsal.r22.v1",
+  "expected": {
+    "terminalState": "final_bundle",
+    "terminalRoundIndex": 2,
+    "restartCount": 2,
+    "mediaAcceptedEffects": 8,
+    "mediaSubmitCalls": 8,
+    "criticAcceptedEffects": 8,
+    "criticSubmitCalls": 8,
+    "productionMediaRenderExportReady": false,
+    "humanLevelQualityClaimed": false
+  },
+  "alternateScenarios": {
+    "insufficient": "human_review",
+    "contradictory": "human_review"
+  }
+}

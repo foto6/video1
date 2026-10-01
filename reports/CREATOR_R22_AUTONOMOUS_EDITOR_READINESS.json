@@ -1,0 +1,38 @@
+{
+  "reportVersion": "creator.autonomous_editor_loop.r22.readiness.v1",
+  "creatorBaseSha": "bad92b942e58ec885811dae1a048dc01ce86d2bd",
+  "state": "SYNTHETIC_LOOP_READY_PRODUCTION_MEDIA_BLOCKED",
+  "growthCritic": {
+    "state": "READY_PINNED",
+    "producerSha": "cb50a3d78a18e6db1ebef1be69fdf11ff2e27385",
+    "ciRunId": "36832188760",
+    "contract": "growth.critic_export.v1"
+  },
+  "mediaRenderExport": {
+    "state": "BLOCKED_MISSING_CONTRACT",
+    "observedHead": "e2b6af0d647c3677a13cdc4189bb8c85ffbca980",
+    "observedCiRunId": "36832896059",
+    "requiredContract": "media.render_export.v1",
+    "contractPresent": false
+  },
+  "boundedLoop": {
+    "candidateCount": "2-4",
+    "maximumTargetedReeditRounds": 2,
+    "stableCandidateIds": true,
+    "durableRestart": true,
+    "recoverBeforeSubmit": true,
+    "tieFailsToReviewAfterBound": true,
+    "insufficientEvidenceFailsToReview": true,
+    "contradictoryEvidenceFailsToReview": true
+  },
+  "rehearsal": {
+    "sourceClass": "synthetic_fixture",
+    "intendedTerminalRound": 2,
+    "lostAckInjection": [
+      "media",
+      "growth_critic"
+    ],
+    "humanLevelQualityClaimed": false
+  },
+  "publishingEnabled": false
+}

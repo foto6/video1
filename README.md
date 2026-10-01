@@ -163,3 +163,18 @@ creator-publish-sandbox --media ./final.mp4 --authorization ./release.authorizat
 ```
 
 See `docs/PUBLISH_EXECUTION_R21.md` and `reports/CREATOR_R21_PUBLISH_READINESS.json`.
+
+
+## Bounded autonomous editor loop
+
+R22 adds a durable editorial tournament loop over the existing semantic director: 2-4 stable candidate plans, render-export consumption, Growth critic comparison, at most two concrete re-edit rounds, then either a final bundle or an explicit human-review pack.
+
+The Growth critic consumer is pinned to `growth.critic_export.v1` at `foto6/video3@cb50a3d78a18e6db1ebef1be69fdf11ff2e27385`. The observed green Media benchmark branch at `e2b6af0d647c3677a13cdc4189bb8c85ffbca980` does not yet contain the required `media.render_export.v1` producer contract, so production Media use is fail-closed; the R22 rehearsal is explicitly synthetic.
+
+Run the deterministic rehearsal:
+
+```bash
+creator-editor-loop-r22 --work-dir /tmp/creator-r22
+```
+
+It exercises two targeted re-edit rounds plus lost-ack restart recovery. Tie, contradictory, or insufficient evidence cannot fabricate a winner after the configured bound. No publishing or `HUMAN_LEVEL` claim is part of R22. See `docs/AUTONOMOUS_EDITOR_LOOP_R22.md`.

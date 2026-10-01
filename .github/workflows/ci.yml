@@ -15,6 +15,7 @@ on:
       - agent/creator-r19-content-aware-mvp-20261001
       - agent/creator-r20-benchmark-export-20261001
       - agent/creator-r21-publish-execution-20261001
+      - agent/creator-r22-autonomous-editor-loop-20261001
   pull_request:
 
 jobs:
@@ -253,6 +254,25 @@ jobs:
         run: |
           creator-publish-sandbox --help
           PYTHONPATH=src python -m unittest discover -s tests -p 'test_publish_execution_r21.py' -v
+
+  focused-r22:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Creator
+        run: python -m pip install -e .
+      - name: Run R22 bounded autonomous editor loop tests
+        run: |
+          creator-editor-loop-r22 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_autonomous_editor_loop_r22.py' -v
+      - name: Run source-bound deterministic rehearsal
+        run: |
+          work_dir="$(mktemp -d)"
+          creator-editor-loop-r22 --work-dir "$work_dir" > "$work_dir/stdout.json"
+          python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['terminalState']=='final_bundle'; assert r['terminalRoundIndex']==2; assert r['restartCount']==2; assert r['mediaAcceptedEffects']==8; assert r['mediaSubmitCalls']==8; assert r['criticAcceptedEffects']==8; assert r['criticSubmitCalls']==8; assert r['productionMediaRenderExportReady'] is False; assert r['humanLevelQualityClaimed'] is False" "$work_dir/stdout.json"
 
   full:
     runs-on: ubuntu-latest
