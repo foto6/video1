@@ -148,3 +148,18 @@ It is emitted directly from the R19 runtime semantic/director state and contains
 A benchmark corpus may pass its frozen ID with `--source-id`; otherwise Creator derives a deterministic source ID from the source SHA. Existing R19 artifacts and one-command behavior remain unchanged.
 
 See `docs/SEMANTIC_EXPORT_R20.md` and `conformance/creator.semantic_export.v1/`.
+
+
+## Production publish execution
+
+R21 adds executable Instagram Reels, TikTok Direct Post, and YouTube Shorts transports behind the unchanged R12 durable provider contract. Production credentials remain external and Creator state stores only opaque credential references.
+
+No provider is live-enabled merely by installing R21. Each path performs account/media/capability preflight and stops for interactive authorization, expired/revoked credentials, or unverified provider access.
+
+For side-effect-free end-to-end validation:
+
+```bash
+creator-publish-sandbox --media ./final.mp4 --authorization ./release.authorization.v1.json --platform tiktok --account-id sandbox-account --destination privacy:SELF_ONLY --credential-ref vault-ref://sandbox/tiktok --caption "Sandbox publish" --cta "Learn more" --out ./publish-sandbox
+```
+
+See `docs/PUBLISH_EXECUTION_R21.md` and `reports/CREATOR_R21_PUBLISH_READINESS.json`.

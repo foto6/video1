@@ -14,6 +14,7 @@ on:
       - agent/creator-r18-semantic-director-20261001
       - agent/creator-r19-content-aware-mvp-20261001
       - agent/creator-r20-benchmark-export-20261001
+      - agent/creator-r21-publish-execution-20261001
   pull_request:
 
 jobs:
@@ -233,6 +234,25 @@ jobs:
         run: |
           export CREATOR_MEDIA_R13_DIR="$GITHUB_WORKSPACE/.deps/media-r13"
           python -m unittest discover -s tests -p 'test_semantic_export_r20.py' -v
+
+  focused-r21:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ffmpeg and Creator
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python -m pip install -e .
+      - name: Run R21 production-adapter fake transport and sandbox tests
+        env:
+          GEMINI_API_KEY: ""
+          CREATOR_GEMINI_VIDEO_ENABLE: ""
+        run: |
+          creator-publish-sandbox --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_publish_execution_r21.py' -v
 
   full:
     runs-on: ubuntu-latest

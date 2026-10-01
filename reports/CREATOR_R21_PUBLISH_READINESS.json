@@ -1,0 +1,86 @@
+{
+  "reportVersion": "creator.publish_execution.r21.readiness.v1",
+  "creatorBaseSha": "69fda07f2f03282ec38c8f44021aa6ab41fb49b7",
+  "branch": "agent/creator-r21-publish-execution-20261001",
+  "executionContract": "creator.publish_execution.r21.v1",
+  "preservedContracts": [
+    "creator.publish_provider.v1",
+    "creator.publish_request.v1",
+    "creator.publish_provider_receipt.v2"
+  ],
+  "overall": "IMPLEMENTATION_READY_ACCOUNT_ACCESS_UNVERIFIED",
+  "providers": {
+    "instagram_reels": {
+      "adapter": "direct_instagram_content_publishing",
+      "pathStatus": "PRODUCTION_CAPABLE_CODE_PATH",
+      "deploymentStatus": "BLOCKED_UNTIL_ACCOUNT_API_SETUP_VERIFIED",
+      "sideEffectPath": [
+        "create_reel_container",
+        "poll_container",
+        "media_publish",
+        "permalink"
+      ],
+      "unavoidableSetup": [
+        "eligible professional account",
+        "content publishing API permission/access",
+        "OAuth consent/login/2FA when required",
+        "public HTTPS media hosting",
+        "configured current Graph API version"
+      ],
+      "liveVerified": false
+    },
+    "tiktok": {
+      "adapter": "official_content_posting_direct_post_pull_from_url",
+      "pathStatus": "PRODUCTION_CAPABLE_CODE_PATH",
+      "deploymentStatus": "BLOCKED_UNTIL_ACCOUNT_API_SETUP_VERIFIED",
+      "sideEffectPath": [
+        "creator_info_preflight",
+        "direct_post_init",
+        "provider_pull",
+        "status_poll"
+      ],
+      "unavoidableSetup": [
+        "TikTok developer app and Content Posting API",
+        "approved video.publish scope",
+        "creator OAuth consent/login",
+        "verified media URL domain/prefix",
+        "audit for unrestricted public visibility"
+      ],
+      "liveVerified": false
+    },
+    "youtube_shorts": {
+      "adapter": "youtube_data_api_v3_resumable_upload",
+      "pathStatus": "PRODUCTION_CAPABLE_CODE_PATH",
+      "deploymentStatus": "BLOCKED_UNTIL_ACCOUNT_API_SETUP_VERIFIED",
+      "sideEffectPath": [
+        "channel_preflight",
+        "resumable_session",
+        "media_upload",
+        "processing_poll"
+      ],
+      "unavoidableSetup": [
+        "Google Cloud project and YouTube Data API",
+        "OAuth client and channel consent/login/2FA",
+        "youtube.upload grant",
+        "project audit/verification when required for non-private uploads"
+      ],
+      "liveVerified": false
+    }
+  },
+  "safety": {
+    "credentialsPersisted": false,
+    "authorizationHeadersPersisted": false,
+    "liveNetworkInCI": false,
+    "livePostPerformed": false,
+    "captchaOr2faAutomation": false,
+    "blindReplayAfterUnknown": false,
+    "mediaGrowthMutation": false,
+    "mergeRelease": false
+  },
+  "sandbox": {
+    "command": "creator-publish-sandbox",
+    "networkUsed": false,
+    "liveSideEffect": false,
+    "growthClaimEligible": false
+  }
+}

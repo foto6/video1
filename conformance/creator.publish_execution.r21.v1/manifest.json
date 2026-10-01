@@ -1,0 +1,32 @@
+{
+  "contractVersion": "creator.publish_execution.r21.v1",
+  "creatorBaseSha": "69fda07f2f03282ec38c8f44021aa6ab41fb49b7",
+  "preservedProviderContract": "creator.publish_provider.v1",
+  "preservedRequestContract": "creator.publish_request.v1",
+  "preservedReceiptContract": "creator.publish_provider_receipt.v2",
+  "operationJournal": "creator.publish_operation_journal.r21.v1",
+  "sandboxReport": "creator.publish_sandbox_run.r21.v1",
+  "adapters": {
+    "instagram_reels": "InstagramReelsProvider",
+    "tiktok": "TikTokDirectPostProvider",
+    "youtube_shorts": "YouTubeShortsProvider"
+  },
+  "credentialBoundary": {
+    "creatorState": "opaque references only",
+    "productionResolver": "EnvCredentialResolver",
+    "persistedSecrets": false
+  },
+  "safety": {
+    "durableIntentBeforeMutation": true,
+    "recoverBeforeSubmit": true,
+    "unknownNeverBlindlyReplayed": true,
+    "boundedRetryAndBackoff": true,
+    "interactiveAuthorizationStopsAutomation": true
+  },
+  "ci": {
+    "fakeTransportOnly": true,
+    "liveNetwork": false,
+    "livePost": false,
+    "test": "tests/test_publish_execution_r21.py"
+  }
+}

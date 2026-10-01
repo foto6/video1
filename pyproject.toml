@@ -11,6 +11,7 @@ requires-python = ">=3.11"
 [project.scripts]
 creator-mvp = "creator_orchestrator.mvp:main"
 creator-gemini-video-smoke = "creator_orchestrator.gemini_video_provider:main"
+creator-publish-sandbox = "creator_orchestrator.publish_execution:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -525,10 +525,20 @@ class DurablePublishCoordinator:
         prepared = _validate_prepare(provider.prepare(self.request), self.request)
         self._append("provider_prepared", prepared)
         if prepared["credentialsAvailable"] is not True:
-            self._set_state("waiting_for_credentials", "credential_reference_not_authorized")
+            self._set_state(
+                "waiting_for_credentials",
+                prepared["capability"]["reason"],
+            )
             return {"state": "waiting_for_credentials", "receipt": None}
         if prepared["capability"]["supported"] is not True:
-            self._set_state("failed_terminal", prepared["capability"]["reason"])
+            reason = prepared["capability"]["reason"]
+            if reason in {
+                "provider_preflight_rate_limited",
+                "provider_preflight_timeout",
+            }:
+                self._set_state("recoverable_unknown", reason)
+                return {"state": "recoverable_unknown", "receipt": None}
+            self._set_state("failed_terminal", reason)
             return {"state": "failed_terminal", "receipt": None}
 
         status = self.provider_status
