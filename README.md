@@ -120,3 +120,18 @@ CREATOR_GEMINI_VIDEO_ENABLE=1 GEMINI_API_KEY="..." creator-gemini-video-smoke --
 ```
 
 Without all live gates it returns `BLOCKED` and does not attempt network access. Human-level quality remains `HUMAN_LEVEL_UNPROVEN`. See `docs/GEMINI_NATIVE_VIDEO_R18B.md`.
+
+
+## Content-aware one-command MVP
+
+R19 makes semantic directing part of the normal `creator-mvp` path. Both style and semantic provider selection default to `auto`:
+
+```bash
+creator-mvp --input ./source.mp4 --brief "Make a concise proof-first short" --out ./mvp-out --media-repo ../video2
+```
+
+If Gemini native-video is explicitly configured with `CREATOR_GEMINI_VIDEO_ENABLE=1` and `GEMINI_API_KEY`, auto mode attempts it. Otherwise Creator records a deterministic-local semantic fallback; it never presents fallback evidence as model understanding.
+
+In addition to the R17 render outputs, runs now emit `semantic-timeline.json`, `editorial-directives.json`, `style-decision.json`, and the benchmark-consumable `content-aware-run.json`. Manual `--style` overrides still win and remain provenance-bound.
+
+R19 claims content-aware evidence only. Human-level quality remains `HUMAN_LEVEL_UNPROVEN`. See `docs/CONTENT_AWARE_MVP_R19.md`.

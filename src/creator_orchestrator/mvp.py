@@ -20,6 +20,9 @@ MVP_VERSION = "creator.mvp_pipeline.r17.v1"
 SCRIPT_VERSION = "creator.mvp_local_script.r17.v1"
 SUMMARY_VERSION = "creator.mvp_run_summary.r17.v1"
 QA_VERSION = "creator.mvp_qa.r17.v1"
+CONTENT_AWARE_RUN_VERSION = "creator.content_aware_run.r19.v1"
+STYLE_DECISION_VERSION = "creator.style_decision.r19.v1"
+EDITORIAL_DIRECTIVES_VERSION = "creator.editorial_directives.r19.v1"
 CREATOR_R16_BASE_SHA = "4a176c56b68b8949651eb45e5bd26d2cbdbd02ee"
 
 EXIT_SUCCESS = 0
@@ -130,6 +133,134 @@ def _require_tool(name: str) -> str:
             f"{name} is required but was not found on PATH. "
             f"Install {name} and retry."
         )
+    return value
+
+
+def _env_truthy(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in {
+        "1", "true", "yes", "on"
+    }
+
+
+def _semantic_provider_identity(
+    analysis: Mapping[str, Any],
+    *,
+    requested: str,
+    gemini_model: str | None,
+    gemini_mode: str | None,
+    gemini_attempted: bool,
+) -> dict[str, Any]:
+    adapters = analysis.get("adapters", [])
+    gemini_result = next(
+        (
+            item for item in adapters
+            if item.get("adapter") == "google_gemini_native_video"
+        ),
+        None,
+    )
+    provider_evidence = [
+        item
+        for values in analysis["evidence"].values()
+        for item in values
+        if item.get("source", {}).get("mode") == "provider"
+    ]
+    local_evidence = [
+        item
+        for values in analysis["evidence"].values()
+        for item in values
+        if item.get("source", {}).get("mode")
+        in {"deterministic_local", "derived_from_local"}
+    ]
+    gemini_available = bool(
+        gemini_result
+        and gemini_result.get("status") == "available"
+        and provider_evidence
+    )
+    if gemini_available:
+        provenance = next(
+            (
+                item.get("value", {}).get("providerProvenance")
+                for item in provider_evidence
+                if isinstance(
+                    item.get("value", {}).get("providerProvenance"),
+                    Mapping,
+                )
+            ),
+            {},
+        )
+        effective = "google_gemini"
+        fallback = False
+        fallback_reason = None
+        model = provenance.get("model") or gemini_model
+        mode = provenance.get("mode") or gemini_mode
+        status = "available"
+    else:
+        effective = "deterministic_local"
+        fallback = requested in {"auto", "gemini"}
+        if gemini_result:
+            fallback_reason = gemini_result.get("reason") or "provider_unavailable"
+            status = gemini_result.get("status") or "unavailable"
+        elif requested == "auto" and not gemini_attempted:
+            fallback_reason = "gemini_not_configured"
+            status = "not_configured"
+        else:
+            fallback_reason = None
+            status = "local_explicit"
+        model = gemini_model if gemini_attempted else None
+        mode = gemini_mode if gemini_attempted else None
+    value = {
+        "requested": requested,
+        "effective": effective,
+        "status": status,
+        "model": model,
+        "mode": mode,
+        "geminiAttempted": gemini_attempted,
+        "fallback": fallback,
+        "fallbackReason": fallback_reason,
+        "providerEvidenceCount": len(provider_evidence),
+        "deterministicLocalEvidenceCount": len(local_evidence),
+        "humanLevelQuality": director.HUMAN_LEVEL_STATE,
+    }
+    value["identityDigest"] = reels.sha256_json(value)
+    return value
+
+
+def _style_artifact(
+    decision: Mapping[str, Any],
+    *,
+    source_sha256: str,
+) -> dict[str, Any]:
+    value = {
+        "contractVersion": STYLE_DECISION_VERSION,
+        "sourceSha256": source_sha256,
+        "decision": json.loads(reels.canonical_json(decision)),
+        "selectedStyle": decision["effectiveMode"],
+        "confidence": decision["autoDirector"]["confidence"],
+        "evidence": decision["autoDirector"]["sourceSemanticFeatures"],
+        "rejectedAlternatives": decision["autoDirector"]["rejectedAlternatives"],
+        "overrideProvenance": decision["override"],
+        "humanLevelQuality": director.HUMAN_LEVEL_STATE,
+    }
+    value["styleDecisionDigest"] = reels.sha256_json(value)
+    return value
+
+
+def _directives_artifact(
+    directives: Mapping[str, Any],
+    *,
+    source_sha256: str,
+    semantic_digest: str,
+    style_decision_digest: str,
+) -> dict[str, Any]:
+    value = {
+        "contractVersion": EDITORIAL_DIRECTIVES_VERSION,
+        "sourceSha256": source_sha256,
+        "semanticTimelineDigest": semantic_digest,
+        "styleDecisionDigest": style_decision_digest,
+        "directives": json.loads(reels.canonical_json(directives)),
+        "humanLevelQuality": director.HUMAN_LEVEL_STATE,
+    }
+    value["editorialDirectivesDigest"] = reels.sha256_json(value)
     return value
 
 
@@ -440,7 +571,7 @@ def run_pipeline(
     media_repo: str | None = None,
     keep_work: bool = False,
     semantic_adapters: director.SemanticAdapters | None = None,
-    semantic_provider: str = "local",
+    semantic_provider: str = "auto",
     gemini_mode: str = "static",
     gemini_fps: float = 1.0,
     gemini_clip_start_seconds: float = 0.0,
@@ -458,22 +589,36 @@ def run_pipeline(
     probe = probe_input(source)
     brief, fallback = normalize_brief(brief_arg)
     script = build_local_script(brief, duration_ms=probe.duration_ms)
-    if semantic_provider not in {"local", "gemini"}:
-        raise BadInput("--semantic-provider must be local or gemini")
-    if semantic_adapters is None and semantic_provider == "gemini":
-        try:
-            gemini_config = gemini_video.GeminiNativeVideoConfig.from_env(
-                explicitly_enabled=True,
-                mode=gemini_mode,
-                fps=gemini_fps,
-                clip_start_seconds=gemini_clip_start_seconds,
-                clip_end_seconds=gemini_clip_end_seconds,
-            )
-        except ValueError as exc:
-            raise BadInput(f"invalid Gemini semantic config: {exc}") from exc
-        semantic_adapters = gemini_video.build_semantic_adapters(
-            config=gemini_config,
+    if semantic_provider not in {"auto", "local", "gemini"}:
+        raise BadInput("--semantic-provider must be auto, local or gemini")
+    gemini_config = None
+    gemini_attempted = False
+    if semantic_adapters is None:
+        gemini_configured = bool(
+            _env_truthy("CREATOR_GEMINI_VIDEO_ENABLE")
+            and os.environ.get("GEMINI_API_KEY", "").strip()
         )
+        should_try_gemini = (
+            semantic_provider == "gemini"
+            or (semantic_provider == "auto" and gemini_configured)
+        )
+        if should_try_gemini:
+            try:
+                gemini_config = gemini_video.GeminiNativeVideoConfig.from_env(
+                    explicitly_enabled=True,
+                    mode=gemini_mode,
+                    fps=gemini_fps,
+                    clip_start_seconds=gemini_clip_start_seconds,
+                    clip_end_seconds=gemini_clip_end_seconds,
+                )
+            except ValueError as exc:
+                raise BadInput(f"invalid Gemini semantic config: {exc}") from exc
+            semantic_adapters = gemini_video.build_semantic_adapters(
+                config=gemini_config,
+            )
+            gemini_attempted = True
+        else:
+            semantic_adapters = director.SemanticAdapters.local_default()
     try:
         semantic_analysis = director.analyze_video(
             source,
@@ -499,6 +644,31 @@ def run_pipeline(
             editorial_decision,
             edit_directives,
         )
+        provider_identity = _semantic_provider_identity(
+            semantic_analysis,
+            requested=semantic_provider,
+            gemini_model=(
+                gemini_config.model
+                if gemini_config is not None
+                else os.environ.get("GEMINI_MODEL")
+            ),
+            gemini_mode=(
+                gemini_config.mode
+                if gemini_config is not None
+                else gemini_mode
+            ),
+            gemini_attempted=gemini_attempted,
+        )
+        style_artifact = _style_artifact(
+            editorial_decision,
+            source_sha256=probe.sha256,
+        )
+        directives_artifact = _directives_artifact(
+            edit_directives,
+            source_sha256=probe.sha256,
+            semantic_digest=semantic_analysis["analysisDigest"],
+            style_decision_digest=style_artifact["styleDecisionDigest"],
+        )
     except director.SemanticDirectorError as exc:
         raise InsufficientEvidence(
             f"semantic director rejected evidence: {exc}"
@@ -517,7 +687,25 @@ def run_pipeline(
         {"runId": run_id, "version": MVP_VERSION},
         run_id=run_id,
     )
+    semantic_path = out_root / "semantic-timeline.json"
+    directives_path = out_root / "editorial-directives.json"
+    style_decision_path = out_root / "style-decision.json"
     director_path = out_root / "director-report.json"
+    _write_json_atomic(
+        semantic_path,
+        semantic_analysis,
+        run_id=run_id,
+    )
+    _write_json_atomic(
+        directives_path,
+        directives_artifact,
+        run_id=run_id,
+    )
+    _write_json_atomic(
+        style_decision_path,
+        style_artifact,
+        run_id=run_id,
+    )
     _write_json_atomic(
         director_path,
         director_report,
@@ -562,9 +750,16 @@ def run_pipeline(
             "unavailableEvidence": semantic_analysis["unavailableEvidence"],
             "humanLevelQuality": director.HUMAN_LEVEL_STATE,
             "providerSelection": semantic_provider,
+            "providerIdentity": provider_identity,
             "geminiMode": (
-                gemini_mode if semantic_provider == "gemini" else None
+                gemini_mode
+                if semantic_provider in {"auto", "gemini"}
+                else None
             ),
+            "styleDecisionDigest": style_artifact["styleDecisionDigest"],
+            "editorialDirectivesDigest": directives_artifact[
+                "editorialDirectivesDigest"
+            ],
         },
         "targetDurationMs": probe.duration_ms,
         "publishingEnabled": False,
@@ -657,6 +852,7 @@ def run_pipeline(
     preview_path = out_root / "preview.mp4"
     qa_path = out_root / "qa.json"
     summary_path = out_root / "run-summary.json"
+    content_aware_path = out_root / "content-aware-run.json"
     _copy_atomic(rendered, final_path, run_id=run_id)
     _copy_atomic(preview, preview_path, run_id=run_id)
 
@@ -673,6 +869,11 @@ def run_pipeline(
             "readiness": director.READINESS_STATE,
             "humanLevelQuality": director.HUMAN_LEVEL_STATE,
             "unavailableEvidence": semantic_analysis["unavailableEvidence"],
+            "providerIdentity": provider_identity,
+            "styleDecisionDigest": style_artifact["styleDecisionDigest"],
+            "editorialDirectivesDigest": directives_artifact[
+                "editorialDirectivesDigest"
+            ],
         },
         "gates": {
             "input_ok": True,
@@ -709,9 +910,16 @@ def run_pipeline(
             "chosenStyle": editorial_decision,
             "unavailableEvidence": semantic_analysis["unavailableEvidence"],
             "providerSelection": semantic_provider,
+            "providerIdentity": provider_identity,
             "geminiMode": (
-                gemini_mode if semantic_provider == "gemini" else None
+                gemini_mode
+                if semantic_provider in {"auto", "gemini"}
+                else None
             ),
+            "styleDecisionDigest": style_artifact["styleDecisionDigest"],
+            "editorialDirectivesDigest": directives_artifact[
+                "editorialDirectivesDigest"
+            ],
         },
         "media": {
             **media_pin,
@@ -734,7 +942,11 @@ def run_pipeline(
                 "size": preview_path.stat().st_size,
             },
             "qa": str(qa_path),
+            "semanticTimeline": str(semantic_path),
+            "editorialDirectives": str(directives_path),
+            "styleDecision": str(style_decision_path),
             "directorReport": str(director_path),
+            "contentAwareRun": str(content_aware_path),
         },
         "gates": dict(qa["gates"]),
         "fallback": fallback,
@@ -742,6 +954,72 @@ def run_pipeline(
         "growthEnabled": False,
         "analyticsEnabled": False,
         "credentialsPresent": False,
+    }
+    content_aware_run = {
+        "contractVersion": CONTENT_AWARE_RUN_VERSION,
+        "runId": run_id,
+        "source": {
+            "sha256": probe.sha256,
+            "durationMs": probe.duration_ms,
+            "width": probe.width,
+            "height": probe.height,
+            "fps": probe.fps,
+        },
+        "semantic": {
+            "provider": provider_identity,
+            "fallback": provider_identity["fallback"],
+            "timelineContract": semantic_analysis["contractVersion"],
+            "timelineDigest": semantic_analysis["analysisDigest"],
+            "styleDecisionContract": STYLE_DECISION_VERSION,
+            "styleDecisionDigest": style_artifact["styleDecisionDigest"],
+            "directivesContract": EDITORIAL_DIRECTIVES_VERSION,
+            "directivesDigest": directives_artifact[
+                "editorialDirectivesDigest"
+            ],
+            "humanLevelQuality": director.HUMAN_LEVEL_STATE,
+        },
+        "media": {
+            "repository": media_pin["repository"],
+            "producerSha": media_pin["producerSha"],
+            "compatibilityContract": media_pin["contractVersion"],
+            "compatibilityManifestBlobSha": media_pin[
+                "compatibilityManifestBlobSha"
+            ],
+            "contractBlobDigests": media_pin["pins"],
+            "renderFingerprint": envelope["renderFingerprint"],
+            "timelineDigest": envelope["timelineDigest"],
+            "artifactManifestDigest": envelope["artifactManifestDigest"],
+        },
+        "artifacts": {
+            "final": summary["outputs"]["final"],
+            "preview": summary["outputs"]["preview"],
+        },
+        "qa": {
+            "qaDigest": qa["qaDigest"],
+            "technicalQaDigest": reels.sha256_json(technical),
+            "creativeQaDigest": reels.sha256_json(creative),
+            "technicalPassed": technical["passed"],
+            "creativePassed": creative["passed"],
+        },
+        "claims": {
+            "contentAwareEvidence": True,
+            "humanLevelQualityClaimed": False,
+            "aestheticSuperiorityClaimed": False,
+        },
+        "publishingEnabled": False,
+        "growthEnabled": False,
+        "analyticsEnabled": False,
+    }
+    content_aware_run["runDigest"] = reels.sha256_json(content_aware_run)
+    _write_json_atomic(
+        content_aware_path,
+        content_aware_run,
+        run_id=run_id,
+    )
+    summary["contentAwareRun"] = {
+        "contractVersion": CONTENT_AWARE_RUN_VERSION,
+        "runDigest": content_aware_run["runDigest"],
+        "path": str(content_aware_path),
     }
     summary["summaryDigest"] = reels.sha256_json(summary)
     _write_json_atomic(summary_path, summary, run_id=run_id)
@@ -788,11 +1066,11 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--semantic-provider",
-        choices=("local", "gemini"),
-        default="local",
+        choices=("auto", "local", "gemini"),
+        default="auto",
         help=(
-            "local is deterministic/no-network; gemini is opt-in and "
-            "requires GEMINI_API_KEY"
+            "auto uses Gemini only when explicitly configured with enable flag "
+            "and credentials, otherwise labels deterministic local fallback"
         ),
     )
     parser.add_argument(

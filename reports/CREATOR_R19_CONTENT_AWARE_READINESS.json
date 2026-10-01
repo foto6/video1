@@ -1,0 +1,47 @@
+{
+  "reportVersion": "creator.content_aware_mvp.r19.readiness.v1",
+  "creatorBaseSha": "9565d64666d6a8d665a9bcfeae2aa218845c3e28",
+  "contractVersion": "creator.content_aware_run.r19.v1",
+  "state": "CONTENT_AWARE_MVP_READY",
+  "humanLevelQuality": "HUMAN_LEVEL_UNPROVEN",
+  "defaultOperatorFlow": {
+    "style": "auto",
+    "semanticProvider": "auto",
+    "geminiWhenConfigured": true,
+    "deterministicLocalFallback": true,
+    "fallbackExplicitlyLabeled": true,
+    "exactMediaProducerSha": "ad4e0ba487a3cabc84dd339d412e19a0db0f9add"
+  },
+  "outputs": [
+    "final.mp4",
+    "preview.mp4",
+    "qa.json",
+    "run-summary.json",
+    "semantic-timeline.json",
+    "editorial-directives.json",
+    "style-decision.json",
+    "director-report.json",
+    "content-aware-run.json"
+  ],
+  "e2e": {
+    "actualGeneratedVideos": [
+      "talking_head_like",
+      "fast_motion_action",
+      "landscape_screen_like"
+    ],
+    "minimumDistinctAutoOutcomes": 2,
+    "manualOverrideRegression": true,
+    "publishing": false
+  },
+  "claims": {
+    "contentAwareEvidence": true,
+    "humanLevelQualityClaimed": false,
+    "aestheticSuperiorityClaimed": false
+  },
+  "safety": {
+    "credentialsCommitted": false,
+    "mediaGrowthMutation": false,
+    "desktopCommander": false,
+    "mergeRelease": false
+  }
+}

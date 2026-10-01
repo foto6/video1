@@ -943,13 +943,49 @@ def select_editorial_mode(
             0.92,
             0.45 + margin * 0.55 + availability * 0.20,
         )
+    rounded_scores = {
+        key: round(value, 4) for key, value in scores.items()
+    }
+    source_features = {
+        "durationMs": duration_ms,
+        "transcriptCoverage": round(transcript_coverage, 4),
+        "subjectCoverage": round(subject_coverage, 4),
+        "shotsPer10s": round(shots_per_10s, 4),
+        "motionMean": (
+            round(motion_mean, 4)
+            if motion_mean is not None
+            else None
+        ),
+        "sourceAspectRatio": round(
+            float(analysis["source"]["width"])
+            / max(1.0, float(analysis["source"]["height"])),
+            4,
+        ),
+        "objectKinds": sorted(item for item in object_kinds if item),
+        "semanticEvents": sorted(item for item in event_names if item),
+        "evidenceCount": evidence_count,
+        "unavailableEvidence": sorted(unavailable),
+    }
+    rejected = [
+        {
+            "mode": mode,
+            "score": rounded_scores[mode],
+            "scoreDeltaFromSelected": round(
+                rounded_scores[chosen] - rounded_scores[mode],
+                4,
+            ),
+            "supportingRationale": rationale[mode],
+        }
+        for mode in sorted(scores)
+        if mode != chosen
+    ]
     auto = {
         "mode": chosen,
-        "scores": {
-            key: round(value, 4) for key, value in scores.items()
-        },
+        "scores": rounded_scores,
         "rationale": rationale[chosen],
         "confidence": round(confidence, 4),
+        "sourceSemanticFeatures": source_features,
+        "rejectedAlternatives": rejected,
     }
 
     normalized_override = override
@@ -997,6 +1033,12 @@ def select_editorial_mode(
             if effective == "hybrid"
             else effective
         ),
+        "selectionBasis": {
+            "sourceBound": True,
+            "analysisDigest": analysis["analysisDigest"],
+            "sourceSha256": analysis["source"]["sha256"],
+            "humanLevelQuality": HUMAN_LEVEL_STATE,
+        },
     }
     decision["decisionDigest"] = reels.sha256_json(decision)
     return decision

@@ -12,6 +12,7 @@ on:
       - agent/creator-r16-media-r13-production-pin-20261001
       - agent/creator-r17-mvp-one-command-20261001
       - agent/creator-r18-semantic-director-20261001
+      - agent/creator-r19-content-aware-mvp-20261001
   pull_request:
 
 jobs:
@@ -175,6 +176,34 @@ jobs:
           set -e
           test "$code" -eq 2
           python -c "import json; r=json.load(open('/tmp/gemini-smoke.json')); assert r['state']=='BLOCKED'; assert r['networkAttempted'] is False"
+
+  focused-r19:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout exact Media R13 producer
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: ad4e0ba487a3cabc84dd339d412e19a0db0f9add
+          path: .deps/media-r13
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install ffmpeg and Creator
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python -m pip install -e .
+      - name: Run R19 content-aware real-video E2E
+        env:
+          GEMINI_API_KEY: ""
+          CREATOR_GEMINI_VIDEO_ENABLE: ""
+        run: |
+          export CREATOR_MEDIA_R13_DIR="$GITHUB_WORKSPACE/.deps/media-r13"
+          python -m unittest discover -s tests -p 'test_content_aware_mvp_r19.py' -v
 
   full:
     runs-on: ubuntu-latest
