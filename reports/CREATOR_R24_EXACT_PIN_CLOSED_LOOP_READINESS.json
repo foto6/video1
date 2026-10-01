@@ -57,5 +57,12 @@
     "jobId": "110410473480",
     "result": "runner_shutdown_exit_143",
     "applicationFailureObserved": false
+  },
+  "ciRealRenderHeartbeat": {
+    "reason": "hosted runner terminated silent real-render test with SIGTERM 143 despite no application error",
+    "intervalSeconds": 10,
+    "changesApplicationSemantics": false,
+    "skipsIntegration": false,
+    "fakeArtifact": false
   }
 }

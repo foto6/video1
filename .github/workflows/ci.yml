@@ -326,11 +326,31 @@ jobs:
           R24_GROWTH_CHECKOUT: ${{ github.workspace }}/.r24-growth
           R24_SOURCE_VIDEO: ${{ github.workspace }}/.r24-fixture/source.mp4
         run: |
+          heartbeat() {
+            while sleep 10; do
+              echo "R24 exact-pin real render still active"
+            done
+          }
+          heartbeat &
+          heartbeat_pid=$!
+          trap 'kill "$heartbeat_pid" 2>/dev/null || true' EXIT
           creator-closed-loop-r24 --help
           PYTHONPATH=src python -m unittest discover -s tests -p 'test_exact_pin_closed_loop_r24.py' -v
+          kill "$heartbeat_pid" 2>/dev/null || true
+          trap - EXIT
       - name: Run reproducible real-artifact rehearsal
         run: |
+          heartbeat() {
+            while sleep 10; do
+              echo "R24 exact-pin rehearsal still active"
+            done
+          }
+          heartbeat &
+          heartbeat_pid=$!
+          trap 'kill "$heartbeat_pid" 2>/dev/null || true' EXIT
           creator-closed-loop-r24 --source .r24-fixture/source.mp4 --brief "Make the proof concise" --media-checkout .r24-media --growth-checkout .r24-growth --out .r24-rehearsal --candidates 2 > .r24-rehearsal.stdout.json
+          kill "$heartbeat_pid" 2>/dev/null || true
+          trap - EXIT
           python -c "import json; r=json.load(open('.r24-rehearsal/closed_loop_rehearsal.v1.json')); assert r['state']=='publish_handoff_ready'; assert r['realMediaRenderEffects'] >= 1; assert r['reeditRounds'] <= 2; assert r['providerInvoked'] is False; assert r['liveProviderMutation'] is False"
           ffprobe -v error -show_entries stream=codec_type,width,height -show_entries format=duration -of json .r24-rehearsal/final.mp4 > .r24-rehearsal/final.ffprobe.json
 
