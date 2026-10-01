@@ -35,16 +35,18 @@
   },
   "pathBindingFix": {
     "mediaProducerSha": "a17f782da8144d1e890ac83195396a3192df93c2",
-    "mediaPathPolicy": "absolute source paths permitted only when inside sandboxRoot",
-    "ffmpegCompiler": "passes timeline source.uri directly",
+    "mediaPathPolicy": "relative source paths resolve under sandboxRoot; absolute-looking paths remain fail-closed per pinned Media R15",
+    "ffmpegCompiler": "passes timeline source.uri directly; bridge cwd is aligned to sandboxRoot before Media submission",
     "sourceCopy": "<candidate sandbox>/inputs/source.mp4",
     "copiedShaAndSizeVerified": true,
     "sandboxEscapeCheck": true,
-    "cwdIndependentRegression": true
+    "cwdIndependentRegression": true,
+    "sourceUri": "inputs/source.mp4 derived via path.relative(candidateSandbox, copiedSource)",
+    "absoluteSourceUriUsed": false
   },
   "failedRunSuperseded": {
-    "runId": "36865352531",
-    "jobId": "110379387849",
-    "rootCause": "relative timeline source.uri was interpreted by ffmpeg from process cwd"
+    "runId": "36874191186",
+    "jobId": "110409289799",
+    "rootCause": "first attempted fix used an absolute POSIX URI, which pinned Media R15 correctly rejected via cross-platform absolute-path guard"
   }
 }

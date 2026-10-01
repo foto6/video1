@@ -98,6 +98,7 @@ if (
 ) {
   die("copied source escaped Media sandbox root");
 }
+const sandboxSourceUri = sandboxRelativeSource.split(path.sep).join("/");
 if (
   sourceDigest.sha256 !== request.source.sha256
   || sourceDigest.size !== request.source.sizeBytes
@@ -125,7 +126,7 @@ const baseTimeline = {
         role: "body",
         source: {
           id: request.source.sourceId,
-          uri: canonicalCopiedSource,
+          uri: sandboxSourceUri,
           inMs: 0,
           outMs: durationMs,
           sha256: sourceDigest.sha256,
@@ -232,6 +233,11 @@ const submit = {
     dryRun: false
   }
 };
+// Media R15's path policy interprets relative timeline URIs against
+// sandboxRoot, while ffmpeg receives the URI unchanged. Execute this isolated
+// bridge from the same sandbox root so the validated relative URI and the
+// child-process resolution base are identical regardless of the caller cwd.
+process.chdir(root);
 const first = await protocol.handle(submit);
 const duplicate = await protocol.handle(structuredClone(submit));
 if (first.duplicate !== false || duplicate.duplicate !== true) {
