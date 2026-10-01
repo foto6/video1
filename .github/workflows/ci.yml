@@ -293,6 +293,7 @@ jobs:
           PYTHONPATH=src python -m unittest discover -s tests -p 'test_editor_publish_handoff_r23.py' -v
 
   focused-r24-exact-pin:
+    needs: full
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -317,7 +318,7 @@ jobs:
       - name: Generate source fixture
         run: |
           mkdir -p .r24-fixture
-          ffmpeg -hide_banner -nostdin -y -f lavfi -i "color=c=0x224466:s=180x320:r=10:d=15" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
+          ffmpeg -hide_banner -nostdin -y -f lavfi -i "color=c=0x224466:s=180x320:r=10:d=3" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=3" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
       - name: Run R24 unit plus winner/resume exact-pin integration
         env:
           R24_MEDIA_CHECKOUT: ${{ github.workspace }}/.r24-media
@@ -338,9 +339,11 @@ jobs:
           trap - EXIT
 
   focused-r24-exact-pin-nonwinner:
+    needs: focused-r24-exact-pin
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         test:
           - test_tie_never_prepares_publish
@@ -368,7 +371,7 @@ jobs:
       - name: Generate source fixture
         run: |
           mkdir -p .r24-fixture
-          ffmpeg -hide_banner -nostdin -y -f lavfi -i "color=c=0x224466:s=180x320:r=10:d=15" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
+          ffmpeg -hide_banner -nostdin -y -f lavfi -i "color=c=0x224466:s=180x320:r=10:d=3" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=3" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
       - name: Run exact-pin nonwinner scenario
         env:
           R24_MEDIA_CHECKOUT: ${{ github.workspace }}/.r24-media
@@ -388,6 +391,7 @@ jobs:
           trap - EXIT
 
   focused-r24-exact-pin-rehearsal:
+    needs: focused-r24-exact-pin-nonwinner
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -413,7 +417,7 @@ jobs:
       - name: Generate source fixture
         run: |
           mkdir -p .r24-fixture
-          ffmpeg -hide_banner -nostdin -y -f lavfi -i "color=c=0x224466:s=180x320:r=10:d=15" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=15" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
+          ffmpeg -hide_banner -nostdin -y -f lavfi -i "color=c=0x224466:s=180x320:r=10:d=3" -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=3" -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac -b:a 96k .r24-fixture/source.mp4 >/dev/null 2>&1
       - name: Run reproducible real-artifact rehearsal
         run: |
           heartbeat() {
