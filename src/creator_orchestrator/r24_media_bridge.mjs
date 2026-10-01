@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -192,6 +192,10 @@ const store = new media.PersistentRenderJobStore({
   filePath: path.join(root, "jobs.json")
 });
 const executor = new media.DeterministicProcessExecutor({
+  spawnImpl: (binary, argv, options = {}) => spawn(binary, argv, {
+    ...options,
+    cwd: root
+  }),
   defaultTimeoutMs: 180000,
   maxOutputBytes: 2 * 1024 * 1024
 });
@@ -234,10 +238,9 @@ const submit = {
   }
 };
 // Media R15's path policy interprets relative timeline URIs against
-// sandboxRoot, while ffmpeg receives the URI unchanged. Execute this isolated
-// bridge from the same sandbox root so the validated relative URI and the
-// child-process resolution base are identical regardless of the caller cwd.
-process.chdir(root);
+// sandboxRoot, while ffmpeg receives the URI unchanged. The injected process
+// executor gives only the render child this same sandbox cwd, so validation and
+// execution resolve the identical source without depending on the caller cwd.
 const first = await protocol.handle(submit);
 const duplicate = await protocol.handle(structuredClone(submit));
 if (first.duplicate !== false || duplicate.duplicate !== true) {
