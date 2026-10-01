@@ -297,10 +297,54 @@ class GeminiNativeVideoProviderR18BTests(unittest.TestCase):
             clip_end_seconds=6.0,
             max_retries=0,
         )
-        adapters = gv.build_semantic_adapters(
+        common_shot = sd.FixtureAdapter(
+            "same_local_motion_evidence",
+            (
+                {
+                    "evidenceType": "motion_energy",
+                    "startMs": 0,
+                    "endMs": 6000,
+                    "value": {
+                        "normalizedEnergy": 0.4,
+                        "basis": "same deterministic evidence",
+                    },
+                    "confidence": 0.9,
+                },
+            ),
+            ("motionEnergy",),
+        )
+        provider_adapter = gv.GeminiNativeVideoAdapter(
             config=config,
             transport=transport,
             api_key="not-artifacted",
+            sleep_fn=lambda _: None,
+        )
+        adapters = sd.SemanticAdapters(
+            asr=sd.UnavailableAdapter(
+                "asr",
+                ("transcriptSegments", "sentenceBoundaries", "speech_energy"),
+            ),
+            shot=common_shot,
+            cv=sd.UnavailableAdapter(
+                "cv",
+                ("visualSubjects", "importantObjects"),
+            ),
+            vlm=provider_adapter,
+        )
+        fallback_adapters = sd.SemanticAdapters(
+            asr=sd.UnavailableAdapter(
+                "asr",
+                ("transcriptSegments", "sentenceBoundaries", "speech_energy"),
+            ),
+            shot=common_shot,
+            cv=sd.UnavailableAdapter(
+                "cv",
+                ("visualSubjects", "importantObjects"),
+            ),
+            vlm=sd.UnavailableAdapter(
+                "vlm",
+                ("semanticEvents",),
+            ),
         )
         enriched = sd.analyze_video(
             path,
@@ -322,7 +366,7 @@ class GeminiNativeVideoProviderR18BTests(unittest.TestCase):
             fps=30.0,
             has_audio=False,
             brief="Show the product proof clearly.",
-            adapters=disabled_adapters(),
+            adapters=fallback_adapters,
         )
         enriched_decision = sd.select_editorial_mode(enriched)
         fallback_decision = sd.select_editorial_mode(fallback)
@@ -336,7 +380,7 @@ class GeminiNativeVideoProviderR18BTests(unittest.TestCase):
         )
         self.assertEqual(
             fallback_decision["effectiveMode"],
-            "clean_podcast",
+            "cinematic_minimal",
         )
         self.assertEqual(
             enriched_decision["effectiveMode"],
