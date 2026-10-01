@@ -82,39 +82,26 @@ class CandidateTournamentR15Tests(unittest.TestCase):
         runner.generate_script_and_assets(item["itemId"], synth)
         return runner, synth, item["itemId"]
 
-    def test_media_r12_production_gate_records_exact_failed_candidate(self):
-        readiness = r15.media_r12_readiness(None)
-        self.assertEqual(readiness["state"], "BLOCKED_MEDIA_R12")
-        self.assertFalse(readiness["productionReady"])
+    def test_media_r13_production_gate_accepts_exact_green_compat_bundle(self):
+        readiness = r15.media_r13_readiness()
+        self.assertEqual(readiness["state"], "READY_MEDIA_R13")
+        self.assertTrue(readiness["productionMediaReady"])
         self.assertEqual(
-            readiness["observedCandidate"]["producerSha"],
+            readiness["acceptedPin"]["producerSha"],
+            "ad4e0ba487a3cabc84dd339d412e19a0db0f9add",
+        )
+        self.assertEqual(readiness["ciRunId"], "36801556474")
+        self.assertEqual(readiness["ciConclusion"], "success")
+        self.assertEqual(
+            readiness["acceptedPin"]["compatibilityManifestBlobSha"],
+            "b750b347f6c6a7a2398e47e53e166f5fb1c72781",
+        )
+        self.assertTrue(readiness["oldFailedMediaR12Rejected"])
+        self.assertEqual(
+            readiness["oldFailedMediaR12Sha"],
             "98f298b88faaef106fb412712d6c9824e2b926d9",
         )
-        self.assertEqual(
-            readiness["observedCandidate"]["creativePlanManifestBlobSha"],
-            "d031a07f1d392c690942bd5f8288a1713f1af791",
-        )
-        self.assertEqual(
-            readiness["observedCandidate"]["creativePlanContractBlobSha"],
-            "5298aeb2a9e4e13ed31b1610ce88778b7a911592",
-        )
-        self.assertEqual(
-            readiness["observedCandidate"]["exactHeadCiRunId"],
-            "36799818187",
-        )
-        self.assertEqual(
-            readiness["observedCandidate"]["exactHeadCiConclusion"],
-            "failure",
-        )
-        self.assertIsNone(
-            readiness["observedCandidate"][
-                "creatorConsumerCompatibilityBlobSha"
-            ]
-        )
-        self.assertEqual(
-            set(readiness["missingOrFailed"]),
-            {"creatorConsumerCompatibilityBlobSha", "exactHeadCiSuccess"},
-        )
+        self.assertFalse(readiness["livePublishingEnabled"])
 
     def test_variant_count_and_media_concurrency_are_hard_bounded(self):
         with self.assertRaises(r15.CandidateTournamentError):

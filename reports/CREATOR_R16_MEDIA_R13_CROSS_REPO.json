@@ -1,0 +1,53 @@
+{
+  "reportVersion": "creator.media_r13_cross_repo_acceptance.r16.v1",
+  "state": "SOURCE_BOUND_MEDIA_R13_COMPATIBILITY_PROVEN",
+  "creator": {
+    "repository": "foto6/video1",
+    "startingSha": "03b8461b83906c551c094d58a21dbc9fa978d6d2"
+  },
+  "media": {
+    "repository": "foto6/video2",
+    "branch": "agent/media-r13-creator-compat-20261001",
+    "producerSha": "ad4e0ba487a3cabc84dd339d412e19a0db0f9add",
+    "ciRunId": "36801556474",
+    "ciConclusion": "success",
+    "workflowArtifactId": "11136028209",
+    "contractVersion": "media.creator_consumer_compat.r13.v1",
+    "pins": {
+      "mediaJobConsumerManifest": "96b252acae743f8fe059fd634ee320f92bd9c79c",
+      "mediaArtifactManifest": "42aed1ca4720cddd4a5e48af076bc73b663322b0",
+      "creativePlanManifest": "d031a07f1d392c690942bd5f8288a1713f1af791",
+      "creativePlanContract": "5298aeb2a9e4e13ed31b1610ce88778b7a911592",
+      "shortformEditorManifest": "07c38a048d23490b8e55924697650e9969bf089f",
+      "shortformProfile": "d8f19d9a9d117c5736238159bd5e6d2491370986",
+      "compatContract": "ecfeaed347b53ed549124b9d1701ebf70b37eea3",
+      "resultEnvelopeSchema": "119b26b494df77c4ce8d83ffd63791afc112d264",
+      "technicalQaSchema": "1b2f71e443b0038736e8be99f544493965693658",
+      "creativeQualitySchema": "c63f95b45f5440aabd8c14dc5fcb8eeae1fc8535"
+    }
+  },
+  "workflowArtifact": {
+    "compatibilityBundleSha256": "e5f45429604519e2776fddeedb11032baae2728799aebfff2f6f1076686eeb7f",
+    "demoEnvelopeSha256": "e7ee654f3a3b098f32d7611ff721e506eb26caffe44d1a77aa25f077be94541c",
+    "bundleDigest": "e3b412095c1f645263d9b1571f600f90fc1e092b0b241c056d7e2e1176748d06",
+    "logicalJobId": "r12-after",
+    "renderFingerprint": "a06386c0394ab6a5f95f88e8cda42e9ea46e819a7013c6eaf2e1052b7ab395fd",
+    "timelineDigest": "7aa94569a321fffbea67159ed350be3597e0b11767ad91164761fc588feba68f",
+    "artifactManifestDigest": "8031d3bc1034bec70ff60d16428ee3b877338078b4960a11c68f1bd82d920101",
+    "finalContentSha256": "4a70aacb78429cc085f46fcd9e185becd536ada2855545512b716775241c5c64",
+    "technicalQaPassed": true,
+    "creativeQualityPassed": true
+  },
+  "r15Acceptance": {
+    "realCandidateCount": 1,
+    "expectedDecisionState": "insufficient_evidence",
+    "fakeRealRendersCreated": 0,
+    "syntheticMultiCandidateBreadth": "CONFORMANCE_ONLY"
+  },
+  "oldFailedMediaR12ShaRejected": "98f298b88faaef106fb412712d6c9824e2b926d9",
+  "productionMediaReady": true,
+  "livePublishingEnabled": false,
+  "credentialsPresent": false,
+  "mediaGrowthReposModified": false,
+  "mergeRelease": false
+}

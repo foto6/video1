@@ -1,70 +1,50 @@
 # Creator R13 integration acceptance
 
-R13 is an acceptance layer over the already-green Creator R11 orchestration and Creator R12 durable publish provider layer. It does not replace either contract. The acceptance contract is \`creator.integration_acceptance.r13.v1\`, and the durable boundary ledger is \`creator.integration_acceptance_ledger.v1\`.
+R13 remains the durable end-to-end acceptance layer over Creator R11 orchestration, R12 publish recovery, Growth ingestion and restart-safe cross-repo boundaries. R16 does not weaken or replace those contracts.
 
-## Current readiness
+## Readiness after Media R13
 
-The committed readiness report is \`reports/CREATOR_R13_INTEGRATION_READINESS.json\`.
+The original R13 synthetic harness was written while Media R11/R12 production compatibility was unresolved. Its historical \`BLOCKED_MEDIA\` evidence described that earlier state and must not be interpreted as the current production Media pin.
 
-Creator R11 and R12 are green at the R12 starting head \`3594a907bb0c16469f33909af102714bdecaaafd\`. Growth R11 is pinned read-only to \`foto6/video3@c4ed94d3e76b75d36bf8cc8280f6937f455133a6\`, including conformance manifest blob \`8b47817cb344c4a1670d338fca351c1056e8ba6f\`, implementation blob \`3fde5ed6fbae9356cc232613a8a81ea442c74315\`, and unchanged R10 conformance blob \`0a63ebece0fe8620a57e635143cc3ea16d095f59\`.
+Creator R16 now consumes the official \`media.creator_consumer_compat.r13.v1\` contract from exact producer:
 
-Media remains fail-closed. At implementation time the R11 branch was observed at candidate \`530e0ea43288840d2d66609ca2407640522df3f7\`, with short-form manifest blob \`07c38a048d23490b8e55924697650e9969bf089f\`, Creator-consumer blob \`8d979c9a8f59259c5092c20b0c48c153f41b64a8\`, job-contract blob \`96b252acae743f8fe059fd634ee320f92bd9c79c\`, and artifact-manifest blob \`42aed1ca4720cddd4a5e48af076bc73b663322b0\`. No GitHub Actions run existed for that exact head at observation time, so R13 reports \`BLOCKED_MEDIA\`. Contract files alone are not treated as a green Media producer.
+- repository: \`foto6/video2\`
+- branch: \`agent/media-r13-creator-compat-20261001\`
+- producer SHA: \`ad4e0ba487a3cabc84dd339d412e19a0db0f9add\`
+- exact-head CI: \`36801556474\` — SUCCESS
+- compatibility contract blob: \`ecfeaed347b53ed549124b9d1701ebf70b37eea3\`
+- result-envelope schema blob: \`119b26b494df77c4ce8d83ffd63791afc112d264\`
+- technical-QA schema blob: \`1b2f71e443b0038736e8be99f544493965693658\`
+- creative-quality schema blob: \`c63f95b45f5440aabd8c14dc5fcb8eeae1fc8535\`
 
-## Lifecycle exercised
+The exact Media CI artifact \`media-r13-compat\` is pinned by workflow artifact ID \`11136028209\`, bundle SHA-256 \`e5f45429604519e2776fddeedb11032baae2728799aebfff2f6f1076686eeb7f\`, and demo-envelope SHA-256 \`e7ee654f3a3b098f32d7611ff721e506eb26caffe44d1a77aa25f077be94541c\`.
 
-Once an exact Media pin is supplied, the synthetic acceptance runner executes:
+That real compatibility path is now **READY_MEDIA_R13**. It is distinct from R13's older synthetic three-platform lifecycle harness.
 
-\`brief -> research -> idea/hook -> script -> asset plan -> edit/Media request -> Media result -> critic/QA -> release authorization -> R12 publish request -> asynchronous provider recovery/status -> terminal publish receipt -> Growth handoff -> Growth R11 provider-metrics evidence -> R10-compatible next-cycle seed -> Creator next-cycle consumption\`.
+## Three separate evidence classes
 
-The seven cross-system boundaries are each committed to an fsync-backed append-only acceptance ledger. Replaying identical bytes returns \`duplicate\`; conflicting replay fails closed.
+**Real Media R13 compatibility:** Creator validates the exact producer SHA, every pinned Git blob, the compatibility manifest/contract, the three consumer schemas, the producer-emitted bundle digest, technical QA, creative guardrails and source provenance. No synthetic substitution is used.
 
-## Media fail-closed rule
+**Synthetic end-to-end breadth:** R13's deterministic Instagram/TikTok/YouTube integration harness remains useful for crash/replay, provider and Growth boundary breadth. Synthetic evidence remains explicitly conformance-only and cannot make live-performance claims.
 
-A Media pin must include the exact producer SHA, the existing \`media.job.v1\` and \`media.artifact_manifest.v1\` Git blob SHAs, the R11 short-form conformance manifest and Creator-consumer blob SHAs, and an exact-head CI run ID whose supplied conclusion is \`success\`. Missing evidence, the pre-milestone producer SHA, or a non-success CI conclusion produces \`BLOCKED_MEDIA\` before any synthetic lifecycle is run.
+**Live publishing:** still disabled. Media compatibility does not authorize release or publication. Existing \`release.authorization.v1\`, R12 provider capability/recovery gates and credential boundaries remain unchanged.
 
-The command-line runner does not query GitHub. The independent coordinator is responsible for supplying evidence it has independently verified against the landed Media head. This prevents a moving branch ref from silently becoming acceptance evidence.
+## Fail-closed rule
 
-## Growth R11 provenance
-
-The harness pins the Growth R11 provider-ingestion producer, manifest, implementation, R10 contract, and all three provider fixture Git blobs. Growth evidence must remain \`growth.shortform_platform_metrics.v1\`.
-
-Synthetic metrics require \`source_class=synthetic_fixture\`, provider \`fixture\`, an explicit fixture SHA-256, and \`live_performance_claim_allowed=false\`. Live evidence requires \`source_class=platform_export\`, provider equal to the platform, no fixture SHA, and the live flag set. A synthetic R12 mock receipt therefore cannot be promoted to a live-performance claim.
-
-The generated Growth next-cycle seed is validated again by Creator's existing strict R10 consumer contract before it is durably consumed by a new Creator cycle.
-
-## Recovery and exactly-once evidence
-
-Focused R13 tests inject or simulate restart at every recorded cross-repo boundary. Additional unknown-ack tests cover all side-effecting integration boundaries:
-
-- Media accepts the logical render before Creator acknowledgement, then replay returns the same result under the same idempotency key;
-- R12 publish accepts the logical provider side effect before local acknowledgement, then authoritative recovery resumes without a second submit;
-- Growth accepts the handoff before Creator acknowledgement, then replay returns the same provider-metrics/seed result.
-
-Each test asserts one logical side effect. The provider flows are deterministic mocks for Instagram Reels, TikTok and YouTube Shorts. CI performs no network provider mutation and stores no credentials.
+A changed producer SHA, changed pinned blob, unknown schema field, failed technical QA, failed creative guardrail, digest mismatch or source-provenance failure is rejected. The old failed Media R12 SHA \`98f298b88faaef106fb412712d6c9824e2b926d9\` remains invalid.
 
 ## Commands
 
-Current fail-closed readiness check:
+Validate the current production Media pin:
 
 \`\`\`bash
-PYTHONPATH=src python -m creator_orchestrator.integration_acceptance readiness
+PYTHONPATH=src python -m creator_orchestrator.candidate_tournament readiness
 \`\`\`
 
-That command intentionally exits non-zero while Media is blocked.
-
-After Media R11 lands and an independent coordinator has verified an exact compatible head and successful exact-head CI, the full three-platform synthetic acceptance is one command and requires no code edit:
+Run the source-bound real Media R13 roundtrip:
 
 \`\`\`bash
-PYTHONPATH=src python -m creator_orchestrator.integration_acceptance run \
-  --platform all \
-  --work-dir /tmp/creator-r13-acceptance \
-  --media-producer-sha <EXACT_MEDIA_SHA> \
-  --media-job-contract-blob-sha <MEDIA_JOB_V1_BLOB_SHA> \
-  --media-manifest-contract-blob-sha <MEDIA_ARTIFACT_MANIFEST_V1_BLOB_SHA> \
-  --media-conformance-manifest-blob-sha <MEDIA_R11_SHORTFORM_MANIFEST_BLOB_SHA> \
-  --media-creator-consumer-blob-sha <MEDIA_R11_CREATOR_CONSUMER_BLOB_SHA> \
-  --media-ci-run-id <EXACT_HEAD_CI_RUN_ID> \
-  --media-ci-conclusion success
+PYTHONPATH=src python -m creator_orchestrator.candidate_tournament real-r13 --work-dir /tmp/creator-r16-media-r13
 \`\`\`
 
-A successful run reports \`SYNTHETIC_ACCEPTANCE_GREEN\` and always sets \`productionReadinessClaim=false\`. It is evidence that the versioned boundaries compose deterministically; it is not authorization for live publishing.
+The command re-emits the exact producer CI bundle/envelope bytes, ingests them through Creator's pinned compatibility consumer and R15 tournament acceptance, and creates no live publish action.

@@ -1,0 +1,29 @@
+{
+  "contractVersion": "creator.media_r13_cross_repo_acceptance.r16.v1",
+  "creatorBaseSha": "03b8461b83906c551c094d58a21dbc9fa978d6d2",
+  "mediaProducer": {
+    "repository": "foto6/video2",
+    "branch": "agent/media-r13-creator-compat-20261001",
+    "sha": "ad4e0ba487a3cabc84dd339d412e19a0db0f9add",
+    "ciRunId": "36801556474",
+    "ciConclusion": "success",
+    "compatibilityContract": "media.creator_consumer_compat.r13.v1"
+  },
+  "exactBundle": {
+    "workflowArtifactId": "11136028209",
+    "bundleFixturePath": "fixtures/media_r13_cross_repo/compatibility-bundle.json",
+    "bundleSha256": "e5f45429604519e2776fddeedb11032baae2728799aebfff2f6f1076686eeb7f",
+    "envelopeSha256": "e7ee654f3a3b098f32d7611ff721e506eb26caffe44d1a77aa25f077be94541c"
+  },
+  "consumerImplementation": "src/creator_orchestrator/media_r13_compat.py",
+  "tournamentIntegration": "src/creator_orchestrator/candidate_tournament.py",
+  "focusedTests": "tests/test_media_r13_production_pin_r16.py",
+  "safety": {
+    "syntheticMultiCandidateBreadth": "conformance_only",
+    "livePublishing": false,
+    "credentials": false,
+    "mediaRepoMutation": false,
+    "growthRepoMutation": false,
+    "mergeRelease": false
+  }
+}

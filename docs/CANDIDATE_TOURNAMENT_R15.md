@@ -1,117 +1,74 @@
 # Creator R15 multi-candidate edit tournament
 
-R15 adds a bounded edit tournament above the green R14 batch runner. It preserves the existing R11 orchestration, R12 publish-provider recovery, R13 producer gates, and R14 campaign budget/concurrency model.
+R15 provides the bounded edit tournament above the green R14 batch runner. R16 replaces R15's historical failed Media R12 production candidate with the official green Media R13 Creator-consumer compatibility bundle; R15's synthetic multi-candidate breadth remains conformance-only.
 
-The tournament contract is \`creator.candidate_tournament.r15.v1\`; durable events use \`creator.candidate_tournament_ledger.r15.v1\`.
+## Production Media pin
 
-## Current Media R12 production gate
+Production Media compatibility is now **READY_MEDIA_R13** only for this exact bundle:
 
-Production tournament use is fail-closed.
+- \`foto6/video2\` branch \`agent/media-r13-creator-compat-20261001\`
+- producer SHA \`ad4e0ba487a3cabc84dd339d412e19a0db0f9add\`
+- CI run \`36801556474\` — SUCCESS
+- \`media.job.v1\` consumer manifest blob \`96b252acae743f8fe059fd634ee320f92bd9c79c\`
+- \`media.artifact_manifest.v1\` manifest blob \`42aed1ca4720cddd4a5e48af076bc73b663322b0\`
+- creative-plan manifest blob \`d031a07f1d392c690942bd5f8288a1713f1af791\`
+- creative-plan contract blob \`5298aeb2a9e4e13ed31b1610ce88778b7a911592\`
+- shortform editor manifest blob \`07c38a048d23490b8e55924697650e9969bf089f\`
+- shortform profile blob \`d8f19d9a9d117c5736238159bd5e6d2491370986\`
+- compatibility contract blob \`ecfeaed347b53ed549124b9d1701ebf70b37eea3\`
+- result-envelope schema blob \`119b26b494df77c4ce8d83ffd63791afc112d264\`
+- technical-QA schema blob \`1b2f71e443b0038736e8be99f544493965693658\`
+- creative-quality schema blob \`c63f95b45f5440aabd8c14dc5fcb8eeae1fc8535\`
 
-Observed Media R12 candidate:
+Creator vendors exact byte-for-byte copies of the compatibility contract/schema bundle and verifies their Git blob identities itself. It does not import Media runtime implementation.
 
-- repository: \`foto6/video2\`
-- branch: \`agent/media-r12-creative-polish-20261001\`
-- producer SHA: \`98f298b88faaef106fb412712d6c9824e2b926d9\`
-- creative-plan manifest blob: \`d031a07f1d392c690942bd5f8288a1713f1af791\`
-- creative-plan contract blob: \`5298aeb2a9e4e13ed31b1610ce88778b7a911592\`
-- preserved R11 job-contract blob: \`96b252acae743f8fe059fd634ee320f92bd9c79c\`
-- preserved R11 artifact-manifest blob: \`42aed1ca4720cddd4a5e48af076bc73b663322b0\`
-- exact-head CI run: \`36799818187\` — **failure**
-- Creator-consumer compatibility blob: **missing**
+The old failed SHA \`98f298b88faaef106fb412712d6c9824e2b926d9\` remains explicitly rejected.
 
-Therefore \`media_r12_readiness()\` returns \`BLOCKED_MEDIA_R12\`. R15 synthetic fixtures may bind the observed candidate for conformance evidence, but mark \`producerCompatibilityAccepted=false\` and \`sourceClass=synthetic_fixture\`. They cannot be used as production evidence.
+## Real compatibility versus synthetic tournament breadth
 
-A future production pin must include an exact producer SHA, creative-plan manifest blob, creative-plan contract blob, Creator-consumer compatibility blob, and successful exact-head CI.
+The Media R13 workflow produced one real source-bound demo consumer envelope. R16 accepts exactly that one real envelope. It does **not** duplicate it into four supposed real variants.
 
-## Tournament model
+The real envelope proves:
 
-One creative item produces a configured number of unique candidate requests. The current bounded dimensions are:
+- exact producer and contract bundle;
+- source asset provenance;
+- technical QA pass;
+- creative-quality pass;
+- every exported creative guardrail pass;
+- exact render, timeline, artifact-manifest and content digests.
 
-- pacing preset;
-- caption style;
-- B-roll density;
-- hook cut;
-- punch-in/zoom pattern;
-- loop ending;
-- CTA treatment;
-- music/voice balance.
+Because one real demo envelope does not contain comparative R15 creative-preference signals for multiple real variants, R15 records the real candidate as hard-gate-passing but \`insufficient_evidence\` for automatic tournament winner selection. This is intentional: no heuristic quality certainty is fabricated.
 
-\`TournamentConfig\` caps candidates at eight and requires the entire configured candidate set to fit both local render-seconds and Media-action budgets before execution. Media concurrency is separately capped.
+R15's four-candidate deterministic fixture remains a separate **synthetic conformance** test. It still proves one technical rejection, one over-editing rejection, two valid synthetic candidates, deterministic winner selection and lost-ack recovery.
 
-Candidate identity is deterministic over tournament ID, creative-item digest, ordinal and complete variant specification.
+## Tournament safety
 
-## Objective hard gates vs creative preference
+Technical QA and Media creative guardrails remain objective hard gates. Heuristic creative scoring occurs only for candidates with explicit source-bound comparative evidence and always sets \`qualityCertaintyClaimed=false\`.
 
-Selection is deliberately two-stage.
+Tie and insufficient-evidence decisions select no artifact automatically. Human override remains provenance-bound and cannot bypass technical or creative hard gates.
 
-First, Media technical QA is a hard gate. A candidate with failed technical QA becomes \`rejected_technical\`; no creative preference score is computed.
+R14 campaign budget and concurrency accounting still wrap tournament breadth. Release authorization remains mandatory before R12 publication.
 
-Second, the Media R12 over-editing guardrails are objective hard gates. Current pinned limits are cut rate 1.25/s, zoom rate 0.30/s, transition density 0.20/s, text density 22 chars/s, music gain no higher than -10 dB, at most two concurrent text items, and motion zoom no higher than 1.18. Violations become \`rejected_guardrail\`, again without creative comparison.
+## Live publishing
 
-Only remaining candidates with source-bound evidence receive a deterministic preference score. Signals include hook clarity, pacing coherence, caption legibility, source-evidence use, loop coherence, CTA clarity and audio balance. The result explicitly sets \`qualityCertaintyClaimed=false\` and describes the score as a source-bound heuristic preference, not objective creative quality.
-
-## Tie, insufficient evidence and human override
-
-If fewer than the configured minimum number of valid evidence-bearing candidates remain, the decision is \`insufficient_evidence\`.
-
-If the top two heuristic preference scores are within the configured epsilon, the decision is \`tie\`.
-
-Neither state selects an artifact automatically. An explicit human override can resolve a tie or insufficient-evidence state, or replace an automatic heuristic selection, while preserving:
-
-- prior decision digest;
-- actor reference;
-- override reason;
-- winner evaluation digest;
-- final override decision digest.
-
-An override cannot select a candidate that failed technical QA or an objective hard guardrail.
-
-## Durability and lost acknowledgement
-
-Every planned candidate, request identity, Media result, producer source, timeline digest, artifact-manifest digest, content digest, QA digest, creative-evidence digest, evaluation, rejection and decision is append-only and digest-bound.
-
-Before a candidate submit, R15 durably reserves its local render/action budget and records a Media in-flight slot. Recovery checks the provider's idempotency key before submit. If Media accepted a candidate but Creator lost acknowledgement, restart recovers the existing result and never performs a second logical render.
-
-Conflicting duplicate results fail closed.
-
-Partial tournaments resume from their durable per-candidate state; completed candidates are not re-rendered.
-
-## R14 campaign interaction
-
-\`BatchCampaignRunner.run_tournament()\` delegates one selected batch item into R15 without bypassing R14 controls.
-
-Before every tournament candidate, R14 reserves the candidate's estimated render seconds against the campaign budget and acquires a campaign Media concurrency slot. Candidate planning/evaluation also consumes deterministic campaign generation units.
-
-This means four variants consume four bounded candidate render reservations instead of silently multiplying work outside R14 accounting. If the outer campaign budget cannot fit another candidate, R14 raises \`BudgetExceeded\` before that Media side effect.
-
-When R15 selects a winner, R14 records the selected artifact plus complete tournament provenance as its Media result, adds source-bound tournament QA, and moves the item to \`awaiting_release\`. The existing R14 external \`release.authorization.v1\` flow remains mandatory before R12 publication.
-
-## Deterministic four-candidate fixture
-
-The replay contains four candidates:
-
-1. technical QA failure — excluded before creative comparison;
-2. technical QA pass but cut-rate over-editing violation — excluded before creative comparison;
-3. valid source-bound candidate;
-4. valid source-bound candidate with the higher deterministic preference score.
-
-The fourth candidate is selected reproducibly. Its first Media acknowledgement is intentionally lost after the synthetic side effect; restart recovers it by idempotency key. The fixture proves four logical Media effects and four submits, not five.
+Live publishing remains disabled. Media production compatibility is not publish authorization. No credentials are stored or used by R16.
 
 ## Commands
 
-Current Media R12 production readiness:
+Exact production Media readiness:
 
 \`\`\`bash
 PYTHONPATH=src python -m creator_orchestrator.candidate_tournament readiness
 \`\`\`
 
-This intentionally exits non-zero while the production pin is blocked.
+Real Media R13 cross-repo acceptance:
 
-Deterministic synthetic replay:
+\`\`\`bash
+PYTHONPATH=src python -m creator_orchestrator.candidate_tournament real-r13 --work-dir /tmp/creator-r16-media-r13
+\`\`\`
+
+Synthetic four-candidate tournament breadth:
 
 \`\`\`bash
 PYTHONPATH=src python -m creator_orchestrator.candidate_tournament replay --work-dir /tmp/creator-r15-tournament
 \`\`\`
-
-No command performs live publishing or uses provider credentials.

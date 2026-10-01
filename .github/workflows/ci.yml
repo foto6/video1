@@ -9,6 +9,7 @@ on:
       - agent/creator-r13-integration-acceptance-20261001
       - agent/creator-r14-batch-campaign-20261001
       - agent/creator-r15-candidate-tournament-20261001
+      - agent/creator-r16-media-r13-production-pin-20261001
   pull_request:
 
 jobs:
@@ -65,7 +66,26 @@ jobs:
         run: |
           work_dir="$(mktemp -d)"
           PYTHONPATH=src python -m creator_orchestrator.candidate_tournament replay --work-dir "$work_dir" > "$work_dir/report.json"
-          python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['technicalQaFailures']==1; assert r['guardrailFailures']==1; assert r['validCandidates']==2; assert r['winnerOrdinal']==3; assert r['mediaLogicalEffects']==4; assert r['mediaSubmitCalls']==4; assert r['productionReadinessClaim'] is False" "$work_dir/report.json"
+          python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['technicalQaFailures']==1; assert r['guardrailFailures']==1; assert r['validCandidates']==2; assert r['winnerOrdinal']==3; assert r['mediaLogicalEffects']==4; assert r['mediaSubmitCalls']==4; assert r['productionReadinessClaim'] is False; assert r['mediaR13Readiness']['state']=='READY_MEDIA_R13'" "$work_dir/report.json"
+
+  focused-r16:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run Creator R16 Media R13 production-pin tests
+        run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_media_r13_production_pin_r16.py' -v
+      - name: Verify production Media readiness
+        run: |
+          PYTHONPATH=src python -m creator_orchestrator.candidate_tournament readiness > /tmp/r16-readiness.json
+          python -c "import json; r=json.load(open('/tmp/r16-readiness.json')); assert r['state']=='READY_MEDIA_R13'; assert r['productionMediaReady'] is True; assert r['livePublishingEnabled'] is False"
+      - name: Run real Media R13 cross-repo roundtrip
+        run: |
+          work_dir="$(mktemp -d)"
+          PYTHONPATH=src python -m creator_orchestrator.candidate_tournament real-r13 --work-dir "$work_dir" > "$work_dir/report.json"
+          python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['state']=='REAL_MEDIA_R13_COMPATIBILITY_GREEN'; assert r['productionMediaReady'] is True; assert r['acceptedCandidate']['technicalQaPassed'] is True; assert r['acceptedCandidate']['creativeQualityPassed'] is True; assert r['tournamentAcceptance']['realCandidateCount']==1; assert r['tournamentAcceptance']['decisionState']=='insufficient_evidence'; assert r['tournamentAcceptance']['fakeRealRendersCreated']==0; assert r['livePublishingEnabled'] is False" "$work_dir/report.json"
 
   full:
     runs-on: ubuntu-latest

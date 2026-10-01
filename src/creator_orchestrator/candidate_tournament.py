@@ -9,6 +9,7 @@ from typing import Any, Mapping, Sequence
 
 from . import autonomous_reels as reels
 from . import batch_campaign as r14
+from . import media_r13_compat as m13
 
 TOURNAMENT_VERSION = "creator.candidate_tournament.r15.v1"
 TOURNAMENT_LEDGER_VERSION = "creator.candidate_tournament_ledger.r15.v1"
@@ -18,20 +19,20 @@ CANDIDATE_RESULT_VERSION = "creator.media_r12_candidate_result.r15.v1"
 SELECTION_VERSION = "creator.candidate_selection.r15.v1"
 REPLAY_REPORT_VERSION = "creator.candidate_tournament_replay.r15.v1"
 CREATOR_R14_BASE_SHA = "6975917bb4f150936c76e749fb7248c8713b91cf"
+CREATOR_R15_BASE_SHA = "03b8461b83906c551c094d58a21dbc9fa978d6d2"
 
-MEDIA_R12_OBSERVED = {
-    "repository": "foto6/video2",
-    "branch": "agent/media-r12-creative-polish-20261001",
-    "producerSha": "98f298b88faaef106fb412712d6c9824e2b926d9",
-    "creativePlanManifestPath": "conformance/media.creative_edit_plan.r12.v1/manifest.json",
-    "creativePlanManifestBlobSha": "d031a07f1d392c690942bd5f8288a1713f1af791",
-    "creativePlanContractPath": "conformance/media.creative_edit_plan.r12.v1/contract.json",
-    "creativePlanContractBlobSha": "5298aeb2a9e4e13ed31b1610ce88778b7a911592",
-    "r11JobContractBlobSha": "96b252acae743f8fe059fd634ee320f92bd9c79c",
-    "r11ArtifactManifestBlobSha": "42aed1ca4720cddd4a5e48af076bc73b663322b0",
-    "creatorConsumerCompatibilityBlobSha": None,
-    "exactHeadCiRunId": "36799818187",
-    "exactHeadCiConclusion": "failure",
+MEDIA_R13_OBSERVED = {
+    "repository": m13.MEDIA_R13_REPOSITORY,
+    "branch": m13.MEDIA_R13_BRANCH,
+    "producerSha": m13.MEDIA_R13_PRODUCER_SHA,
+    "compatibilityContractVersion": m13.MEDIA_R13_COMPAT_VERSION,
+    "compatibilityManifestBlobSha": m13.COMPAT_MANIFEST_BLOB_SHA,
+    "compatibilityContractBlobSha": m13.EXPECTED_PINS["compatContract"]["gitBlobSha"],
+    "resultEnvelopeSchemaBlobSha": m13.EXPECTED_PINS["resultEnvelopeSchema"]["gitBlobSha"],
+    "technicalQaSchemaBlobSha": m13.EXPECTED_PINS["technicalQaSchema"]["gitBlobSha"],
+    "creativeQualitySchemaBlobSha": m13.EXPECTED_PINS["creativeQualitySchema"]["gitBlobSha"],
+    "exactHeadCiRunId": m13.MEDIA_R13_CI_RUN_ID,
+    "exactHeadCiConclusion": m13.MEDIA_R13_CI_CONCLUSION,
 }
 
 MEDIA_R12_HARD_GUARDRAILS = {
@@ -106,7 +107,7 @@ class TournamentIncomplete(CandidateTournamentError):
     pass
 
 
-class MediaR12Unavailable(CandidateTournamentError):
+class MediaR13Unavailable(CandidateTournamentError):
     pass
 
 
@@ -143,87 +144,13 @@ def _number(
     return number
 
 
-@dataclass(frozen=True)
-class MediaR12ProducerPin:
-    producer_sha: str
-    creative_plan_manifest_blob_sha: str
-    creative_plan_contract_blob_sha: str
-    creator_consumer_compatibility_blob_sha: str
-    exact_head_ci_run_id: str
-    exact_head_ci_conclusion: str
-
-    def validate(self) -> "MediaR12ProducerPin":
-        reels._git_sha(self.producer_sha, "Media R12 producer_sha")
-        reels._git_sha(
-            self.creative_plan_manifest_blob_sha,
-            "Media R12 creative_plan_manifest_blob_sha",
-        )
-        reels._git_sha(
-            self.creative_plan_contract_blob_sha,
-            "Media R12 creative_plan_contract_blob_sha",
-        )
-        reels._git_sha(
-            self.creator_consumer_compatibility_blob_sha,
-            "Media R12 creator_consumer_compatibility_blob_sha",
-        )
-        reels._nonempty(self.exact_head_ci_run_id, "Media R12 exact_head_ci_run_id")
-        if self.exact_head_ci_conclusion != "success":
-            raise MediaR12Unavailable("Media R12 exact-head CI is not successful")
-        return self
-
-    def as_dict(self) -> dict[str, Any]:
-        self.validate()
-        return {
-            "repository": MEDIA_R12_OBSERVED["repository"],
-            "branch": MEDIA_R12_OBSERVED["branch"],
-            "producerSha": self.producer_sha,
-            "creativePlanManifestBlobSha": self.creative_plan_manifest_blob_sha,
-            "creativePlanContractBlobSha": self.creative_plan_contract_blob_sha,
-            "creatorConsumerCompatibilityBlobSha": self.creator_consumer_compatibility_blob_sha,
-            "exactHeadCiRunId": self.exact_head_ci_run_id,
-            "exactHeadCiConclusion": self.exact_head_ci_conclusion,
-        }
+MediaR13ProducerPin = m13.MediaR13ProductionPin
 
 
-def media_r12_readiness(pin: MediaR12ProducerPin | None = None) -> dict[str, Any]:
-    if pin is None:
-        report = {
-            "state": "BLOCKED_MEDIA_R12",
-            "productionReady": False,
-            "acceptedPin": None,
-            "observedCandidate": dict(MEDIA_R12_OBSERVED),
-            "missingOrFailed": [
-                "creatorConsumerCompatibilityBlobSha",
-                "exactHeadCiSuccess",
-            ],
-            "reason": (
-                "Media R12 candidate lacks a Creator-consumer compatibility pin "
-                "and exact-head CI run 36799818187 concluded failure"
-            ),
-        }
-    else:
-        try:
-            pin.validate()
-        except (CandidateTournamentError, reels.AutonomousReelsError) as exc:
-            report = {
-                "state": "BLOCKED_MEDIA_R12",
-                "productionReady": False,
-                "acceptedPin": None,
-                "observedCandidate": dict(MEDIA_R12_OBSERVED),
-                "missingOrFailed": ["compatibleAcceptedPin"],
-                "reason": str(exc),
-            }
-        else:
-            report = {
-                "state": "MEDIA_R12_PIN_ACCEPTED",
-                "productionReady": True,
-                "acceptedPin": pin.as_dict(),
-                "observedCandidate": dict(MEDIA_R12_OBSERVED),
-                "missingOrFailed": [],
-                "reason": "exact compatible Media R12 producer pin supplied",
-            }
-    report["readinessDigest"] = reels.sha256_json(report)
-    return report
+def media_r13_readiness(
+    pin: MediaR13ProducerPin | None = None,
+) -> dict[str, Any]:
+    return m13.readiness(pin=pin)
 
 
 @dataclass(frozen=True)
@@ -390,7 +317,7 @@ class CandidateTournamentLedger:
         tournament_id: str,
         creative_item: Mapping[str, Any],
         config: TournamentConfig,
-        media_pin: MediaR12ProducerPin | None = None,
+        media_pin: MediaR13ProducerPin | None = None,
         allow_synthetic_fixture: bool = False,
     ) -> None:
         self.path = Path(path)
@@ -428,7 +355,7 @@ class CandidateTournamentLedger:
             "creativeItem": self.creative_item,
             "creativeItemDigest": reels.sha256_json(self.creative_item),
             "config": self.config.as_dict(),
-            "mediaReadiness": media_r12_readiness(self.media_pin),
+            "mediaReadiness": media_r13_readiness(self.media_pin),
             "allowSyntheticFixture": self.allow_synthetic_fixture,
         }
 
@@ -536,6 +463,10 @@ class CandidateTournamentLedger:
             candidate = self.candidates[payload["candidateId"]]
             candidate["mediaResult"] = _clone(payload["result"])
             candidate["status"] = "media_ready"
+        elif event_type == "media_r13_candidate_result":
+            candidate = self.candidates[payload["candidateId"]]
+            candidate["mediaResult"] = _clone(payload["result"])
+            candidate["status"] = "media_ready"
         elif event_type == "candidate_evaluated":
             candidate = self.candidates[payload["candidateId"]]
             candidate["evaluation"] = _clone(payload["evaluation"])
@@ -596,6 +527,112 @@ class CandidateTournamentLedger:
             )
             planned.append(_clone(value))
         return planned
+
+    def ingest_real_media_r13_bundle(
+        self,
+        bundle: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        if self.allow_synthetic_fixture:
+            raise CandidateTournamentError(
+                "real Media R13 acceptance must not run in synthetic fixture mode"
+            )
+        if self.config.variant_count != 1:
+            raise CandidateTournamentError(
+                "one real Media R13 demo envelope cannot be expanded into multiple real candidates"
+            )
+        pin = self.media_pin or m13.MediaR13ProductionPin()
+        validated_bundle = m13.validate_bundle_value(
+            bundle,
+            pin=pin,
+        )
+        envelope = validated_bundle["demoConsumerEnvelope"]
+        candidate_identity = {
+            "tournamentId": self.tournament_id,
+            "producerSha": envelope["producer"]["sha"],
+            "logicalJobId": envelope["logicalJobId"],
+            "renderFingerprint": envelope["renderFingerprint"],
+            "timelineDigest": envelope["timelineDigest"],
+            "artifactManifestDigest": envelope["artifactManifestDigest"],
+            "contentSha256": envelope["finalContent"]["sha256"],
+        }
+        candidate_id = (
+            "candidate15:media-r13:"
+            + reels.sha256_json(candidate_identity)
+        )
+        planned = {
+            "candidateId": candidate_id,
+            "ordinal": 0,
+            "idempotencyKey": envelope["idempotencyKey"],
+            "variant": None,
+            "variantDigest": None,
+            "candidateMode": "real_media_r13_compatibility",
+            "status": "planned",
+            "mediaResult": None,
+            "evaluation": None,
+        }
+        self._append_once(
+            f"candidate:{candidate_id}:plan",
+            "candidate_planned",
+            planned,
+        )
+        result = {
+            "sourceClass": "provider",
+            "contractVersion": m13.MEDIA_R13_COMPAT_VERSION,
+            "producerSha": envelope["producer"]["sha"],
+            "ciRunId": m13.MEDIA_R13_CI_RUN_ID,
+            "workflowArtifactId": m13.MEDIA_R13_ARTIFACT_ID,
+            "bundleDigest": validated_bundle["bundleDigest"],
+            "bundleSha256": m13.MEDIA_R13_BUNDLE_SHA256,
+            "envelopeSha256": m13.MEDIA_R13_ENVELOPE_SHA256,
+            "compatibilityManifestBlobSha": m13.COMPAT_MANIFEST_BLOB_SHA,
+            "contractDigests": _clone(envelope["contractDigests"]),
+            "logicalJobId": envelope["logicalJobId"],
+            "renderFingerprint": envelope["renderFingerprint"],
+            "timelineDigest": envelope["timelineDigest"],
+            "artifactManifestDigest": envelope["artifactManifestDigest"],
+            "contentId": "sha256:" + envelope["finalContent"]["sha256"],
+            "contentSha256": envelope["finalContent"]["sha256"],
+            "contentSizeBytes": envelope["finalContent"]["size"],
+            "creativePlanDigest": envelope["creativePlanDigest"],
+            "technicalQaDigest": envelope["technicalQa"]["sha256"],
+            "creativeQualityDigest": reels.sha256_json(
+                envelope["creativeQuality"]
+            ),
+            "sourceProvenanceDigest": reels.sha256_json(
+                envelope["probeEvidence"]["value"]["sourceEvidence"]
+            ),
+            "envelope": _clone(envelope),
+        }
+        result["resultDigest"] = reels.sha256_json(result)
+        self._append_once(
+            f"candidate:{candidate_id}:real-r13-result",
+            "media_r13_candidate_result",
+            {"candidateId": candidate_id, "result": result},
+        )
+        evaluation = {
+            "state": "insufficient_evidence",
+            "technicalQaPassed": True,
+            "hardGuardrailsPassed": True,
+            "evidenceSufficient": False,
+            "preferenceScore": None,
+            "qualityCertaintyClaimed": False,
+            "hardGateFailures": [],
+            "creativeComparisonPerformed": False,
+            "creativeEvidenceDigest": result["creativeQualityDigest"],
+            "realSourceBoundEvidence": True,
+            "reason": (
+                "exact Media R13 envelope proves technical QA and creative guardrails, "
+                "but a single real demo envelope does not provide multi-candidate comparative "
+                "heuristic evidence; Creator does not fabricate additional real renders or scores"
+            ),
+        }
+        evaluation["evaluationDigest"] = reels.sha256_json(evaluation)
+        self._append_once(
+            f"candidate:{candidate_id}:evaluation",
+            "candidate_evaluated",
+            {"candidateId": candidate_id, "evaluation": evaluation},
+        )
+        return _clone(self.candidates[candidate_id])
 
     def reserve_candidate_budget(self, candidate_id: str) -> str:
         candidate = self.candidates[candidate_id]
@@ -896,12 +933,15 @@ class CandidateTournamentLedger:
             },
             "maxObservedConcurrency": self.max_observed_concurrency,
             "decision": self.effective_decision(),
-            "mediaReadiness": media_r12_readiness(self.media_pin),
+            "mediaReadiness": media_r13_readiness(self.media_pin),
             "eventCount": len(self.events),
             "ledgerDigest": reels.sha256_json(self.events),
             "productionReadinessClaim": False if self.allow_synthetic_fixture else (
-                media_r12_readiness(self.media_pin)["productionReady"]
+                media_r13_readiness(self.media_pin)["productionMediaReady"]
             ),
+            "productionMediaReady": media_r13_readiness(self.media_pin)["productionMediaReady"],
+            "syntheticMultiCandidateBreadth": "conformance_only",
+            "livePublishingEnabled": False,
         }
         report["reportDigest"] = reels.sha256_json(report)
         return report
@@ -928,37 +968,37 @@ def build_candidate_request(
 
 def _source_for_result(
     *,
-    media_pin: MediaR12ProducerPin | None,
+    media_pin: MediaR13ProducerPin | None,
     source_class: str,
 ) -> dict[str, Any]:
     if source_class == "synthetic_fixture":
         return {
-            "repository": MEDIA_R12_OBSERVED["repository"],
-            "branch": MEDIA_R12_OBSERVED["branch"],
-            "producerSha": MEDIA_R12_OBSERVED["producerSha"],
+            "repository": m13.MEDIA_R13_REPOSITORY,
+            "branch": m13.MEDIA_R13_BRANCH,
+            "producerSha": m13.MEDIA_R13_PRODUCER_SHA,
             "creativePlanManifestBlobSha":
-                MEDIA_R12_OBSERVED["creativePlanManifestBlobSha"],
+                m13.EXPECTED_PINS["creativePlanManifest"]["gitBlobSha"],
             "creativePlanContractBlobSha":
-                MEDIA_R12_OBSERVED["creativePlanContractBlobSha"],
-            "creatorConsumerCompatibilityBlobSha": None,
+                m13.EXPECTED_PINS["creativePlanContract"]["gitBlobSha"],
+            "creatorConsumerCompatibilityBlobSha": m13.EXPECTED_PINS["compatContract"]["gitBlobSha"],
             "producerCompatibilityAccepted": False,
         }
     if source_class == "provider":
         if media_pin is None:
-            raise MediaR12Unavailable(
-                "provider Media R12 evidence requires an accepted exact producer pin"
+            raise MediaR13Unavailable(
+                "provider Media R13 evidence requires an accepted exact producer pin"
             )
         pin = media_pin.validate()
         return {
-            "repository": MEDIA_R12_OBSERVED["repository"],
-            "branch": MEDIA_R12_OBSERVED["branch"],
+            "repository": m13.MEDIA_R13_REPOSITORY,
+            "branch": m13.MEDIA_R13_BRANCH,
             "producerSha": pin.producer_sha,
             "creativePlanManifestBlobSha":
-                pin.creative_plan_manifest_blob_sha,
+                m13.EXPECTED_PINS["creativePlanManifest"]["gitBlobSha"],
             "creativePlanContractBlobSha":
-                pin.creative_plan_contract_blob_sha,
+                m13.EXPECTED_PINS["creativePlanContract"]["gitBlobSha"],
             "creatorConsumerCompatibilityBlobSha":
-                pin.creator_consumer_compatibility_blob_sha,
+                pin.compatibility_contract_blob_sha,
             "producerCompatibilityAccepted": True,
         }
     raise CandidateTournamentError("unsupported candidate result sourceClass")
@@ -968,7 +1008,7 @@ def validate_media_result(
     value: Mapping[str, Any],
     *,
     candidate: Mapping[str, Any],
-    media_pin: MediaR12ProducerPin | None,
+    media_pin: MediaR13ProducerPin | None,
     allow_synthetic_fixture: bool,
 ) -> dict[str, Any]:
     expected = {
@@ -994,15 +1034,15 @@ def validate_media_result(
         )
     source_class = value["sourceClass"]
     if source_class == "synthetic_fixture" and not allow_synthetic_fixture:
-        raise MediaR12Unavailable(
-            "synthetic Media R12 tournament evidence is conformance-only"
+        raise MediaR13Unavailable(
+            "synthetic multi-candidate tournament evidence is conformance-only"
         )
     expected_source = _source_for_result(
         media_pin=media_pin,
         source_class=source_class,
     )
     if value["source"] != expected_source:
-        raise CandidateTournamentError("Media R12 source pin mismatch")
+        raise CandidateTournamentError("Media R13 source pin mismatch")
     reels._sha64(value["requestDigest"], "candidate requestDigest")
     if (
         value["candidateId"] != candidate["candidateId"]
@@ -1404,7 +1444,7 @@ def run_batch_item_tournament(
     config: TournamentConfig,
     provider: MockMediaR12TournamentProvider,
     variants: Sequence[Mapping[str, Any]] | None = None,
-    media_pin: MediaR12ProducerPin | None = None,
+    media_pin: MediaR13ProducerPin | None = None,
     allow_synthetic_fixture: bool = False,
 ) -> dict[str, Any]:
     item = batch_runner.ledger._item(item_id)
@@ -1590,10 +1630,121 @@ def run_deterministic_replay(
         ]["ordinal"],
         "selectionDigest": selection["selectionDigest"],
         "productionReadinessClaim": False,
-        "mediaR12Readiness": media_r12_readiness(None),
+        "mediaR13Readiness": media_r13_readiness(),
     }
     replay["replayDigest"] = reels.sha256_json(replay)
     return replay
+
+
+def run_real_media_r13_roundtrip(
+    work_dir: str | os.PathLike[str],
+) -> dict[str, Any]:
+    root = Path(work_dir)
+    emitted = m13.emit_exact_workflow_artifact(
+        root / "media-r13-emitted"
+    )
+    bundle_path = Path(emitted["bundlePath"])
+    envelope_path = Path(emitted["envelopePath"])
+    bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+    envelope_from_file = json.loads(
+        envelope_path.read_text(encoding="utf-8")
+    )
+    validated_bundle = m13.validate_bundle_value(bundle)
+    if envelope_from_file != validated_bundle["demoConsumerEnvelope"]:
+        raise CandidateTournamentError(
+            "re-emitted Media R13 envelope differs from validated compatibility bundle"
+        )
+    envelope = validated_bundle["demoConsumerEnvelope"]
+    creative_item = {
+        "campaignId": "r16-real-media-r13-cross-repo",
+        "itemId": "media-r13-demo:" + envelope["logicalJobId"],
+        "platform": "compatibility_fixture",
+        "conceptDigest": envelope["creativePlanDigest"],
+        "scriptDigest": envelope["timelineDigest"],
+        "assetPlanDigest": reels.sha256_json(
+            envelope["probeEvidence"]["value"]["sourceEvidence"]
+        ),
+        "growthAdvisoryDigest": None,
+    }
+    config = TournamentConfig(
+        variant_count=1,
+        max_variants=1,
+        max_concurrency=1,
+        render_budget_seconds=1.0,
+        media_action_budget=1,
+        estimated_render_seconds=1.0,
+        min_valid_candidates=1,
+        tie_epsilon=0.0,
+    ).validate()
+    ledger = CandidateTournamentLedger(
+        root / "real-media-r13-tournament.jsonl",
+        tournament_id="creator-r16-real-media-r13-roundtrip",
+        creative_item=creative_item,
+        config=config,
+        media_pin=m13.MediaR13ProductionPin(),
+        allow_synthetic_fixture=False,
+    )
+    candidate = ledger.ingest_real_media_r13_bundle(
+        validated_bundle
+    )
+    decision = ledger.select_winner()
+    tournament_report = ledger.report()
+    report = {
+        "reportVersion": "creator.media_r13_cross_repo_acceptance.r16.v1",
+        "state": "REAL_MEDIA_R13_COMPATIBILITY_GREEN",
+        "creatorSource": {
+            "repository": "foto6/video1",
+            "r15BaseSha": CREATOR_R15_BASE_SHA,
+        },
+        "mediaSource": {
+            "repository": m13.MEDIA_R13_REPOSITORY,
+            "branch": m13.MEDIA_R13_BRANCH,
+            "producerSha": m13.MEDIA_R13_PRODUCER_SHA,
+            "ciRunId": m13.MEDIA_R13_CI_RUN_ID,
+            "ciConclusion": m13.MEDIA_R13_CI_CONCLUSION,
+            "workflowArtifactId": m13.MEDIA_R13_ARTIFACT_ID,
+            "compatibilityContractVersion": m13.MEDIA_R13_COMPAT_VERSION,
+            "compatibilityManifestBlobSha": m13.COMPAT_MANIFEST_BLOB_SHA,
+            "pins": {
+                name: pin["gitBlobSha"]
+                for name, pin in m13.EXPECTED_PINS.items()
+            },
+        },
+        "emittedArtifact": {
+            "bundleSha256": emitted["bundleSha256"],
+            "envelopeSha256": emitted["envelopeSha256"],
+            "bundleDigest": emitted["bundleDigest"],
+        },
+        "acceptedCandidate": {
+            "candidateId": candidate["candidateId"],
+            "logicalJobId": envelope["logicalJobId"],
+            "renderFingerprint": envelope["renderFingerprint"],
+            "timelineDigest": envelope["timelineDigest"],
+            "artifactManifestDigest": envelope["artifactManifestDigest"],
+            "contentSha256": envelope["finalContent"]["sha256"],
+            "technicalQaPassed": envelope["technicalQa"]["passed"],
+            "creativeQualityPassed": envelope["creativeQuality"]["passed"],
+            "sourceEvidenceCount": len(
+                envelope["probeEvidence"]["value"]["sourceEvidence"]
+            ),
+            "evaluationDigest": candidate["evaluation"]["evaluationDigest"],
+        },
+        "tournamentAcceptance": {
+            "realCandidateCount": 1,
+            "decisionState": decision["state"],
+            "qualityCertaintyClaimed": decision["qualityCertaintyClaimed"],
+            "reason": decision["reason"],
+            "syntheticMultiCandidateBreadth": "separate_conformance_only",
+            "fakeRealRendersCreated": 0,
+        },
+        "readiness": media_r13_readiness(),
+        "tournamentLedgerDigest": tournament_report["ledgerDigest"],
+        "productionMediaReady": True,
+        "livePublishingEnabled": False,
+        "credentialsPresent": False,
+    }
+    report["reportDigest"] = reels.sha256_json(report)
+    return report
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -1603,6 +1754,8 @@ def _parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     replay = sub.add_parser("replay")
     replay.add_argument("--work-dir", required=True)
+    real = sub.add_parser("real-r13")
+    real.add_argument("--work-dir", required=True)
     sub.add_parser("readiness")
     return parser
 
@@ -1610,8 +1763,13 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "readiness":
-        print(json.dumps(media_r12_readiness(None), indent=2, sort_keys=True))
-        return 2
+        report = media_r13_readiness()
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return 0 if report["productionMediaReady"] else 2
+    if args.command == "real-r13":
+        report = run_real_media_r13_roundtrip(args.work_dir)
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return 0
     report = run_deterministic_replay(args.work_dir)
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0
