@@ -8,6 +8,7 @@ on:
       - agent/creator-r12-publish-providers-20261001
       - agent/creator-r13-integration-acceptance-20261001
       - agent/creator-r14-batch-campaign-20261001
+      - agent/creator-r15-candidate-tournament-20261001
   pull_request:
 
 jobs:
@@ -50,11 +51,21 @@ jobs:
           python-version: '3.11'
       - name: Run Creator R14 batch campaign tests
         run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_batch_campaign_r14.py' -v
-      - name: Run deterministic 12-reel replay command
+
+  focused-r15:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run Creator R15 tournament tests
+        run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_candidate_tournament_r15.py' -v
+      - name: Run deterministic four-candidate replay
         run: |
           work_dir="$(mktemp -d)"
-          PYTHONPATH=src python -m creator_orchestrator.batch_campaign synthetic-12 --work-dir "$work_dir" > "$work_dir/report.json"
-          python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['states']=={'ready':1,'blocked_media':1,'qa_failed':1,'awaiting_release':1,'published':7,'analytics_pending':1}" "$work_dir/report.json"
+          PYTHONPATH=src python -m creator_orchestrator.candidate_tournament replay --work-dir "$work_dir" > "$work_dir/report.json"
+          python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['technicalQaFailures']==1; assert r['guardrailFailures']==1; assert r['validCandidates']==2; assert r['winnerOrdinal']==3; assert r['mediaLogicalEffects']==4; assert r['mediaSubmitCalls']==4; assert r['productionReadinessClaim'] is False" "$work_dir/report.json"
 
   full:
     runs-on: ubuntu-latest

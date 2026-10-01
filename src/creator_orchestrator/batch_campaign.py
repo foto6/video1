@@ -705,6 +705,77 @@ class BatchCampaignLedger:
             {"itemId": item_id, "field": "media", "value": validated, "state": "media_ready"},
         )
 
+    def record_tournament_media(
+        self,
+        item_id: str,
+        *,
+        tournament_selection: Mapping[str, Any],
+    ) -> str:
+        self._require_active()
+        item = self._item(item_id)
+        if item["assetPlan"] is None or item["script"] is None:
+            raise BatchCampaignError("tournament selection requires script and asset plan")
+        required = {
+            "contractVersion", "tournamentId", "candidateId", "variantDigest",
+            "mediaProducer", "timelineDigest", "artifactManifestDigest",
+            "contentId", "contentSha256", "contentSizeBytes", "renderFingerprint",
+            "technicalQaDigest", "creativeEvidenceDigest", "evaluationDigest",
+            "decisionDigest", "sourceClass", "selectionDigest",
+        }
+        if not isinstance(tournament_selection, Mapping) or set(tournament_selection) != required:
+            raise BatchCampaignError("R15 tournament selection fields must match exactly")
+        if tournament_selection["contractVersion"] != "creator.candidate_selection.r15.v1":
+            raise BatchCampaignError("unsupported R15 tournament selection version")
+        material = dict(tournament_selection)
+        selection_digest = material.pop("selectionDigest")
+        if reels.sha256_json(material) != selection_digest:
+            raise BatchCampaignError("R15 tournament selection digest mismatch")
+        content_sha = reels._sha64(
+            tournament_selection["contentSha256"],
+            "tournament contentSha256",
+        )
+        if tournament_selection["contentId"] != f"sha256:{content_sha}":
+            raise BatchCampaignError("tournament content identity mismatch")
+        if tournament_selection["sourceClass"] not in {"provider", "synthetic_fixture"}:
+            raise BatchCampaignError("unsupported tournament Media sourceClass")
+        for field in (
+            "variantDigest", "timelineDigest", "artifactManifestDigest",
+            "renderFingerprint", "technicalQaDigest", "creativeEvidenceDigest",
+            "evaluationDigest", "decisionDigest",
+        ):
+            reels._sha64(tournament_selection[field], f"tournament {field}")
+        if (
+            isinstance(tournament_selection["contentSizeBytes"], bool)
+            or not isinstance(tournament_selection["contentSizeBytes"], int)
+            or tournament_selection["contentSizeBytes"] <= 0
+        ):
+            raise BatchCampaignError("tournament contentSizeBytes must be positive")
+        media = {
+            "sourceClass": tournament_selection["sourceClass"],
+            "artifactManifest": {
+                "content": {
+                    "contentId": tournament_selection["contentId"],
+                    "sha256": content_sha,
+                    "size": tournament_selection["contentSizeBytes"],
+                },
+                "probeEvidence": {
+                    "value": {"durationMs": 30000},
+                },
+                "renderFingerprint": tournament_selection["renderFingerprint"],
+            },
+            "tournamentSelection": _clone(tournament_selection),
+        }
+        return self._append_once(
+            f"item:{item_id}:tournament-media",
+            "item_stage",
+            {
+                "itemId": item_id,
+                "field": "media",
+                "value": media,
+                "state": "media_ready",
+            },
+        )
+
     def record_qa(self, item_id: str, *, passed: bool, checks: Sequence[Mapping[str, Any]]) -> str:
         self._require_active()
         item = self._item(item_id)
@@ -1179,6 +1250,28 @@ class BatchCampaignRunner:
         )
         self.ledger.finish_operation(operation_key=operation_key, outcome="succeeded")
         return "media_ready"
+
+    def run_tournament(
+        self,
+        item_id: str,
+        *,
+        config: Any,
+        provider: Any,
+        variants: Sequence[Mapping[str, Any]] | None = None,
+        media_pin: Any = None,
+        allow_synthetic_fixture: bool = False,
+    ) -> dict[str, Any]:
+        from .candidate_tournament import run_batch_item_tournament
+
+        return run_batch_item_tournament(
+            self,
+            item_id,
+            config=config,
+            provider=provider,
+            variants=variants,
+            media_pin=media_pin,
+            allow_synthetic_fixture=allow_synthetic_fixture,
+        )
 
     def qa_item(self, item_id: str, *, passed: bool) -> str:
         item = self.ledger._item(item_id)

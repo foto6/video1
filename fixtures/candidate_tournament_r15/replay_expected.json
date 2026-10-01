@@ -1,0 +1,27 @@
+{
+  "reportVersion": "creator.candidate_tournament_replay.r15.v1",
+  "seed": "creator-r15-four-candidate-20261001",
+  "expected": {
+    "candidateCount": 4,
+    "technicalQaFailures": 1,
+    "guardrailFailures": 1,
+    "validCandidates": 2,
+    "winnerOrdinal": 3,
+    "lostAcknowledgementRestarts": 1,
+    "mediaLogicalEffects": 4,
+    "mediaSubmitCalls": 4
+  },
+  "selectionInvariant": {
+    "technicalFailuresScoredCreatively": false,
+    "guardrailFailuresScoredCreatively": false,
+    "winnerQualityCertaintyClaimed": false,
+    "winnerRequiresSourceBoundEvidence": true
+  },
+  "productionGate": {
+    "state": "BLOCKED_MEDIA_R12",
+    "observedProducerSha": "98f298b88faaef106fb412712d6c9824e2b926d9",
+    "exactHeadCiRunId": "36799818187",
+    "exactHeadCiConclusion": "failure",
+    "missingCreatorConsumerCompatibilityBlob": true
+  }
+}

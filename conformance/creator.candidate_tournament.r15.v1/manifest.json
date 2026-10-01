@@ -1,0 +1,72 @@
+{
+  "contractVersion": "creator.candidate_tournament.r15.v1",
+  "ledgerVersion": "creator.candidate_tournament_ledger.r15.v1",
+  "configVersion": "creator.candidate_tournament_config.r15.v1",
+  "candidateRequestVersion": "creator.media_r12_candidate_request.r15.v1",
+  "candidateResultVersion": "creator.media_r12_candidate_result.r15.v1",
+  "selectionVersion": "creator.candidate_selection.r15.v1",
+  "creatorBase": {
+    "repository": "foto6/video1",
+    "producerSha": "6975917bb4f150936c76e749fb7248c8713b91cf"
+  },
+  "preservedContracts": {
+    "creatorR11State": "creator.autonomous_reels_state.v1",
+    "creatorR12PublishProvider": "creator.publish_provider.v1",
+    "creatorR13IntegrationAcceptance": "creator.integration_acceptance.r13.v1",
+    "creatorR14BatchCampaign": "creator.batch_campaign.r14.v1",
+    "releaseAuthorization": "release.authorization.v1"
+  },
+  "mediaR12ObservedCandidate": {
+    "repository": "foto6/video2",
+    "branch": "agent/media-r12-creative-polish-20261001",
+    "producerSha": "98f298b88faaef106fb412712d6c9824e2b926d9",
+    "creativePlanManifestBlobSha": "d031a07f1d392c690942bd5f8288a1713f1af791",
+    "creativePlanContractBlobSha": "5298aeb2a9e4e13ed31b1610ce88778b7a911592",
+    "r11JobContractBlobSha": "96b252acae743f8fe059fd634ee320f92bd9c79c",
+    "r11ArtifactManifestBlobSha": "42aed1ca4720cddd4a5e48af076bc73b663322b0",
+    "creatorConsumerCompatibilityBlobSha": null,
+    "exactHeadCiRunId": "36799818187",
+    "exactHeadCiConclusion": "failure",
+    "productionState": "BLOCKED_MEDIA_R12"
+  },
+  "hardGuardrails": {
+    "cutRatePerSecond": 1.25,
+    "zoomRatePerSecond": 0.3,
+    "transitionDensityPerSecond": 0.2,
+    "textCharsPerSecond": 22,
+    "musicGainDb": -10,
+    "concurrentTextItems": 2,
+    "motionZoom": 1.18
+  },
+  "candidateDimensions": [
+    "pacingPreset",
+    "captionStyle",
+    "brollDensity",
+    "hookCut",
+    "punchInPattern",
+    "loopEnding",
+    "ctaTreatment",
+    "musicVoiceBalanceDb"
+  ],
+  "selection": {
+    "technicalQaBeforeCreativeComparison": true,
+    "objectiveGuardrailsBeforeCreativeComparison": true,
+    "creativeScoresAreHeuristic": true,
+    "qualityCertaintyClaimed": false,
+    "tieState": true,
+    "insufficientEvidenceState": true,
+    "humanOverridePreservesProvenance": true,
+    "humanOverrideMayBypassHardGates": false
+  },
+  "r14Interaction": {
+    "campaignBudgetChargedPerVariant": true,
+    "campaignMediaConcurrencyChargedPerVariant": true,
+    "selectedArtifactReturnsToExistingReleaseAuthorizationFlow": true
+  },
+  "safety": {
+    "livePublishing": false,
+    "credentials": false,
+    "mediaGrowthMutation": false,
+    "mergeRelease": false
+  }
+}
