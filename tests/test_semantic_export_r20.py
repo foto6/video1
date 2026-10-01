@@ -206,7 +206,7 @@ class SemanticExportR20E2ETests(unittest.TestCase):
                 )
                 self.assertEqual(
                     value["directives_digest"],
-                    summary["semanticDirector"]["editorialDirectivesDigest"],
+                    summary["semanticDirector"]["r18DirectivesDigest"],
                 )
                 self.assertEqual(
                     value["generation_mode"],

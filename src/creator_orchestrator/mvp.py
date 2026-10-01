@@ -791,6 +791,7 @@ def run_pipeline(
             "editorialDirectivesDigest": directives_artifact[
                 "editorialDirectivesDigest"
             ],
+            "r18DirectivesDigest": edit_directives["directivesDigest"],
         },
         "targetDurationMs": probe.duration_ms,
         "publishingEnabled": False,
@@ -905,6 +906,7 @@ def run_pipeline(
             "editorialDirectivesDigest": directives_artifact[
                 "editorialDirectivesDigest"
             ],
+            "r18DirectivesDigest": edit_directives["directivesDigest"],
         },
         "gates": {
             "input_ok": True,
@@ -951,6 +953,7 @@ def run_pipeline(
             "editorialDirectivesDigest": directives_artifact[
                 "editorialDirectivesDigest"
             ],
+            "r18DirectivesDigest": edit_directives["directivesDigest"],
         },
         "media": {
             **media_pin,
