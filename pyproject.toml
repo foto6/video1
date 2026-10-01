@@ -14,6 +14,7 @@ creator-gemini-video-smoke = "creator_orchestrator.gemini_video_provider:main"
 creator-publish-sandbox = "creator_orchestrator.publish_execution:main"
 creator-editor-loop-r22 = "creator_orchestrator.autonomous_editor_loop:main"
 creator-editor-publish-r23 = "creator_orchestrator.editor_publish_handoff:main"
+creator-lifecycle-r24 = "creator_orchestrator.full_lifecycle_rehearsal:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

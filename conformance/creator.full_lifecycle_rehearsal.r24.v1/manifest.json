@@ -1,0 +1,60 @@
+{
+  "contractVersion": "creator.full_lifecycle_rehearsal.r24.v1",
+  "creatorBaseSha": "8914a1207241115a9cb9e1d666a3cf6955ec4190",
+  "entrypoint": "creator-lifecycle-r24",
+  "ledgerVersion": "creator.full_lifecycle_ledger.r24.v1",
+  "reportVersion": "creator.full_lifecycle_report.r24.v1",
+  "upstreamPins": {
+    "creatorR22": {
+      "sha": "351df0d455557fb20b47f0fd2ab806c4281ed5ee",
+      "ciRunId": "36859291553"
+    },
+    "creatorR23": {
+      "sha": "8914a1207241115a9cb9e1d666a3cf6955ec4190",
+      "ciRunId": "36861170789"
+    },
+    "mediaR15": {
+      "sha": "a17f782da8144d1e890ac83195396a3192df93c2",
+      "ciRunId": "36860193113",
+      "manifestBlobSha": "945acb01ff0269d89b91463aa8d862f500e055b2",
+      "schemaBlobSha": "6353d32d785a2a1f1441bac4cfd0271b46b41d4a"
+    },
+    "growthR18": {
+      "sha": "2d3bf275c5b456d53384073fb7ec1ed992e6b996",
+      "ciRunId": "36859378847",
+      "manifestBlobSha": "05e778e7a67556b66cb407e2c65a2f7bb391dbab",
+      "schemaBlobSha": "75a3efbb8a4e14789508dae11ae8db92723d0e27"
+    },
+    "growthR19": {
+      "sha": "a802a1c0eed5ae564e7e67236e986bff560c58a9",
+      "ciRunId": "36861560705",
+      "manifestBlobSha": "ee1864329ff80c243e8f2b653a715091374316c8",
+      "schemaBlobSha": "8cc7b1ff3ea99da31865df65cb688e57cbbf0882"
+    }
+  },
+  "lifecycle": [
+    "source_brief",
+    "r22_semantic_editor",
+    "media_r15_render_export_adapter",
+    "growth_r18_candidate_decision",
+    "r22_final_bundle",
+    "r23_publish_handoff",
+    "synthetic_provider_receipt",
+    "synthetic_metric_snapshot",
+    "growth_r19_learning",
+    "next_cycle_brief_seed"
+  ],
+  "bounds": {
+    "initialCandidates": 4,
+    "maxTargetedReeditRounds": 2,
+    "maxHypotheses": 6
+  },
+  "safety": {
+    "liveProviderMutation": false,
+    "credentials": false,
+    "realSocialPost": false,
+    "liveMetrics": false,
+    "humanLevelClaim": false,
+    "crossRepoMutation": false
+  }
+}

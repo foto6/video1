@@ -191,3 +191,14 @@ creator-editor-publish-r23 --media ./final.mp4 --editor-bundle ./terminal-result
 ```
 
 The command uses synthetic providers only and cannot perform a live social post. See `docs/EDITOR_PUBLISH_HANDOFF_R23.md`.
+
+
+## Full lifecycle synthetic rehearsal
+
+R24 binds the exact-green R22/R23 Creator heads, Media R15 canonical render-export contract, Growth R18 candidate-decision contract, and Growth R19 post-publish learning contract into one deterministic synthetic lifecycle.
+
+```bash
+creator-lifecycle-r24 --source ./source.mp4 --brief "Make proof concise" --out ./r24-out
+```
+
+The winner path uses at most two targeted re-edit rounds, R23 synthetic publishing with lost-ACK recovery, synthetic-only metrics, bounded non-causal Growth hypotheses, and a non-eligible synthetic next-cycle brief seed. No real provider mutation or live metric claim is possible in this rehearsal. See `docs/FULL_LIFECYCLE_REHEARSAL_R24.md`.

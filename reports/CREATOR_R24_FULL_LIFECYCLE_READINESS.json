@@ -1,0 +1,39 @@
+{
+  "reportVersion": "creator.full_lifecycle_rehearsal.r24.readiness.v1",
+  "state": "SYNTHETIC_FULL_LIFECYCLE_READY",
+  "exactPinsVerifiedAtRuntime": true,
+  "winnerPath": {
+    "expectedReeditRounds": 2,
+    "lostAckInjected": true,
+    "expectedProviderLogicalEffects": 1,
+    "expectedProviderSubmitCalls": 1,
+    "learningSourceClass": "synthetic_fixture",
+    "creatorCycleEligible": false
+  },
+  "coveredBranches": [
+    "winner",
+    "tie",
+    "insufficient_evidence",
+    "human_review_required",
+    "provider_auth_required"
+  ],
+  "faultCoverage": [
+    "restart_lost_ack",
+    "duplicate_lifecycle_event",
+    "duplicate_provider_receipt",
+    "out_of_order_metrics",
+    "render_hash_mismatch",
+    "decision_source_hash_mismatch",
+    "metrics_hash_mismatch",
+    "vendored_schema_manifest_drift"
+  ],
+  "guarantees": {
+    "exactSourceRenderDecisionPublishMetricsLineage": true,
+    "editorReeditRoundsAtMost2": true,
+    "hypothesesTestableAndNonCausal": true,
+    "invariantViolationCliNonzero": true,
+    "livePublishingExecuted": false,
+    "fakeLiveMetrics": false,
+    "humanLevelQualityClaimed": false
+  }
+}

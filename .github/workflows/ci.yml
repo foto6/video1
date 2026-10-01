@@ -17,6 +17,7 @@ on:
       - agent/creator-r21-publish-execution-20261001
       - agent/creator-r22-autonomous-editor-loop-20261001
       - agent/creator-r23-editor-publish-handoff-20261001
+      - agent/creator-r24-full-lifecycle-rehearsal-20261001
   pull_request:
 
 jobs:
@@ -290,6 +291,34 @@ jobs:
         run: |
           creator-editor-publish-r23 --help
           PYTHONPATH=src python -m unittest discover -s tests -p 'test_editor_publish_handoff_r23.py' -v
+
+  focused-r24:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ffmpeg and Creator
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python -m pip install -e .
+      - name: Run R24 full-lifecycle rehearsal tests
+        run: |
+          creator-lifecycle-r24 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_full_lifecycle_rehearsal_r24.py' -v
+      - name: Run deterministic one-command lifecycle and invariant failure
+        run: |
+          work_dir="$(mktemp -d)"
+          ffmpeg -hide_banner -nostdin -y -f lavfi -i "color=c=green:s=360x640:r=30:d=15.2" -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p "$work_dir/source.mp4" >/dev/null 2>&1
+          creator-lifecycle-r24 --source "$work_dir/source.mp4" --brief "Make proof concise" --out "$work_dir/good" > "$work_dir/good.json"
+          python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['state']=='completed'; assert r['reeditRounds']==2; assert r['providerAcceptedEffects']==1; assert r['providerSubmitCalls']==1; assert r['livePublishingExecuted'] is False; assert r['liveMetricsUsed'] is False; assert r['humanLevelQualityClaimed'] is False" "$work_dir/good.json"
+          set +e
+          creator-lifecycle-r24 --source "$work_dir/source.mp4" --brief "Break hash" --out "$work_dir/bad" --inject-violation render_hash_mismatch > "$work_dir/bad.json"
+          code=$?
+          set -e
+          test "$code" -ne 0
+          python -c "import json,sys; r=json.load(open(sys.argv[1])); assert r['state']=='BLOCKED_INVARIANT'; assert r['livePublishingExecuted'] is False" "$work_dir/bad.json"
 
   full:
     runs-on: ubuntu-latest
