@@ -58,6 +58,26 @@ def _sha(value: Any) -> str:
     return reels.sha256_json(value)
 
 
+def _stable_media_result_digest(result: Mapping[str, Any]) -> str:
+    """Bind durable identity to artifact lineage, not transient replay state."""
+    required = {
+        "contractVersion",
+        "requestDigest",
+        "renderExportDigest",
+    }
+    missing = sorted(required.difference(result))
+    if missing:
+        raise ClosedLoopError(
+            "Media result missing durable identity fields: " + ", ".join(missing)
+        )
+    return _sha({
+        "contractVersion": result["contractVersion"],
+        "requestDigest": result["requestDigest"],
+        "renderExportDigest": result["renderExportDigest"],
+        "mediaProducerSha": MEDIA_SHA,
+    })
+
+
 def _git_head(path: Path) -> str:
     return subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=path, text=True
@@ -517,7 +537,7 @@ def run_closed_loop(
                 "plan": plan,
                 "render": render,
                 "renderPath": result["finalPath"],
-                "mediaResultDigest": _sha(result),
+                "mediaResultDigest": _stable_media_result_digest(result),
             }
             records.append(record)
             ledger.append_once(
