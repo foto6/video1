@@ -52,6 +52,29 @@ class R24ClosedLoopUnitTests(unittest.TestCase):
             with self.assertRaises(r24.ClosedLoopError):
                 ledger.append_once("k", "event", {"value": 2})
 
+    def test_media_result_digest_ignores_transient_recovery_state(self):
+        rendered = {
+            "contractVersion": "creator.media_r15_render_result.r24.v1",
+            "requestDigest": "a" * 64,
+            "renderExportDigest": "b" * 64,
+            "state": "rendered",
+            "logicalEffects": 1,
+        }
+        recovered = {
+            **rendered,
+            "state": "recovered",
+            "logicalEffects": 0,
+        }
+        self.assertEqual(
+            r24._stable_media_result_digest(rendered),
+            r24._stable_media_result_digest(recovered),
+        )
+        drifted = {**recovered, "renderExportDigest": "c" * 64}
+        self.assertNotEqual(
+            r24._stable_media_result_digest(rendered),
+            r24._stable_media_result_digest(drifted),
+        )
+
     def test_out_of_order_growth_decision_fails(self):
         source = {"sourceId": "s", "sha256": "a" * 64}
         record = {
