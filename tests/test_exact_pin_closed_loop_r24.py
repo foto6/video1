@@ -68,6 +68,22 @@ class R24ClosedLoopUnitTests(unittest.TestCase):
             with self.assertRaises(r24.ClosedLoopError):
                 ledger.append_once("k", "event", {"value": 2})
 
+    def test_growth_r18_critic_provenance_drift_fails_closed(self):
+        critic = r24_growth_bridge._critic_export(
+            source_id="source-r24",
+            render_sha="b" * 64,
+            round_index=0,
+            ordinal=0,
+            scenario="winner",
+        )
+        critic["commit_sha"] = "0" * 40
+        with self.assertRaises(r24.PinMismatch):
+            r24._validate_growth_r18_critic_export(
+                critic,
+                expected_source_id="source-r24",
+                expected_render_sha256="b" * 64,
+            )
+
     def test_out_of_order_growth_decision_fails(self):
         source = {"sourceId": "s", "sha256": "a" * 64}
         record = {

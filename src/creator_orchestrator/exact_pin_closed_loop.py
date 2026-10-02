@@ -33,6 +33,24 @@ GROWTH_SCHEMA_BLOB = "75a3efbb8a4e14789508dae11ae8db92723d0e27"
 CREATOR_R22_SHA = "351df0d455557fb20b47f0fd2ab806c4281ed5ee"
 CREATOR_R23_SHA = "8914a1207241115a9cb9e1d666a3cf6955ec4190"
 
+GROWTH_R18_DIMENSION_MAP = {
+    "hook": "hook_clarity_first_1_3s",
+    "pacing": "pacing_coherence",
+    "semantic_cut_correctness": "semantic_cut_correctness",
+    "framing_crop": "subject_framing_crop_quality",
+    "broll_relevance": "broll_relevance",
+    "captions": "caption_readability_emphasis_relevance",
+    "continuity": "visual_continuity",
+    "motion_appropriateness": "motion_zoom_appropriateness",
+    "audio_balance": "audio_voice_music_balance",
+    "payoff_cta_loop": "payoff_cta_loop_coherence",
+}
+GROWTH_R18_CRITIC_MODES = {
+    "structural_rule",
+    "vlm_augmented",
+    "gemini_native_video",
+}
+
 
 class ClosedLoopError(ValueError):
     pass
@@ -328,6 +346,146 @@ def _growth_request(
     }
 
 
+def _validate_growth_r18_critic_export(
+    value: Mapping[str, Any],
+    *,
+    expected_source_id: str,
+    expected_render_sha256: str,
+) -> dict[str, Any]:
+    required = {
+        "contract_version",
+        "repository",
+        "commit_sha",
+        "source_id",
+        "render_sha256",
+        "critic_mode",
+        "model_or_rule_identity",
+        "dimension_observations",
+        "timecoded_evidence",
+        "hard_failure_observations",
+        "pairwise_if_used",
+        "human_ground_truth",
+    }
+    if not isinstance(value, Mapping) or set(value) != required:
+        raise ClosedLoopError("Growth R18 critic export fields mismatch")
+    if value["contract_version"] != "growth.critic_export.v1":
+        raise ClosedLoopError("Growth R18 critic contract mismatch")
+    if value["repository"] != "foto6/video3":
+        raise PinMismatch("Growth R18 critic repository mismatch")
+    if value["commit_sha"] != GROWTH_SHA:
+        raise PinMismatch("Growth R18 critic producer SHA mismatch")
+    if value["source_id"] != expected_source_id:
+        raise ClosedLoopError("Growth R18 critic source mismatch")
+    if value["render_sha256"] != expected_render_sha256:
+        raise StaleArtifact("Growth R18 critic render SHA mismatch")
+    if value["critic_mode"] not in GROWTH_R18_CRITIC_MODES:
+        raise ClosedLoopError("Growth R18 critic mode mismatch")
+    if value["human_ground_truth"] is not False:
+        raise ClosedLoopError("Growth R18 critic cannot be human ground truth")
+
+    identity = value["model_or_rule_identity"]
+    if (
+        not isinstance(identity, Mapping)
+        or identity.get("kind") not in {"rule", "vlm"}
+    ):
+        raise ClosedLoopError("Growth R18 critic identity mismatch")
+
+    dimensions = value["dimension_observations"]
+    if (
+        not isinstance(dimensions, Mapping)
+        or set(dimensions) != set(GROWTH_R18_DIMENSION_MAP)
+    ):
+        raise ClosedLoopError("Growth R18 critic dimensions mismatch")
+    for rubric, source_dimension in GROWTH_R18_DIMENSION_MAP.items():
+        item = dimensions[rubric]
+        if (
+            not isinstance(item, Mapping)
+            or set(item)
+            != {
+                "source_dimension",
+                "rule_observation",
+                "vlm_observations",
+                "unavailable",
+            }
+        ):
+            raise ClosedLoopError("Growth R18 critic dimension fields mismatch")
+        if item["source_dimension"] != source_dimension:
+            raise ClosedLoopError("Growth R18 critic dimension mapping drift")
+        rule = item["rule_observation"]
+        if (
+            not isinstance(rule, Mapping)
+            or set(rule)
+            != {
+                "available",
+                "normalized_score",
+                "confidence",
+                "evidence",
+                "limitation",
+                "human_ground_truth",
+            }
+        ):
+            raise ClosedLoopError("Growth R18 rule observation fields mismatch")
+        if rule["human_ground_truth"] is not False:
+            raise ClosedLoopError("Growth R18 rule cannot be human ground truth")
+        confidence = rule["confidence"]
+        if (
+            isinstance(confidence, bool)
+            or not isinstance(confidence, (int, float))
+            or not 0 <= float(confidence) <= 1
+        ):
+            raise ClosedLoopError("Growth R18 rule confidence invalid")
+        if not isinstance(rule["evidence"], list):
+            raise ClosedLoopError("Growth R18 rule evidence invalid")
+        if rule["available"]:
+            score = rule["normalized_score"]
+            if (
+                isinstance(score, bool)
+                or not isinstance(score, (int, float))
+                or not 0 <= float(score) <= 1
+                or item["unavailable"] is not None
+            ):
+                raise ClosedLoopError("Growth R18 available rule score invalid")
+        else:
+            if (
+                rule["normalized_score"] is not None
+                or not isinstance(item["unavailable"], str)
+                or not item["unavailable"]
+            ):
+                raise ClosedLoopError("Growth R18 unavailable rule invalid")
+        if not isinstance(item["vlm_observations"], list):
+            raise ClosedLoopError("Growth R18 VLM observations invalid")
+        for observation in item["vlm_observations"]:
+            if (
+                not isinstance(observation, Mapping)
+                or observation.get("human_ground_truth") is not False
+            ):
+                raise ClosedLoopError("Growth R18 VLM human boundary invalid")
+
+    if not isinstance(value["timecoded_evidence"], list):
+        raise ClosedLoopError("Growth R18 timecoded evidence invalid")
+    for evidence in value["timecoded_evidence"]:
+        if (
+            not isinstance(evidence, Mapping)
+            or evidence.get("human_ground_truth") is not False
+            or evidence.get("rubric_dimension") not in GROWTH_R18_DIMENSION_MAP
+            or evidence.get("source_dimension")
+            not in set(GROWTH_R18_DIMENSION_MAP.values())
+        ):
+            raise ClosedLoopError("Growth R18 timecoded evidence drift")
+
+    if not isinstance(value["hard_failure_observations"], list):
+        raise ClosedLoopError("Growth R18 hard failure evidence invalid")
+    for item in value["hard_failure_observations"]:
+        if (
+            not isinstance(item, Mapping)
+            or item.get("human_ground_truth") is not False
+        ):
+            raise ClosedLoopError("Growth R18 hard failure human boundary invalid")
+    if value["pairwise_if_used"] is not None:
+        raise ClosedLoopError("R24 does not consume pairwise critic evidence")
+    return _clone(value)
+
+
 def _validate_growth_result(
     result: Mapping[str, Any], *, source: Mapping[str, Any],
     records: Sequence[Mapping[str, Any]], previous_revision: int,
@@ -348,11 +506,10 @@ def _validate_growth_result(
         raise ClosedLoopError("Growth decision candidate set mismatch")
     critics = result["criticExports"]
     for record in records:
-        critic = r22.validate_growth_critic_export(
+        critic = _validate_growth_r18_critic_export(
             critics[record["candidateId"]],
             expected_source_id=source["sourceId"],
             expected_render_sha256=record["render"]["render_sha256"],
-            allow_synthetic=False,
         )
         record["critic"] = critic
     return _clone(decision), _clone(critics)
