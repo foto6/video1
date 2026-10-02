@@ -104,7 +104,7 @@ def _critic_export(
         "render_sha256": render_sha,
         "critic_mode": "structural_rule",
         "model_or_rule_identity": {
-            "kind": "synthetic_fixture",
+            "kind": "rule",
             "contract_version": "creator.r24.real_render_structural_fixture.v1",
             "mode": "deterministic_structural",
             "model": None,
