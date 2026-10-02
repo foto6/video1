@@ -110,6 +110,16 @@ class R29AuthorityEnvelopeTests(unittest.TestCase):
         with self.assertRaises(r29.AuthorityDrift):
             r29.validate_growth_r26_envelope(stale)
 
+    def test_stale_bridge_r30_authority_fails_closed(self):
+        envelope = r29.build_test_envelope(context=unit_context())
+        changed = copy.deepcopy(envelope)
+        changed["bridge_authority"]["producer_sha"] = "0" * 40
+        material = copy.deepcopy(changed)
+        material["envelope_digest"] = ""
+        changed["envelope_digest"] = r29._sha(material)
+        with self.assertRaises(r29.AuthorityDrift):
+            r29.validate_growth_r26_envelope(changed)
+
     def test_wrong_sealed_mapping_fails_closed(self):
         envelope = r29.build_test_envelope(context=unit_context())
         changed = copy.deepcopy(envelope)
@@ -310,19 +320,23 @@ class R29WinnerBoundaryTests(unittest.TestCase):
 
 @unittest.skipUnless(
     os.environ.get("R29_MEDIA_R21_CHECKOUT")
-    and os.environ.get("R29_GROWTH_R26_CHECKOUT")
-    and os.environ.get("R29_BRIDGE_R30_CHECKOUT"),
-    "exact Media R21, Growth R26 and Bridge R30 checkouts required",
+    and os.environ.get("R29_GROWTH_R26_CHECKOUT"),
+    "exact Media R21 and Growth R26 checkouts required",
 )
 class R29ExactAuthorityIntegrationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.media = Path(os.environ["R29_MEDIA_R21_CHECKOUT"]).resolve()
         cls.growth = Path(os.environ["R29_GROWTH_R26_CHECKOUT"]).resolve()
-        cls.bridge = Path(os.environ["R29_BRIDGE_R30_CHECKOUT"]).resolve()
+        cls.bridge = (
+            None
+            if not os.environ.get("R29_BRIDGE_R30_CHECKOUT")
+            else Path(os.environ["R29_BRIDGE_R30_CHECKOUT"]).resolve()
+        )
         r29.verify_media_r21_checkout(cls.media)
         r29.verify_growth_r26_checkout(cls.growth)
-        r29.verify_bridge_r30_checkout(cls.bridge)
+        if cls.bridge is not None:
+            r29.verify_bridge_r30_checkout(cls.bridge)
 
         env = dict(os.environ)
         env["GITHUB_SHA"] = r29.MEDIA_R21["producerSha"]
@@ -399,10 +413,11 @@ class R29ExactAuthorityIntegrationTests(unittest.TestCase):
             r29.verify_growth_r26_checkout(self.growth)["checkoutSha"],
             r29.GROWTH_R26["producerSha"],
         )
-        self.assertEqual(
-            r29.verify_bridge_r30_checkout(self.bridge)["checkoutSha"],
-            r29.BRIDGE_R30["producerSha"],
-        )
+        if self.bridge is not None:
+            self.assertEqual(
+                r29.verify_bridge_r30_checkout(self.bridge)["checkoutSha"],
+                r29.BRIDGE_R30["producerSha"],
+            )
 
         original = r29.MEDIA_R21["reviewRoundSchemaBlobSha1"]
         try:

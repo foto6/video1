@@ -783,12 +783,6 @@ jobs:
           repository: foto6/video3
           ref: e844ed2daaaca9e9694fe1e0fb6b8b7bfac69cbc
           path: .r29-growth
-      - name: Checkout exact Bridge R30
-        uses: actions/checkout@v4
-        with:
-          repository: foto6/WebAIBridge
-          ref: ceaee873231a8552c5b7324083baa800eec566a8
-          path: .r29-bridge
       - name: Install R29 runtime prerequisites
         run: |
           missing=()
@@ -804,7 +798,6 @@ jobs:
         env:
           R29_MEDIA_R21_CHECKOUT: ${{ github.workspace }}/.r29-media
           R29_GROWTH_R26_CHECKOUT: ${{ github.workspace }}/.r29-growth
-          R29_BRIDGE_R30_CHECKOUT: ${{ github.workspace }}/.r29-bridge
         run: |
           creator-live-e2e-r29 --help
           PYTHONPATH=src python -m unittest discover -s tests -p 'test_live_e2e_consumer_r29.py' -v
