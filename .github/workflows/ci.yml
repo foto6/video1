@@ -294,7 +294,7 @@ jobs:
 
   focused-r24-exact-pin:
     needs: full
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -346,7 +346,7 @@ jobs:
 
   focused-r24-exact-pin-nonwinner:
     needs: focused-r24-exact-pin
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -403,7 +403,7 @@ jobs:
 
   focused-r24-exact-pin-rehearsal:
     needs: focused-r24-exact-pin-nonwinner
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
