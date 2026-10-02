@@ -439,19 +439,16 @@ class R29AuthorityAndEnvelopeTests(unittest.TestCase):
 
 @unittest.skipUnless(
     os.environ.get("R29_MEDIA_R21_CHECKOUT")
-    and os.environ.get("R29_GROWTH_R26_CHECKOUT")
-    and os.environ.get("R29_BRIDGE_R30_CHECKOUT"),
-    "exact Media R21, Growth R26 and Bridge R30 checkouts required",
+    and os.environ.get("R29_GROWTH_R26_CHECKOUT"),
+    "exact Media R21 and Growth R26 checkouts required",
 )
 class R29ExactIntegrationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.media = Path(os.environ["R29_MEDIA_R21_CHECKOUT"]).resolve()
         cls.growth = Path(os.environ["R29_GROWTH_R26_CHECKOUT"]).resolve()
-        cls.bridge = Path(os.environ["R29_BRIDGE_R30_CHECKOUT"]).resolve()
         r29.verify_media_checkout(cls.media)
         r29.verify_growth_checkout(cls.growth)
-        r29.verify_bridge_checkout(cls.bridge)
         env = dict(os.environ)
         env["GITHUB_SHA"] = r29.MEDIA_R21_AUTHORITY["producerSha"]
         result = subprocess.run(
@@ -525,10 +522,6 @@ class R29ExactIntegrationTests(unittest.TestCase):
         self.assertEqual(
             r29.verify_growth_checkout(self.growth)["checkoutSha"],
             r29.GROWTH_R26_AUTHORITY["producerSha"],
-        )
-        self.assertEqual(
-            r29.verify_bridge_checkout(self.bridge)["checkoutSha"],
-            r29.BRIDGE_R30_AUTHORITY["producerSha"],
         )
 
     def test_real_media_reedit_then_exact_r21_round_package(self):

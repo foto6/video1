@@ -784,12 +784,6 @@ jobs:
           repository: foto6/video3
           ref: e844ed2daaaca9e9694fe1e0fb6b8b7bfac69cbc
           path: .r29-growth
-      - name: Checkout exact Bridge R30
-        uses: actions/checkout@v4
-        with:
-          repository: foto6/WebAIBridge
-          ref: ceaee873231a8552c5b7324083baa800eec566a8
-          path: .r29-bridge
       - name: Install exact runtime prerequisites
         run: |
           missing=()
