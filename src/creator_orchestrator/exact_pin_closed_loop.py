@@ -808,6 +808,7 @@ def run_closed_loop(
         caption="R24 closed-loop rehearsal",
         cta="Learn more",
         allow_synthetic_editor=True,
+        growth_critic_validator=_validate_growth_r18_critic_export,
     )
     # Preparation only: do not instantiate or drive any publish provider.
     ledger.append_once("terminal", "publish_handoff_ready", {

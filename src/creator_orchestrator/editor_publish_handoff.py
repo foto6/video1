@@ -4,7 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from . import autonomous_editor_loop as r22
 from . import autonomous_reels as reels
@@ -81,6 +81,7 @@ def validate_terminal_editor_bundle(
     bundle: Mapping[str, Any],
     *,
     allow_synthetic_editor: bool,
+    growth_critic_validator: Callable[..., Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if not isinstance(bundle, Mapping):
         raise EditorOutcomeIneligible("editor outcome must be an object")
@@ -181,12 +182,19 @@ def validate_terminal_editor_bundle(
             "objective_render_failure: technical QA failed"
         )
     critic = bundle["critic"]
-    r22.validate_growth_critic_export(
-        critic,
-        expected_source_id=lineage["sourceId"],
-        expected_render_sha256=render["render_sha256"],
-        allow_synthetic=allow_synthetic_editor,
-    )
+    if growth_critic_validator is None:
+        r22.validate_growth_critic_export(
+            critic,
+            expected_source_id=lineage["sourceId"],
+            expected_render_sha256=render["render_sha256"],
+            allow_synthetic=allow_synthetic_editor,
+        )
+    else:
+        growth_critic_validator(
+            critic,
+            expected_source_id=lineage["sourceId"],
+            expected_render_sha256=render["render_sha256"],
+        )
     if critic["hard_failure_observations"]:
         raise EditorOutcomeIneligible(
             "objective_render_failure: critic hard failure"
@@ -226,10 +234,12 @@ def build_editor_publish_handoff(
     caption: str,
     cta: str,
     allow_synthetic_editor: bool,
+    growth_critic_validator: Callable[..., Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     bundle = validate_terminal_editor_bundle(
         editor_bundle,
         allow_synthetic_editor=allow_synthetic_editor,
+        growth_critic_validator=growth_critic_validator,
     )
     if media_asset.sha256 != bundle["render"]["render_sha256"]:
         raise ArtifactLineageMismatch(
