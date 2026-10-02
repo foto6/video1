@@ -239,11 +239,16 @@ for (const seg of segments) {
       size: inputDigest.size
     },
     reframe: { x: 0, y: 0 },
-    speed: seg.speed,
-    motion: operations.has("crop_scale_reframe")
-      ? { type: "punch_in", zoom: 1.06, amplitudePx: 0 }
-      : { type: "slow_push", zoom: 1.02, amplitudePx: 0 }
+    speed: seg.speed
   };
+  // Do not add decorative motion when no review requested it. Media's freeze
+  // detector is authoritative, and long zoompan segments can create duplicate
+  // frames. A reviewed crop/reframe defect maps to a static bounded 5% crop
+  // on the current R26 candidate, whose review input is always a prior
+  // 1080x1920 Media render.
+  if (operations.has("crop_scale_reframe")) {
+    video.crop = { width: 1026, height: 1824, x: 27, y: 48 };
+  }
   if (operations.has("fade_transition") && duration > 400) {
     video.fadeInMs = Math.min(120, Math.floor(duration / 4));
     video.fadeOutMs = Math.min(120, Math.floor(duration / 4));
