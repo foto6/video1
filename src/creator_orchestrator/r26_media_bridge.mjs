@@ -342,7 +342,11 @@ const exportSpec = {
   audioBitrate: "128k",
   pixelFormat: "yuv420p",
   preset: "ultrafast",
-  loudness: { integratedLufs: -16, truePeakDb: -1.5, lra: 11 }
+  // Media R15 loudnorm adds an aresample stage whose FFmpeg 4.4 channel-layout
+  // negotiation is not portable for mono MP4 inputs. R26 keeps the source-bound
+  // audio stream and exact Media QA, but does not request optional loudness
+  // normalization at this adapter boundary.
+  loudness: false
 };
 
 const store = new media.PersistentRenderJobStore({
