@@ -1025,12 +1025,30 @@ def execute_media_reedit(
     final_path = media_output / "final.mp4"
     app_path = media_output / "media.editorial_reedit_application.v1.json"
     export_path = media_output / "media.render_export.v1.json"
-    if not all(p.is_file() for p in (final_path, app_path, export_path)):
+    plan_path = media_output / "media.editorial_reedit_plan.r19.v1.json"
+    if not all(
+        p.is_file()
+        for p in (final_path, app_path, export_path, plan_path)
+    ):
         raise MissingMediaApplicationEvidence(
-            "Media R19/R20 output sidecars incomplete"
+            "Media R19/R20 output sidecars/plan incomplete"
         )
     application = json.loads(app_path.read_text(encoding="utf-8"))
     render_export = json.loads(export_path.read_text(encoding="utf-8"))
+    plan_document = json.loads(plan_path.read_text(encoding="utf-8"))
+    if (
+        plan_document.get("contractVersion")
+        != "media.editorial_reedit_plan.r19.v1"
+        or plan_document.get("producerSha") != media_profile["producerSha"]
+        or plan_document.get("planDigest") != application.get("planDigest")
+        or plan_document.get("outputTimelineDigest")
+        != application.get("outputTimelineDigest")
+        or plan_document.get("humanQuality") is not False
+        or not isinstance(plan_document.get("timeline"), Mapping)
+    ):
+        raise MissingMediaApplicationEvidence(
+            "Media R19 plan/timeline evidence drift"
+        )
     if application.get("contractVersion") != media_profile["applicationContract"]:
         raise MediaR20Error("Media application contract drift")
     if application.get("producer") != {
@@ -1088,11 +1106,13 @@ def execute_media_reedit(
     copied_final = round_root / "final.mp4"
     copied_app = round_root / "media.editorial_reedit_application.v1.json"
     copied_export = round_root / "media.render_export.v1.json"
+    copied_plan = round_root / "media.editorial_reedit_plan.r19.v1.json"
     shutil.copyfile(final_path, copied_final)
     shutil.copyfile(app_path, copied_app)
     shutil.copyfile(export_path, copied_export)
+    shutil.copyfile(plan_path, copied_plan)
     sandbox_root = Path(candidate_root).resolve()
-    for p in (copied_final, copied_app, copied_export):
+    for p in (copied_final, copied_app, copied_export, copied_plan):
         try:
             p.resolve().relative_to(sandbox_root)
         except ValueError as exc:
@@ -1123,6 +1143,7 @@ def execute_media_reedit(
             "renderExportDigest": render_digest,
             "applicationSidecarSha256": _file_sha(copied_app),
             "applicationDigest": app_digest,
+            "planFileSha256": _file_sha(copied_plan),
             "planDigest": application["planDigest"],
             "timelineDigest": application["outputTimelineDigest"],
             "technicalQaDigest": application["qa"][
@@ -1145,9 +1166,11 @@ def execute_media_reedit(
         "evidence": evidence,
         "application": application,
         "renderExport": render_export,
+        "plan": plan_document,
         "finalPath": str(copied_final),
         "applicationPath": str(copied_app),
         "renderExportPath": str(copied_export),
+        "planPath": str(copied_plan),
     }
 
 
@@ -1195,11 +1218,8 @@ def build_next_context(
         ledger_digest=prior["ledgerDigest"],
         source=prior["source"],
         candidate=candidate,
-        timeline={
-            **_clone(prior["timeline"]),
-            "r28OutputTimelineDigest": after["timelineDigest"],
-        },
-        export_spec=prior["exportSpec"],
+        timeline=_clone(media_result["plan"]["timeline"]),
+        export_spec=_clone(media_result["plan"]["exportSpec"]),
     )
 
 

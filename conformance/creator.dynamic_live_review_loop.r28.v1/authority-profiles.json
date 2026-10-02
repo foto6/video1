@@ -1,6 +1,8 @@
 {
   "authorityVersion": "creator.dynamic_review_authority.r28.v1",
   "growth": {
+    "authorityVersion": "creator.dynamic_review_authority.r28.v1",
+    "family": "growth_r25_r26_creator_external_review",
     "repository": "foto6/video3",
     "producerSha": "2c441ebaa017c7da72461316401aeaf445e3d6e5",
     "ciRunId": 36988158233,
@@ -13,9 +15,12 @@
     "handoffContractBlobSha1": "ced853aad722aad4c7a88e9a41756baa1b2892a6",
     "handoffSchemaBlobSha1": "ba9ada04488760147136dcaaf012206405c04653",
     "handoffAdapterAuthorityBlobSha1": "a4f5b1219c874ae13c05651e584dd7fbf5d4449a",
-    "currentAdapterBlobSha1": "c358d31866cdea842202fef6add992d102a58f90"
+    "currentAdapterBlobSha1": "c358d31866cdea842202fef6add992d102a58f90",
+    "testFixture": false
   },
   "media": {
+    "authorityVersion": "creator.dynamic_review_authority.r28.v1",
+    "family": "media_r19_r20_editorial_dynamic_review",
     "repository": "foto6/video2",
     "producerSha": "b22174db3c772a49a21fb9f8b1d40828bf258005",
     "ciRunId": 36988788032,
@@ -35,6 +40,7 @@
     "dynamicManifestBlobSha1": "da4af21cae8dffacb9cc303576fb08cb671e02ce",
     "dynamicSchemaBlobSha1": "680aa69dfb595f31e93fb2bdfe0fdae2ac5ca25b",
     "dynamicImplementationBlobSha1": "cebaa1083d121844b5f7d5a78196d201f860d8a8",
-    "dynamicRunnerBlobSha1": "33c742f1e0314e462fb3e97337bf82883ec80f00"
+    "dynamicRunnerBlobSha1": "33c742f1e0314e462fb3e97337bf82883ec80f00",
+    "testFixture": false
   }
 }

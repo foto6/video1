@@ -195,6 +195,61 @@ class R28AuthorityAndBoundaryTests(unittest.TestCase):
                     },
                 )
 
+    def test_next_round_context_uses_exact_media_output_timeline(self):
+        prior = _unit_context(round_index=0)
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "source.mp4").write_bytes(b"source")
+            round_root = root / "round-1"
+            round_root.mkdir()
+            final_path = round_root / "final.mp4"
+            app_path = round_root / "media.editorial_reedit_application.v1.json"
+            export_path = round_root / "media.render_export.v1.json"
+            final_path.write_bytes(b"after")
+            app_path.write_text("{}", encoding="utf-8")
+            export_path.write_text("{}", encoding="utf-8")
+            media_result = {
+                "evidence": {
+                    "nextRoundIndex": 1,
+                    "after": {
+                        "candidateId": "candidate-r28-r1-exact",
+                        "sha256": "b" * 64,
+                        "size": 5,
+                        "renderExportSha256": "c" * 64,
+                        "renderExportDigest": "d" * 64,
+                        "applicationSidecarSha256": "e" * 64,
+                        "applicationDigest": "f" * 64,
+                        "timelineDigest": "1" * 64,
+                    },
+                },
+                "finalPath": str(final_path),
+                "applicationPath": str(app_path),
+                "renderExportPath": str(export_path),
+                "plan": {
+                    "timeline": {
+                        "id": "timeline-after-r19",
+                        "canvas": {"durationMs": 4900},
+                    },
+                    "exportSpec": {"format": "mp4", "preset": "ultrafast"},
+                },
+            }
+            next_context = r28.build_next_context(
+                prior=prior,
+                media_result=media_result,
+                candidate_root=root,
+            )
+            self.assertEqual(
+                next_context["timeline"]["id"],
+                "timeline-after-r19",
+            )
+            self.assertEqual(
+                next_context["candidate"]["roundIndex"],
+                1,
+            )
+            self.assertIsNotNone(
+                next_context["candidate"]["editorialApplication"]
+            )
+
     def test_readiness_exposes_dynamic_capture_blocker(self):
         report = r28.readiness_report()
         self.assertTrue(report["SOURCE_READY"])
