@@ -21,6 +21,7 @@ on:
       - agent/creator-r26-real-review-closed-loop-20261002
       - agent/creator-r27-live-review-execution-20261002
       - agent/creator-r28-dynamic-live-review-loop-20261002
+      - agent/creator-r29-exact-dynamic-e2e-20261002
   pull_request:
 
 jobs:
