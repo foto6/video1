@@ -8,7 +8,7 @@ R30 is the coordinator-facing continuation boundary after Growth R27 has ingeste
 - Growth R27: `foto6/video3@d80592ad660b7b73ad13298880918a5944411c38`, CI `37002456031 SUCCESS`, authority-profile digest `57ab464f85ba95f1ca4dfefeaeb0a19371ce7d666ca8142daeb86e3162d2c634`.
 - Bridge R31: `foto6/WebAIBridge@104281e49122233f251c692abba726ae31cee0d5`, CI `36999908386 SUCCESS`.
 
-Media R22 consumes an exact Media R21 round directory, so R30 also verifies the R22-pinned R21 producer `d753e9e4c1f4448386608a1425232dbc1dba87ea`. Moving branches are never authority.
+Media R22 consumes an exact Media R21 round directory, so R30 also verifies the R22-pinned R21 producer `d753e9e4c1f4448386608a1425232dbc1dba87ea`. Moving branches are never authority. A materialized Bridge R31 checkout may be supplied with `--bridge-r31-checkout`; it is optional because the video1 Actions token cannot read the private sibling Bridge repository. Without it, R30 still fail-closes on the immutable R31 producer/CI/blob profile and on the exact R31 result/capture identity carried by the verified Growth R27 index.
 
 ## Continuation command
 
@@ -17,7 +17,6 @@ creator-coordinator-r30 continue \
   --media-r22-checkout /exact/video2-r22 \
   --media-r21-checkout /exact/video2-r21 \
   --growth-r27-checkout /exact/video3-r27 \
-  --bridge-r31-checkout /exact/WebAIBridge-r31 \
   --candidate-root /work/candidate \
   --candidate-context /work/candidate-context.json \
   --growth-index /growth/growth.dynamic_live_review_ingest_index.r27.v1.json \

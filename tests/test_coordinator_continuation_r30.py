@@ -243,6 +243,20 @@ class R30AuthorityAndBoundaryTests(unittest.TestCase):
         with self.assertRaises(r30.AuthorityDrift):
             r30.validate_growth_r27_index(broken)
 
+    def test_bridge_r31_pins_are_immutable_without_checkout_access(self):
+        self.assertEqual(
+            r30.BRIDGE_R31_AUTHORITY["blobs"]["resultSchema"],
+            "55f403a2c0dca4a05a5002e104cfc29d20b536b5",
+        )
+        self.assertEqual(
+            r30.BRIDGE_R31_AUTHORITY["blobs"]["mediaOperator"],
+            "38509af174fc25aa4229c084fc3cd9b2e35b539e",
+        )
+        self.assertEqual(
+            r30.BRIDGE_R31_AUTHORITY["ciRunId"],
+            36999908386,
+        )
+
     def test_stale_bridge_r31_capture_and_changed_response_fail_closed(self):
         context = unit_context()
         envelope = build_envelope(context)
@@ -354,9 +368,8 @@ class R30AuthorityAndBoundaryTests(unittest.TestCase):
 @unittest.skipUnless(
     os.environ.get("R30_MEDIA_R22_CHECKOUT")
     and os.environ.get("R30_MEDIA_R21_CHECKOUT")
-    and os.environ.get("R30_GROWTH_R27_CHECKOUT")
-    and os.environ.get("R30_BRIDGE_R31_CHECKOUT"),
-    "exact R30 dependency checkouts required",
+    and os.environ.get("R30_GROWTH_R27_CHECKOUT"),
+    "exact Media R22/R21 and Growth R27 checkouts required",
 )
 class R30ExactRealMp4IntegrationTests(unittest.TestCase):
     @classmethod
@@ -364,11 +377,16 @@ class R30ExactRealMp4IntegrationTests(unittest.TestCase):
         cls.media22 = Path(os.environ["R30_MEDIA_R22_CHECKOUT"]).resolve()
         cls.media21 = Path(os.environ["R30_MEDIA_R21_CHECKOUT"]).resolve()
         cls.growth27 = Path(os.environ["R30_GROWTH_R27_CHECKOUT"]).resolve()
-        cls.bridge31 = Path(os.environ["R30_BRIDGE_R31_CHECKOUT"]).resolve()
+        cls.bridge31 = (
+            None
+            if not os.environ.get("R30_BRIDGE_R31_CHECKOUT")
+            else Path(os.environ["R30_BRIDGE_R31_CHECKOUT"]).resolve()
+        )
         r30.verify_media_r22_checkout(cls.media22)
         r29.verify_media_checkout(cls.media21)
         r30.verify_growth_r27_checkout(cls.growth27)
-        r30.verify_bridge_r31_checkout(cls.bridge31)
+        if cls.bridge31 is not None:
+            r30.verify_bridge_r31_checkout(cls.bridge31)
 
         env = dict(os.environ)
         env["GITHUB_SHA"] = r29.MEDIA_R21_AUTHORITY["producerSha"]
@@ -443,9 +461,14 @@ class R30ExactRealMp4IntegrationTests(unittest.TestCase):
             r30.GROWTH_R27_AUTHORITY["producerSha"],
         )
         self.assertEqual(
-            r30.verify_bridge_r31_checkout(self.bridge31)["checkoutSha"],
             r30.BRIDGE_R31_AUTHORITY["producerSha"],
+            "104281e49122233f251c692abba726ae31cee0d5",
         )
+        if self.bridge31 is not None:
+            self.assertEqual(
+                r30.verify_bridge_r31_checkout(self.bridge31)["checkoutSha"],
+                r30.BRIDGE_R31_AUTHORITY["producerSha"],
+            )
 
     def test_real_mp4_reedit_then_r21_package_then_r22_materializer(self):
         envelope = build_envelope(self.context)

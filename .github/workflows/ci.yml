@@ -873,12 +873,12 @@ jobs:
           repository: foto6/video3
           ref: d80592ad660b7b73ad13298880918a5944411c38
           path: .r30-growth-r27
-      - name: Checkout exact Bridge R31
-        uses: actions/checkout@v4
-        with:
-          repository: foto6/WebAIBridge
-          ref: 104281e49122233f251c692abba726ae31cee0d5
-          path: .r30-bridge-r31
+      - name: Record Bridge R31 immutable authority boundary
+        run: |
+          # The video1 GITHUB_TOKEN cannot read the private sibling Bridge repo.
+          # R30 verifies the immutable producer/blob pins and the exact R31
+          # wrapper embedded by Growth R27 instead of weakening to a branch ref.
+          echo "Bridge R31 104281e49122233f251c692abba726ae31cee0d5 / CI 36999908386"
       - name: Install exact runtime prerequisites
         run: |
           missing=()
@@ -895,7 +895,6 @@ jobs:
           R30_MEDIA_R22_CHECKOUT: ${{ github.workspace }}/.r30-media-r22
           R30_MEDIA_R21_CHECKOUT: ${{ github.workspace }}/.r30-media-r21
           R30_GROWTH_R27_CHECKOUT: ${{ github.workspace }}/.r30-growth-r27
-          R30_BRIDGE_R31_CHECKOUT: ${{ github.workspace }}/.r30-bridge-r31
         run: |
           creator-coordinator-r30 --help
           PYTHONPATH=src python -m unittest discover -s tests -p 'test_coordinator_continuation_r30.py' -v

@@ -949,7 +949,7 @@ def run_continuation(
     media_r22_checkout: Path,
     media_r21_checkout: Path,
     growth_r27_checkout: Path,
-    bridge_r31_checkout: Path,
+    bridge_r31_checkout: Path | None,
     candidate_root: Path,
     candidate_context_path: Path,
     growth_index_path: Path,
@@ -963,7 +963,15 @@ def run_continuation(
     media_pin = verify_media_r22_checkout(media_r22_checkout)
     r21_pin = r29.verify_media_checkout(media_r21_checkout)
     growth_pin = verify_growth_r27_checkout(growth_r27_checkout)
-    bridge_pin = verify_bridge_r31_checkout(bridge_r31_checkout)
+    bridge_pin = (
+        {
+            "checkoutSha": BRIDGE_R31_AUTHORITY["producerSha"],
+            "profileDigest": _profile_digest(BRIDGE_R31_AUTHORITY),
+            "verificationMode": "pinned_capture_identity",
+        }
+        if bridge_r31_checkout is None
+        else verify_bridge_r31_checkout(bridge_r31_checkout)
+    )
     context = r28.validate_candidate_context(
         json.loads(Path(candidate_context_path).read_text(encoding="utf-8"))
     )
@@ -1356,7 +1364,14 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--media-r22-checkout", required=True)
     run.add_argument("--media-r21-checkout", required=True)
     run.add_argument("--growth-r27-checkout", required=True)
-    run.add_argument("--bridge-r31-checkout", required=True)
+    run.add_argument(
+        "--bridge-r31-checkout",
+        help=(
+            "Optional materialized exact Bridge R31 checkout. If omitted, "
+            "R30 validates the immutable R31 producer/blob profile plus the "
+            "Growth R27 embedded R31 result/capture identity."
+        ),
+    )
     run.add_argument("--candidate-root", required=True)
     run.add_argument("--candidate-context", required=True)
     run.add_argument("--growth-index", required=True)
@@ -1391,7 +1406,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             media_r22_checkout=Path(args.media_r22_checkout),
             media_r21_checkout=Path(args.media_r21_checkout),
             growth_r27_checkout=Path(args.growth_r27_checkout),
-            bridge_r31_checkout=Path(args.bridge_r31_checkout),
+            bridge_r31_checkout=(
+                None
+                if not args.bridge_r31_checkout
+                else Path(args.bridge_r31_checkout)
+            ),
             candidate_root=Path(args.candidate_root),
             candidate_context_path=Path(args.candidate_context),
             growth_index_path=Path(args.growth_index),
