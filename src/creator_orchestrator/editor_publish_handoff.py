@@ -81,6 +81,7 @@ def validate_terminal_editor_bundle(
     bundle: Mapping[str, Any],
     *,
     allow_synthetic_editor: bool,
+    expected_growth_producer_sha: str | None = None,
 ) -> dict[str, Any]:
     if not isinstance(bundle, Mapping):
         raise EditorOutcomeIneligible("editor outcome must be an object")
@@ -186,6 +187,7 @@ def validate_terminal_editor_bundle(
         expected_source_id=lineage["sourceId"],
         expected_render_sha256=render["render_sha256"],
         allow_synthetic=allow_synthetic_editor,
+        expected_producer_sha=expected_growth_producer_sha,
     )
     if critic["hard_failure_observations"]:
         raise EditorOutcomeIneligible(
@@ -226,10 +228,12 @@ def build_editor_publish_handoff(
     caption: str,
     cta: str,
     allow_synthetic_editor: bool,
+    expected_growth_producer_sha: str | None = None,
 ) -> dict[str, Any]:
     bundle = validate_terminal_editor_bundle(
         editor_bundle,
         allow_synthetic_editor=allow_synthetic_editor,
+        expected_growth_producer_sha=expected_growth_producer_sha,
     )
     if media_asset.sha256 != bundle["render"]["render_sha256"]:
         raise ArtifactLineageMismatch(
