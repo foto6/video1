@@ -81,6 +81,7 @@ def validate_terminal_editor_bundle(
     bundle: Mapping[str, Any],
     *,
     allow_synthetic_editor: bool,
+    media_render_validator: Callable[..., Mapping[str, Any]] | None = None,
     growth_critic_validator: Callable[..., Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if not isinstance(bundle, Mapping):
@@ -169,14 +170,23 @@ def validate_terminal_editor_bundle(
         _hex64(lineage[key], f"editor.lineage.{key}")
 
     render = bundle["render"]
-    r22.validate_media_render_export(
-        render,
-        expected_source_id=lineage["sourceId"],
-        expected_source_sha256=lineage["sourceSha256"],
-        expected_candidate_id=bundle["winnerCandidateId"],
-        expected_plan_digest=render["plan_digest"],
-        allow_synthetic=allow_synthetic_editor,
-    )
+    if media_render_validator is None:
+        r22.validate_media_render_export(
+            render,
+            expected_source_id=lineage["sourceId"],
+            expected_source_sha256=lineage["sourceSha256"],
+            expected_candidate_id=bundle["winnerCandidateId"],
+            expected_plan_digest=render["plan_digest"],
+            allow_synthetic=allow_synthetic_editor,
+        )
+    else:
+        media_render_validator(
+            render,
+            expected_source_id=lineage["sourceId"],
+            expected_source_sha256=lineage["sourceSha256"],
+            expected_candidate_id=bundle["winnerCandidateId"],
+            expected_plan_digest=render["plan_digest"],
+        )
     if render["technical_qa"]["passed"] is not True:
         raise EditorOutcomeIneligible(
             "objective_render_failure: technical QA failed"
@@ -189,15 +199,18 @@ def validate_terminal_editor_bundle(
             expected_render_sha256=render["render_sha256"],
             allow_synthetic=allow_synthetic_editor,
         )
+        if critic["hard_failure_observations"]:
+            raise EditorOutcomeIneligible(
+                "objective_render_failure: critic hard failure"
+            )
     else:
+        # A caller-supplied exact producer validator owns that producer's
+        # hard-failure semantics. Do not reinterpret a different contract as
+        # the older R22 critic shape after the custom validator succeeds.
         growth_critic_validator(
             critic,
             expected_source_id=lineage["sourceId"],
             expected_render_sha256=render["render_sha256"],
-        )
-    if critic["hard_failure_observations"]:
-        raise EditorOutcomeIneligible(
-            "objective_render_failure: critic hard failure"
         )
     return _clone(bundle)
 
@@ -234,11 +247,13 @@ def build_editor_publish_handoff(
     caption: str,
     cta: str,
     allow_synthetic_editor: bool,
+    media_render_validator: Callable[..., Mapping[str, Any]] | None = None,
     growth_critic_validator: Callable[..., Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     bundle = validate_terminal_editor_bundle(
         editor_bundle,
         allow_synthetic_editor=allow_synthetic_editor,
+        media_render_validator=media_render_validator,
         growth_critic_validator=growth_critic_validator,
     )
     if media_asset.sha256 != bundle["render"]["render_sha256"]:

@@ -713,6 +713,82 @@ def _run_media(
     ])
 
 
+def _validate_media_r15_render_export(
+    value: Mapping[str, Any],
+    *,
+    expected_source_id: str,
+    expected_source_sha256: str,
+    expected_candidate_id: str,
+    expected_plan_digest: str,
+) -> dict[str, Any]:
+    required = {
+        "contract_version",
+        "repository",
+        "commit_sha",
+        "source_class",
+        "source_id",
+        "source_sha256",
+        "candidate_id",
+        "round_index",
+        "plan_digest",
+        "render_sha256",
+        "timeline_digest",
+        "artifact_manifest_digest",
+        "technical_qa",
+        "render_provenance",
+        "human_ground_truth",
+    }
+    if not isinstance(value, Mapping) or set(value) != required:
+        raise ReviewLineageError("Media R15 render export fields mismatch")
+    if value["contract_version"] != "media.render_export.v1":
+        raise ReviewLineageError("Media R15 render export contract mismatch")
+    if value["repository"] != "foto6/video2":
+        raise DependencyPinError("Media R15 repository mismatch")
+    if value["commit_sha"] != MEDIA_R15_SHA:
+        raise DependencyPinError("Media R15 producer SHA mismatch")
+    if value["source_class"] != "provider":
+        raise ReviewLineageError("R26 requires provider Media render evidence")
+    if value["source_id"] != expected_source_id:
+        raise ReviewLineageError("Media R15 source id mismatch")
+    if value["source_sha256"] != expected_source_sha256:
+        raise ReviewLineageError("Media R15 source SHA mismatch")
+    if value["candidate_id"] != expected_candidate_id:
+        raise ReviewLineageError("Media R15 candidate mismatch")
+    if value["plan_digest"] != expected_plan_digest:
+        raise ReviewLineageError("Media R15 plan digest mismatch")
+    for key in (
+        "commit_sha",
+    ):
+        _hex(value[key], 40, "media." + key)
+    for key in (
+        "source_sha256",
+        "plan_digest",
+        "render_sha256",
+        "timeline_digest",
+        "artifact_manifest_digest",
+    ):
+        _hex(value[key], 64, "media." + key)
+    if (
+        isinstance(value["round_index"], bool)
+        or not isinstance(value["round_index"], int)
+        or not 0 <= value["round_index"] <= MAX_REEDIT_ROUNDS
+    ):
+        raise RoundRegression("Media R15 round index invalid")
+    qa = value["technical_qa"]
+    if not isinstance(qa, Mapping) or set(qa) != {
+        "passed", "qa_digest", "checks"
+    }:
+        raise ReviewLineageError("Media R15 technical QA fields invalid")
+    if qa["passed"] is not True or not isinstance(qa["checks"], list):
+        raise RealReviewError("Media R15 technical QA did not pass")
+    _hex(qa["qa_digest"], 64, "media.technical_qa.qa_digest")
+    if not isinstance(value["render_provenance"], Mapping):
+        raise ReviewLineageError("Media R15 render provenance invalid")
+    if value["human_ground_truth"] is not False:
+        raise ReviewLineageError("Media R15 cannot claim human ground truth")
+    return _clone(value)
+
+
 def _adapt_media_result(
     result: Mapping[str, Any],
     *,
@@ -778,13 +854,12 @@ def _adapt_media_result(
         },
         "human_ground_truth": False,
     }
-    return r22.validate_media_render_export(
+    return _validate_media_r15_render_export(
         value,
         expected_source_id=source["sourceId"],
         expected_source_sha256=source["sha256"],
         expected_candidate_id=plan["candidateId"],
         expected_plan_digest=plan["planDigest"],
-        allow_synthetic=False,
     )
 
 
@@ -1212,6 +1287,7 @@ def run_real_review_closed_loop(
             caption="R26 real-review closed-loop handoff",
             cta="Learn more",
             allow_synthetic_editor=False,
+            media_render_validator=_validate_media_r15_render_export,
             growth_critic_validator=_terminal_review_validator,
         )
         bundle_path = out_dir / "editor-final-bundle.json"
