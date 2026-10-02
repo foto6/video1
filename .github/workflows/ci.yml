@@ -630,9 +630,16 @@ jobs:
           path: .r27-growth
       - name: Install R27 runtime prerequisites
         run: |
-          if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
-            sudo apt-get install -y --no-install-recommends ffmpeg
+          missing=()
+          command -v ffmpeg >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v ffprobe >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v espeak-ng >/dev/null 2>&1 || missing+=(espeak-ng)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends "${missing[@]}"
           fi
+          ffmpeg -version | head -n 1
+          espeak-ng --version | head -n 1
           python -m pip install -e .
       - name: Run R27 unit and exact Media R19 integration tests
         env:
