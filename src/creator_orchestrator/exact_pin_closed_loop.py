@@ -353,6 +353,7 @@ def _validate_growth_result(
             expected_source_id=source["sourceId"],
             expected_render_sha256=record["render"]["render_sha256"],
             allow_synthetic=False,
+            expected_producer_sha=GROWTH_SHA,
         )
         record["critic"] = critic
     return _clone(decision), _clone(critics)
