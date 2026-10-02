@@ -1,0 +1,31 @@
+{
+  "contractVersion": "creator.live_e2e_consumer.r29.v1",
+  "creatorBaseSha": "0d670abd4b5f04391fd1e6e1af4836a9fc92c8f3",
+  "runtime": "src/creator_orchestrator/live_e2e_consumer.py",
+  "tests": "tests/test_live_e2e_consumer_r29.py",
+  "authoritiesFile": "conformance/creator.live_e2e_consumer.r29.v1/authority-profiles.json",
+  "readinessReport": "reports/CREATOR_R29_LIVE_E2E_READINESS.json",
+  "consumes": {
+    "growthEnvelope": "growth.dynamic_creator_external_review_envelope.r26.v1",
+    "growthHandoff": "growth.dynamic_creator_reedit_handoff.r26.v1",
+    "bridgeCapture": "bridge.dynamic_existing_chat_video_review_capture.v1",
+    "mediaApplication": "media.editorial_reedit_application.v1",
+    "mediaRenderExport": "media.render_export.v1"
+  },
+  "produces": {
+    "journal": "creator.live_e2e_consumer_ledger.r29.v1",
+    "nextBoundary": "creator.media_r21_next_review_boundary.r29.v1",
+    "finalBundle": "creator.autonomous_edit_final_bundle.r22.v1",
+    "publishHandoff": "creator.editor_publish_handoff.v1"
+  },
+  "terminalStates": [
+    "winner",
+    "tie",
+    "insufficient_evidence",
+    "human_review",
+    "reedit_limit_reached"
+  ],
+  "maxReeditRounds": 2,
+  "liveProviderMutation": false,
+  "humanQualityClaim": false
+}

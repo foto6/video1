@@ -1,0 +1,43 @@
+{
+  "contractVersion": "creator.live_e2e_consumer.r29.readiness.v1",
+  "creatorBaseSha": "0d670abd4b5f04391fd1e6e1af4836a9fc92c8f3",
+  "state": "BLOCKED_WAITING_LIVE_GROWTH_OUTPUT",
+  "SOURCE_READY": true,
+  "REAL_REVIEW_INGESTED": false,
+  "REAL_REEDIT_EXECUTED": false,
+  "NEXT_REVIEW_PACKAGE_READY": false,
+  "PUBLISH_HANDOFF_READY": false,
+  "requiredLiveInput": {
+    "contract": "growth.dynamic_creator_external_review_envelope.r26.v1",
+    "growthProducerSha": "e844ed2daaaca9e9694fe1e0fb6b8b7bfac69cbc",
+    "bridgeProducerSha": "ceaee873231a8552c5b7324083baa800eec566a8",
+    "mediaProducerSha": "d753e9e4c1f4448386608a1425232dbc1dba87ea",
+    "availability": "NOT_AVAILABLE_IN_THIS_CREATOR_AGENT_CONTEXT"
+  },
+  "implemented": {
+    "exactAuthorityValidation": true,
+    "packageCaptureSealedMappingAssistantResponseBinding": true,
+    "candidateRoundRenderAttachmentValidation": true,
+    "exactAllowlistedDirectiveExecution": true,
+    "mediaApplicationAndRenderExportRequired": true,
+    "mediaR21NextRoundBoundary": true,
+    "durableReplayJournal": true,
+    "maxReeditRounds": 2,
+    "winnerOnlyPublishHandoff": true
+  },
+  "compatibilityBoundary": {
+    "exactMediaR21EmbedsR19LegacyHandoffValidator": true,
+    "currentGrowthR26HandoffRemainsAuthoritative": true,
+    "legacyShapeUsedOnlyInsideMediaExecutionAdapter": true,
+    "dynamicAndCompatibilityHandoffDigestsBothPersisted": true,
+    "staticR18R20NextPackageFallback": false
+  },
+  "safety": {
+    "liveProviderMutation": false,
+    "credentials": false,
+    "captcha2faBypass": false,
+    "humanQualityClaim": false,
+    "fabricatedLiveEvidence": false,
+    "mergeRelease": false
+  }
+}

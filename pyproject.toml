@@ -18,6 +18,7 @@ creator-closed-loop-r24 = "creator_orchestrator.exact_pin_closed_loop:main"
 creator-real-review-r26 = "creator_orchestrator.real_review_closed_loop:main"
 creator-live-review-r27 = "creator_orchestrator.live_review_execution:main"
 creator-dynamic-live-review-r28 = "creator_orchestrator.dynamic_live_review_loop:main"
+creator-live-e2e-r29 = "creator_orchestrator.live_e2e_consumer:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -21,6 +21,7 @@ on:
       - agent/creator-r26-real-review-closed-loop-20261002
       - agent/creator-r27-live-review-execution-20261002
       - agent/creator-r28-dynamic-live-review-loop-20261002
+      - agent/creator-r29-live-e2e-consumer-20261002
   pull_request:
 
 jobs:
@@ -758,6 +759,87 @@ jobs:
             .r28-readiness.stdout.json
             reports/CREATOR_R28_DYNAMIC_LIVE_REVIEW_READINESS.json
             conformance/creator.dynamic_live_review_loop.r28.v1/**
+
+  focused-r29:
+    needs: full
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Checkout exact Media R21
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: d753e9e4c1f4448386608a1425232dbc1dba87ea
+          path: .r29-media
+      - name: Checkout exact Growth R26
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video3
+          ref: e844ed2daaaca9e9694fe1e0fb6b8b7bfac69cbc
+          path: .r29-growth
+      - name: Checkout exact Bridge R30
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/WebAIBridge
+          ref: ceaee873231a8552c5b7324083baa800eec566a8
+          path: .r29-bridge
+      - name: Install R29 runtime prerequisites
+        run: |
+          missing=()
+          command -v ffmpeg >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v ffprobe >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v espeak-ng >/dev/null 2>&1 || missing+=(espeak-ng)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends "${missing[@]}"
+          fi
+          python -m pip install -e .
+      - name: Run R29 exact-authority and real Media integration tests
+        env:
+          R29_MEDIA_R21_CHECKOUT: ${{ github.workspace }}/.r29-media
+          R29_GROWTH_R26_CHECKOUT: ${{ github.workspace }}/.r29-growth
+          R29_BRIDGE_R30_CHECKOUT: ${{ github.workspace }}/.r29-bridge
+        run: |
+          creator-live-e2e-r29 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_live_e2e_consumer_r29.py' -v
+      - name: Prove live Growth execution gate remains blocked without genuine output
+        run: |
+          set +e
+          creator-live-e2e-r29 readiness --out .r29-readiness.json > .r29-readiness.stdout.json
+          code=$?
+          set -e
+          test "$code" -eq 2
+          python - <<'PY'
+          import json
+          r=json.load(open(".r29-readiness.json"))
+          assert r["state"] == "BLOCKED_WAITING_LIVE_GROWTH_OUTPUT"
+          assert r["SOURCE_READY"] is True
+          assert r["REAL_REVIEW_INGESTED"] is False
+          assert r["REAL_REEDIT_EXECUTED"] is False
+          assert r["NEXT_REVIEW_PACKAGE_READY"] is False
+          assert r["PUBLISH_HANDOFF_READY"] is False
+          assert r["mediaR21"]["producerSha"] == "d753e9e4c1f4448386608a1425232dbc1dba87ea"
+          assert r["growthR26"]["producerSha"] == "e844ed2daaaca9e9694fe1e0fb6b8b7bfac69cbc"
+          assert r["bridgeR30"]["producerSha"] == "ceaee873231a8552c5b7324083baa800eec566a8"
+          assert r["fabricatedLiveEvidence"] is False
+          PY
+      - name: Upload R29 source-ready evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r29-live-e2e-source-ready-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r29-readiness.json
+            .r29-readiness.stdout.json
+            reports/CREATOR_R29_LIVE_E2E_READINESS.json
+            conformance/creator.live_e2e_consumer.r29.v1/**
 
   full:
     runs-on: ubuntu-latest

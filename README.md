@@ -228,3 +228,14 @@ creator-dynamic-live-review-r28 readiness --out ./r28-readiness.json
 The current production state is `BLOCKED_WAITING_DYNAMIC_REVIEW_CAPTURE`: Media R20, Growth R25, and Bridge R29 are exact-green, but no exact-green dynamic Growth R26 / Bridge R30 capture authority or genuine next-round capture is available here. Creator does not substitute fixture/model evidence for that missing capture.
 
 Only a terminal external-review winner can produce the existing R23 publish handoff, and R28 never invokes a social provider. See `docs/DYNAMIC_LIVE_REVIEW_LOOP_R28.md`.
+
+
+## Live E2E dynamic-review consumer
+
+R29 pins Media R21 `d753e9e4...`, Growth R26 `e844ed2d...`, and Bridge R30 `ceaee873...` by exact SHA and Git blobs. It consumes only `growth.dynamic_creator_external_review_envelope.r26.v1`, executes an allowlisted targeted re-edit through the exact Media runtime, and builds the next `media.review_round_bundle.r21.v1` boundary.
+
+```bash
+creator-live-e2e-r29 readiness --out ./r29-readiness.json
+```
+
+Without a genuine coordinator-produced Growth envelope, readiness is deliberately `BLOCKED_WAITING_LIVE_GROWTH_OUTPUT`; fixture tests never promote themselves to live evidence. See `docs/LIVE_E2E_CONSUMER_R29.md`.

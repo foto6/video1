@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.live_e2e_consumer.r29.v1",
+  "title": "Creator R29 live E2E consumer report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "contractVersion",
+    "state",
+    "SOURCE_READY",
+    "REAL_REVIEW_INGESTED",
+    "REAL_REEDIT_EXECUTED",
+    "NEXT_REVIEW_PACKAGE_READY",
+    "PUBLISH_HANDOFF_READY",
+    "liveProviderMutation",
+    "credentialsUsed",
+    "captchaOr2faBypass",
+    "humanQualityClaimed",
+    "reportDigest"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.live_e2e_consumer.r29.readiness.v1"
+    },
+    "state": {
+      "type": "string"
+    },
+    "SOURCE_READY": {
+      "type": "boolean"
+    },
+    "REAL_REVIEW_INGESTED": {
+      "type": "boolean"
+    },
+    "REAL_REEDIT_EXECUTED": {
+      "type": "boolean"
+    },
+    "NEXT_REVIEW_PACKAGE_READY": {
+      "type": "boolean"
+    },
+    "PUBLISH_HANDOFF_READY": {
+      "type": "boolean"
+    },
+    "liveProviderMutation": {
+      "const": false
+    },
+    "credentialsUsed": {
+      "const": false
+    },
+    "captchaOr2faBypass": {
+      "const": false
+    },
+    "humanQualityClaimed": {
+      "const": false
+    },
+    "reportDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
