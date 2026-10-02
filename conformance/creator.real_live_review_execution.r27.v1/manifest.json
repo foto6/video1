@@ -1,0 +1,47 @@
+{
+  "contractVersion": "creator.real_live_review_execution.r27.v1",
+  "externalEnvelopeContract": "creator.growth_r25_external_review.r27.v1",
+  "candidateContextContract": "creator.reviewed_candidate_context.r27.v1",
+  "repository": "foto6/video1",
+  "startingSha": "ee73a4492c0e96b54f050be2a6d24a1af06c16bf",
+  "mediaR19": {
+    "repository": "foto6/video2",
+    "branch": "agent/media-r19-editorial-runtime-production-20261002",
+    "sha": "31409de4bef473417a33a8c698507f7cfb1905e1",
+    "ciRunId": 36984502487,
+    "applicationContract": "media.editorial_reedit_application.v1",
+    "requestContract": "media.editorial_reedit_request.r19.v1",
+    "contractBlobSha1": "6b3350c5f1524fe49a49d5637514e2fb1a808bcf",
+    "manifestBlobSha1": "502c32253d370e9b4e3d53f4a70de317f89dd21b",
+    "schemaBlobSha1": "7cabf91f08ae11b68cc4a7eec88d358a46730289",
+    "implementationBlobSha1": "8110a086b5b319bd2601860845c6afbf97681921",
+    "runnerBlobSha1": "7dbec612621aa42baaf2946cdac61d070e3ff41f"
+  },
+  "growthR25Observed": {
+    "repository": "foto6/video3",
+    "branch": "agent/growth-r25-real-capture-ingest-20261002",
+    "observedSha": "dc0741d5b11c1f7464ac9a6c5db80c0a4535df08",
+    "observedCiRunId": 36987057963,
+    "creatorReadyEnvelopeAvailable": false,
+    "missing": "R25 branch still equals Growth R24 producer; no R25 Creator-ready envelope contract/schema"
+  },
+  "mediaR20Observed": {
+    "repository": "foto6/video2",
+    "branch": "agent/media-r20-r19-creator-integration-20261002",
+    "observedSha": "31409de4bef473417a33a8c698507f7cfb1905e1",
+    "dynamicReviewPackageAvailable": false
+  },
+  "invariants": {
+    "maxReeditRounds": 2,
+    "exactReviewLineage": true,
+    "exactMediaR19Producer": true,
+    "newBytesRequiredForActionableReedit": true,
+    "sameReviewIdempotent": true,
+    "conflictingReviewFails": true,
+    "lostAckRecoveryNoDuplicateMediaEffect": true,
+    "winnerOnlyPublishHandoff": true,
+    "providerMutation": false,
+    "credentials": false,
+    "humanLevelClaim": false
+  }
+}

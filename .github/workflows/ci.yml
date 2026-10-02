@@ -19,6 +19,7 @@ on:
       - agent/creator-r23-editor-publish-handoff-20261001
       - agent/creator-r24-exact-pin-closed-loop-20261001
       - agent/creator-r26-real-review-closed-loop-20261002
+      - agent/creator-r27-live-review-execution-20261002
   pull_request:
 
 jobs:
@@ -603,6 +604,73 @@ jobs:
             .r26-readiness.json
             .r26-readiness.stdout.json
             reports/CREATOR_R26_REAL_REVIEW_READINESS.json
+
+  focused-r27:
+    needs: full
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Checkout exact Media R19
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: 31409de4bef473417a33a8c698507f7cfb1905e1
+          path: .r27-media
+      - name: Checkout observed Growth R25 branch head
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video3
+          ref: dc0741d5b11c1f7464ac9a6c5db80c0a4535df08
+          path: .r27-growth
+      - name: Install R27 runtime prerequisites
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get install -y --no-install-recommends ffmpeg
+          fi
+          python -m pip install -e .
+      - name: Run R27 unit and exact Media R19 integration tests
+        env:
+          R27_MEDIA_R19_CHECKOUT: ${{ github.workspace }}/.r27-media
+          R27_GROWTH_R25_CHECKOUT: ${{ github.workspace }}/.r27-growth
+        run: |
+          creator-live-review-r27 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_live_review_execution_r27.py' -v
+      - name: Prove production gate remains blocked without genuine Growth R25 capture
+        run: |
+          set +e
+          creator-live-review-r27 readiness --out .r27-readiness.json > .r27-readiness.stdout.json
+          code=$?
+          set -e
+          test "$code" -eq 2
+          python - <<'PY'
+          import json
+          r=json.load(open(".r27-readiness.json"))
+          assert r["SOURCE_READY"] is True
+          assert r["REAL_REVIEW_INGESTED"] is False
+          assert r["REAL_REEDIT_EXECUTED"] is False
+          assert r["PUBLISH_HANDOFF_READY"] is False
+          assert r["state"] == "BLOCKED_WAITING_REAL_CAPTURE"
+          assert r["mediaR19"]["sha"] == "31409de4bef473417a33a8c698507f7cfb1905e1"
+          assert r["growthR25"]["observedSha"] == "dc0741d5b11c1f7464ac9a6c5db80c0a4535df08"
+          assert r["safety"]["liveSocialProviderMutation"] is False
+          PY
+      - name: Upload R27 source-ready evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r27-live-review-source-ready-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r27-readiness.json
+            .r27-readiness.stdout.json
+            reports/CREATOR_R27_LIVE_REVIEW_READINESS.json
+            conformance/creator.real_live_review_execution.r27.v1/**
 
   full:
     runs-on: ubuntu-latest

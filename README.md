@@ -202,3 +202,12 @@ creator-closed-loop-r24 --source ./source.mp4 --brief "Make the proof concise" -
 ```
 
 The runner refuses any checkout not exactly at Media R15 `a17f782d...` or Growth R18 `2d3bf275...`, verifies the pinned contract blobs, renders real MP4 candidates through the Media runtime, consumes Growth's actual candidate-decision implementation, enforces at most two targeted re-edit rounds, and prepares an R23 handoff only for an eligible winner. It never invokes a publish provider.
+
+
+## Real live-review execution
+
+R27 executes externally supplied review directives through exact Media R19 and separates source readiness from genuine capture execution. The production gate currently remains `BLOCKED_WAITING_REAL_CAPTURE`: Growth R25 has not yet produced an exact-pinned Creator-ready envelope, and Media R20 has not yet produced the dynamic next-round blinded package contract.
+
+`creator-live-review-r27 readiness` reports `SOURCE_READY`, `REAL_REVIEW_INGESTED`, `REAL_REEDIT_EXECUTED`, and `PUBLISH_HANDOFF_READY` independently.
+
+CI uses an explicitly labeled fixture envelope only to prove the exact Media R19 application/replay boundary. Fixture evidence never sets the real-review/re-edit stages. See `docs/REAL_LIVE_REVIEW_EXECUTION_R27.md`.

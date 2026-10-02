@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.growth_r25_external_review.r27.v1",
+  "title": "Creator R27 external Growth R25 review envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "producer",
+    "capture",
+    "review",
+    "evidenceBoundary",
+    "envelopeDigest"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.growth_r25_external_review.r27.v1"
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "branch",
+        "sha",
+        "ciRunId",
+        "contractVersion",
+        "manifestBlobSha1",
+        "schemaBlobSha1"
+      ]
+    },
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "captureId",
+        "captureDigest",
+        "conversationId",
+        "reviewRequestId",
+        "assistantMessageId",
+        "bridgeProducerSha",
+        "rawResponseSha256"
+      ]
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "roundIndex",
+        "source",
+        "candidate",
+        "criticOutputDigest",
+        "handoff"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "targeted_reedit",
+            "winner",
+            "tie",
+            "insufficient_evidence",
+            "human_review"
+          ]
+        },
+        "roundIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "source": {
+          "type": "object"
+        },
+        "candidate": {
+          "type": "object"
+        },
+        "criticOutputDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "handoff": {
+          "type": "object"
+        }
+      }
+    },
+    "evidenceBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "realExternalCapture",
+        "fixture",
+        "humanGroundTruth",
+        "livePlatformEvidence"
+      ],
+      "properties": {
+        "realExternalCapture": {
+          "type": "boolean"
+        },
+        "fixture": {
+          "type": "boolean"
+        },
+        "humanGroundTruth": {
+          "const": false
+        },
+        "livePlatformEvidence": {
+          "const": false
+        }
+      }
+    },
+    "envelopeDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

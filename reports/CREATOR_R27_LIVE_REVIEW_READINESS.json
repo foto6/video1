@@ -1,0 +1,39 @@
+{
+  "reportVersion": "creator.real_live_review_execution.r27.readiness.v1",
+  "creatorBaseSha": "ee73a4492c0e96b54f050be2a6d24a1af06c16bf",
+  "state": "BLOCKED_WAITING_REAL_CAPTURE",
+  "SOURCE_READY": true,
+  "REAL_REVIEW_INGESTED": false,
+  "REAL_REEDIT_EXECUTED": false,
+  "PUBLISH_HANDOFF_READY": false,
+  "mediaR19": {
+    "state": "READY_EXACT_PIN",
+    "sha": "31409de4bef473417a33a8c698507f7cfb1905e1",
+    "ciRunId": 36984502487,
+    "contract": "media.editorial_reedit_application.v1"
+  },
+  "growthR25": {
+    "state": "BLOCKED_CREATOR_READY_CONTRACT_UNAVAILABLE",
+    "branch": "agent/growth-r25-real-capture-ingest-20261002",
+    "observedSha": "dc0741d5b11c1f7464ac9a6c5db80c0a4535df08",
+    "observedCiRunId": 36987057963,
+    "exactMissing": "R25-specific Creator-ready external review envelope contract/schema"
+  },
+  "mediaR20": {
+    "state": "BLOCKED_DYNAMIC_PACKAGE_UNAVAILABLE",
+    "branch": "agent/media-r20-r19-creator-integration-20261002",
+    "observedSha": "31409de4bef473417a33a8c698507f7cfb1905e1"
+  },
+  "genuineCapture": {
+    "state": "BLOCKED_WAITING_REAL_CAPTURE",
+    "requiredPath": "Bridge R29 -> exact-green Growth R25 Creator-ready envelope",
+    "availableInThisAgentContext": false
+  },
+  "safety": {
+    "liveSocialProviderMutation": false,
+    "credentials": false,
+    "captcha2faBypass": false,
+    "humanLevelClaim": false,
+    "fixturePromotedToReal": false
+  }
+}
