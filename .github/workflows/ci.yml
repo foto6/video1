@@ -790,9 +790,9 @@ jobs:
           command -v ffmpeg >/dev/null 2>&1 || missing+=(ffmpeg)
           command -v ffprobe >/dev/null 2>&1 || missing+=(ffmpeg)
           command -v espeak-ng >/dev/null 2>&1 || missing+=(espeak-ng)
-          if [ "\${#missing[@]}" -gt 0 ]; then
+          if [ "${#missing[@]}" -gt 0 ]; then
             sudo apt-get update
-            sudo apt-get install -y --no-install-recommends "\${missing[@]}"
+            sudo apt-get install -y --no-install-recommends "${missing[@]}"
           fi
           ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
@@ -800,9 +800,8 @@ jobs:
           python -m pip install -e .
       - name: Run R29 exact authority, replay and real Media integration tests
         env:
-          R29_MEDIA_R21_CHECKOUT: \${{ github.workspace }}/.r29-media
-          R29_GROWTH_R26_CHECKOUT: \${{ github.workspace }}/.r29-growth
-          R29_BRIDGE_R30_CHECKOUT: \${{ github.workspace }}/.r29-bridge
+          R29_MEDIA_R21_CHECKOUT: ${{ github.workspace }}/.r29-media
+          R29_GROWTH_R26_CHECKOUT: ${{ github.workspace }}/.r29-growth
         run: |
           creator-exact-dynamic-r29 --help
           PYTHONPATH=src python -m unittest discover -s tests -p 'test_exact_dynamic_e2e_r29.py' -v
@@ -835,7 +834,7 @@ jobs:
       - name: Upload R29 source-ready evidence
         uses: actions/upload-artifact@v4
         with:
-          name: creator-r29-exact-dynamic-source-ready-\${{ github.sha }}
+          name: creator-r29-exact-dynamic-source-ready-${{ github.sha }}
           if-no-files-found: error
           retention-days: 30
           path: |
