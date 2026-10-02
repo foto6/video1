@@ -110,6 +110,54 @@ class R22AutonomousEditorLoopTests(unittest.TestCase):
                 allow_synthetic=True,
             )
 
+    def test_explicit_growth_producer_pin_preserves_default_boundary(self):
+        analysis, _, _ = r22.synthetic_semantic_context()
+        source = {
+            "sourceId": "src-explicit-pin",
+            "sha256": analysis["source"]["sha256"],
+            "durationMs": analysis["source"]["durationMs"],
+        }
+        plan = r22.build_initial_plans(
+            loop_id="loop-explicit-pin",
+            semantic_analysis=analysis,
+            style_decision=r22.synthetic_semantic_context()[1],
+            directives=r22.synthetic_semantic_context()[2],
+            count=2,
+        )[0]
+        render = r22.SyntheticMediaRenderAdapter().submit(
+            idempotency_key="render-explicit-pin",
+            source=source,
+            plan=plan,
+        )
+        critic = dict(
+            r22.SyntheticGrowthCriticAdapter().submit(
+                idempotency_key="critic-explicit-pin",
+                source=source,
+                render_export=render,
+                semantic_analysis=analysis,
+            )
+        )
+        critic["commit_sha"] = "a" * 40
+        critic["model_or_rule_identity"] = {
+            **critic["model_or_rule_identity"],
+            "kind": "rule",
+        }
+        with self.assertRaises(r22.ProducerUnavailable):
+            r22.validate_growth_critic_export(
+                critic,
+                expected_source_id=source["sourceId"],
+                expected_render_sha256=render["render_sha256"],
+                allow_synthetic=False,
+            )
+        accepted = r22.validate_growth_critic_export(
+            critic,
+            expected_source_id=source["sourceId"],
+            expected_render_sha256=render["render_sha256"],
+            allow_synthetic=False,
+            expected_producer_sha="a" * 40,
+        )
+        self.assertEqual(accepted["commit_sha"], "a" * 40)
+
     def test_targeted_reedit_deltas_are_concrete(self):
         analysis, style, directives = r22.synthetic_semantic_context()
         source = {
