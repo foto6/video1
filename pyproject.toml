@@ -17,6 +17,7 @@ creator-editor-publish-r23 = "creator_orchestrator.editor_publish_handoff:main"
 creator-closed-loop-r24 = "creator_orchestrator.exact_pin_closed_loop:main"
 creator-real-review-r26 = "creator_orchestrator.real_review_closed_loop:main"
 creator-live-review-r27 = "creator_orchestrator.live_review_execution:main"
+creator-dynamic-live-review-r28 = "creator_orchestrator.dynamic_live_review_loop:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -20,6 +20,7 @@ on:
       - agent/creator-r24-exact-pin-closed-loop-20261001
       - agent/creator-r26-real-review-closed-loop-20261002
       - agent/creator-r27-live-review-execution-20261002
+      - agent/creator-r28-dynamic-live-review-loop-20261002
   pull_request:
 
 jobs:
@@ -678,6 +679,85 @@ jobs:
             .r27-readiness.stdout.json
             reports/CREATOR_R27_LIVE_REVIEW_READINESS.json
             conformance/creator.real_live_review_execution.r27.v1/**
+
+  focused-r28:
+    needs: full
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Checkout exact Media R20
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: b22174db3c772a49a21fb9f8b1d40828bf258005
+          path: .r28-media
+      - name: Checkout exact Growth R25
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video3
+          ref: 2c441ebaa017c7da72461316401aeaf445e3d6e5
+          path: .r28-growth
+      - name: Install R28 runtime prerequisites
+        run: |
+          missing=()
+          command -v ffmpeg >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v ffprobe >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v espeak-ng >/dev/null 2>&1 || missing+=(espeak-ng)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends "${missing[@]}"
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+          espeak-ng --version | head -n 1
+          python -m pip install -e .
+      - name: Run R28 authority, replay and exact Media dynamic-package tests
+        env:
+          R28_MEDIA_R20_CHECKOUT: ${{ github.workspace }}/.r28-media
+          R28_GROWTH_R25_CHECKOUT: ${{ github.workspace }}/.r28-growth
+        run: |
+          creator-dynamic-live-review-r28 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_dynamic_live_review_loop_r28.py' -v
+      - name: Prove genuine dynamic-capture gate remains blocked
+        run: |
+          set +e
+          creator-dynamic-live-review-r28 readiness --out .r28-readiness.json > .r28-readiness.stdout.json
+          code=$?
+          set -e
+          test "$code" -eq 2
+          python - <<'PY'
+          import json
+          r=json.load(open(".r28-readiness.json"))
+          assert r["SOURCE_READY"] is True
+          assert r["REAL_REVIEW_INGESTED"] is False
+          assert r["REAL_REEDIT_EXECUTED"] is False
+          assert r["NEXT_REVIEW_PACKAGE_READY"] is False
+          assert r["PUBLISH_HANDOFF_READY"] is False
+          assert r["state"] == "BLOCKED_WAITING_DYNAMIC_REVIEW_CAPTURE"
+          assert r["mediaR20Authority"]["producerSha"] == "b22174db3c772a49a21fb9f8b1d40828bf258005"
+          assert r["growthR25Authority"]["producerSha"] == "2c441ebaa017c7da72461316401aeaf445e3d6e5"
+          assert r["bridgeR29Observed"]["producerSha"] == "ed9a35290f94607d7577f1ee9301de1bb44334f2"
+          assert r["missingDynamicAuthority"]["growthR26"]["available"] is False
+          assert r["missingDynamicAuthority"]["bridgeR30"]["available"] is False
+          assert r["liveProviderMutation"] is False
+          PY
+      - name: Upload R28 source-ready evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r28-dynamic-review-source-ready-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r28-readiness.json
+            .r28-readiness.stdout.json
+            reports/CREATOR_R28_DYNAMIC_LIVE_REVIEW_READINESS.json
+            conformance/creator.dynamic_live_review_loop.r28.v1/**
 
   full:
     runs-on: ubuntu-latest

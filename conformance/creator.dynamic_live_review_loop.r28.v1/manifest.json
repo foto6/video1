@@ -1,0 +1,45 @@
+{
+  "contractVersion": "creator.dynamic_live_review_loop.r28.v1",
+  "creatorBaseSha": "6efc98006f9b0d79b0dd5d5ac070fbc9d9f423f9",
+  "runtime": "src/creator_orchestrator/dynamic_live_review_loop.py",
+  "test": "tests/test_dynamic_live_review_loop_r28.py",
+  "schemaPath": "conformance/creator.dynamic_live_review_loop.r28.v1/schema.json",
+  "authorityProfilesPath": "conformance/creator.dynamic_live_review_loop.r28.v1/authority-profiles.json",
+  "mediaAuthority": {
+    "repository": "foto6/video2",
+    "producerSha": "b22174db3c772a49a21fb9f8b1d40828bf258005",
+    "ciRunId": 36988788032,
+    "contracts": [
+      "media.editorial_reedit_application.v1",
+      "media.render_export.v1",
+      "media.dynamic_review_package.r20.v1"
+    ]
+  },
+  "growthAuthority": {
+    "repository": "foto6/video3",
+    "producerSha": "2c441ebaa017c7da72461316401aeaf445e3d6e5",
+    "ciRunId": 36988158233,
+    "contracts": [
+      "growth.real_capture_ingest.r25.v1",
+      "growth.creator_external_review_envelope.r25.v1",
+      "growth.creator_reedit_handoff.v1"
+    ]
+  },
+  "bridgeObserved": {
+    "repository": "foto6/WebAIBridge",
+    "producerSha": "ed9a35290f94607d7577f1ee9301de1bb44334f2",
+    "ciRunId": 36989658042,
+    "captureContract": "bridge.existing_chat_video_review_capture.v1"
+  },
+  "bounds": {
+    "maxReeditRounds": 2
+  },
+  "safety": {
+    "movingBranchAuthority": false,
+    "liveProviderPublish": false,
+    "credentials": false,
+    "captcha2faBypass": false,
+    "humanLevelClaim": false,
+    "fabricatedLiveReview": false
+  }
+}

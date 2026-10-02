@@ -211,3 +211,20 @@ R27 executes externally supplied review directives through exact Media R19 and s
 `creator-live-review-r27 readiness` reports `SOURCE_READY`, `REAL_REVIEW_INGESTED`, `REAL_REEDIT_EXECUTED`, and `PUBLISH_HANDOFF_READY` independently.
 
 CI uses an explicitly labeled fixture envelope only to prove the exact Media R19 application/replay boundary. Fixture evidence never sets the real-review/re-edit stages. See `docs/REAL_LIVE_REVIEW_EXECUTION_R27.md`.
+
+
+## Dynamic live-review loop
+
+R28 replaces R27's frozen review dependency snapshot with exact runtime authority profiles. The current profiles pin Media R20 `b22174db3c772a49a21fb9f8b1d40828bf258005` and Growth R25 `2c441ebaa017c7da72461316401aeaf445e3d6e5`, including contract/schema/implementation Git blobs.
+
+For a validated `targeted_reedit`, Creator executes the exact Media R19 runtime present at the R20 head, verifies the changed MP4 plus `media.editorial_reedit_application.v1` and `media.render_export.v1`, then invokes the exact Media R20 dynamic blinded-package builder for the next round. Replays recover the same edit/package identities and the loop enforces at most two re-edit rounds.
+
+Readiness:
+
+```bash
+creator-dynamic-live-review-r28 readiness --out ./r28-readiness.json
+```
+
+The current production state is `BLOCKED_WAITING_DYNAMIC_REVIEW_CAPTURE`: Media R20, Growth R25, and Bridge R29 are exact-green, but no exact-green dynamic Growth R26 / Bridge R30 capture authority or genuine next-round capture is available here. Creator does not substitute fixture/model evidence for that missing capture.
+
+Only a terminal external-review winner can produce the existing R23 publish handoff, and R28 never invokes a social provider. See `docs/DYNAMIC_LIVE_REVIEW_LOOP_R28.md`.

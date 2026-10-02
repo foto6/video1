@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.dynamic_live_review_loop.r28.v1",
+  "title": "Creator R28 dynamic live-review readiness/result",
+  "type": "object",
+  "required": [
+    "contractVersion",
+    "state",
+    "SOURCE_READY",
+    "REAL_REVIEW_INGESTED",
+    "REAL_REEDIT_EXECUTED",
+    "NEXT_REVIEW_PACKAGE_READY",
+    "PUBLISH_HANDOFF_READY",
+    "providerInvoked",
+    "liveProviderMutation",
+    "credentialsUsed",
+    "captchaOr2faBypass",
+    "humanLevelQualityClaimed"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.dynamic_live_review_loop.r28.readiness.v1"
+    },
+    "state": {
+      "type": "string",
+      "minLength": 1
+    },
+    "SOURCE_READY": {
+      "type": "boolean"
+    },
+    "REAL_REVIEW_INGESTED": {
+      "type": "boolean"
+    },
+    "REAL_REEDIT_EXECUTED": {
+      "type": "boolean"
+    },
+    "NEXT_REVIEW_PACKAGE_READY": {
+      "type": "boolean"
+    },
+    "PUBLISH_HANDOFF_READY": {
+      "type": "boolean"
+    },
+    "providerInvoked": {
+      "const": false
+    },
+    "liveProviderMutation": {
+      "const": false
+    },
+    "credentialsUsed": {
+      "const": false
+    },
+    "captchaOr2faBypass": {
+      "const": false
+    },
+    "humanLevelQualityClaimed": {
+      "const": false
+    }
+  }
+}
