@@ -1,0 +1,24 @@
+{
+  "contractVersion": "creator.exact_dynamic_e2e.r29.v1",
+  "creatorBaseSha": "0d670abd4b5f04391fd1e6e1af4836a9fc92c8f3",
+  "authorityProfiles": "authority-profiles.json",
+  "schema": "schema.json",
+  "implementation": "src/creator_orchestrator/exact_dynamic_e2e_r29.py",
+  "tests": "tests/test_exact_dynamic_e2e_r29.py",
+  "inputContract": "growth.dynamic_creator_external_review_envelope.r26.v1",
+  "nextReviewContract": "media.review_round_bundle.r21.v1",
+  "maxReeditRounds": 2,
+  "terminalPublishable": [
+    "winner"
+  ],
+  "nonPublishable": [
+    "tie",
+    "insufficient_evidence",
+    "human_review",
+    "reedit_limit_reached"
+  ],
+  "genuineCaptureRequired": true,
+  "syntheticModelJudgmentAllowed": false,
+  "providerMutation": false,
+  "humanParityClaim": false
+}

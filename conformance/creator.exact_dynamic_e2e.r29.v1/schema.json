@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.exact_dynamic_e2e.r29.readiness.v1",
+  "type": "object",
+  "required": [
+    "contractVersion",
+    "state",
+    "SOURCE_READY",
+    "REAL_REVIEW_INGESTED",
+    "REAL_REEDIT_EXECUTED",
+    "NEXT_REVIEW_PACKAGE_READY",
+    "PUBLISH_HANDOFF_READY",
+    "providerInvoked",
+    "liveProviderMutation",
+    "humanLevelQualityClaimed"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.exact_dynamic_e2e.r29.readiness.v1"
+    },
+    "state": {
+      "type": "string"
+    },
+    "SOURCE_READY": {
+      "type": "boolean"
+    },
+    "REAL_REVIEW_INGESTED": {
+      "type": "boolean"
+    },
+    "REAL_REEDIT_EXECUTED": {
+      "type": "boolean"
+    },
+    "NEXT_REVIEW_PACKAGE_READY": {
+      "type": "boolean"
+    },
+    "PUBLISH_HANDOFF_READY": {
+      "type": "boolean"
+    },
+    "providerInvoked": {
+      "const": false
+    },
+    "liveProviderMutation": {
+      "const": false
+    },
+    "humanLevelQualityClaimed": {
+      "const": false
+    }
+  }
+}

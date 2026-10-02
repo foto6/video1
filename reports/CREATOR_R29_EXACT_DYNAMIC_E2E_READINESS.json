@@ -1,0 +1,38 @@
+{
+  "contractVersion": "creator.exact_dynamic_e2e.r29.readiness.v1",
+  "creatorBaseSha": "0d670abd4b5f04391fd1e6e1af4836a9fc92c8f3",
+  "state": "BLOCKED_WAITING_GENUINE_DYNAMIC_CAPTURE",
+  "SOURCE_READY": true,
+  "REAL_REVIEW_INGESTED": false,
+  "REAL_REEDIT_EXECUTED": false,
+  "NEXT_REVIEW_PACKAGE_READY": false,
+  "PUBLISH_HANDOFF_READY": false,
+  "exactAuthorities": {
+    "media": {
+      "sha": "d753e9e4c1f4448386608a1425232dbc1dba87ea",
+      "ciRunId": 36994000619
+    },
+    "growth": {
+      "sha": "e844ed2daaaca9e9694fe1e0fb6b8b7bfac69cbc",
+      "ciRunId": 36996617627
+    },
+    "bridge": {
+      "sha": "ceaee873231a8552c5b7324083baa800eec566a8",
+      "ciRunId": 36993885456
+    }
+  },
+  "observedGrowthR26Artifact": {
+    "artifactId": 11221662698,
+    "name": "growth-r26-dynamic-review-capture",
+    "digest": "sha256:d06e589d294dc942109834801fe676300f87dfce1ddbfde1877b65f7cf70cb31",
+    "state": "SOURCE_READY",
+    "liveCapture": null,
+    "creatorEnvelopes": null
+  },
+  "maxReeditRounds": 2,
+  "providerInvoked": false,
+  "liveProviderMutation": false,
+  "credentialsUsed": false,
+  "captchaOr2faBypass": false,
+  "humanLevelQualityClaimed": false
+}

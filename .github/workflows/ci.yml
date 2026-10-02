@@ -759,6 +759,96 @@ jobs:
             reports/CREATOR_R28_DYNAMIC_LIVE_REVIEW_READINESS.json
             conformance/creator.dynamic_live_review_loop.r28.v1/**
 
+
+  focused-r29-exact-dynamic:
+    needs: full
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Checkout exact Media R21
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: d753e9e4c1f4448386608a1425232dbc1dba87ea
+          path: .r29-media
+      - name: Checkout exact Growth R26
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video3
+          ref: e844ed2daaaca9e9694fe1e0fb6b8b7bfac69cbc
+          path: .r29-growth
+      - name: Checkout exact Bridge R30
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/WebAIBridge
+          ref: ceaee873231a8552c5b7324083baa800eec566a8
+          path: .r29-bridge
+      - name: Install exact runtime prerequisites
+        run: |
+          missing=()
+          command -v ffmpeg >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v ffprobe >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v espeak-ng >/dev/null 2>&1 || missing+=(espeak-ng)
+          if [ "\${#missing[@]}" -gt 0 ]; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends "\${missing[@]}"
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+          espeak-ng --version | head -n 1
+          python -m pip install -e .
+      - name: Run R29 exact authority, replay and real Media integration tests
+        env:
+          R29_MEDIA_R21_CHECKOUT: \${{ github.workspace }}/.r29-media
+          R29_GROWTH_R26_CHECKOUT: \${{ github.workspace }}/.r29-growth
+          R29_BRIDGE_R30_CHECKOUT: \${{ github.workspace }}/.r29-bridge
+        run: |
+          creator-exact-dynamic-r29 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_exact_dynamic_e2e_r29.py' -v
+      - name: Prove genuine-capture gate remains source-ready
+        run: |
+          set +e
+          creator-exact-dynamic-r29 readiness --out .r29-readiness.json > .r29-readiness.stdout.json
+          code=$?
+          set -e
+          test "$code" -eq 2
+          python - <<'PY'
+          import json
+          r=json.load(open(".r29-readiness.json"))
+          c=json.load(open("reports/CREATOR_R29_EXACT_DYNAMIC_E2E_READINESS.json"))
+          assert r["state"] == "BLOCKED_WAITING_GENUINE_DYNAMIC_CAPTURE"
+          assert r["SOURCE_READY"] is True
+          assert r["REAL_REVIEW_INGESTED"] is False
+          assert r["REAL_REEDIT_EXECUTED"] is False
+          assert r["NEXT_REVIEW_PACKAGE_READY"] is False
+          assert r["PUBLISH_HANDOFF_READY"] is False
+          assert r["mediaR21Authority"]["producerSha"] == "d753e9e4c1f4448386608a1425232dbc1dba87ea"
+          assert r["growthR26Authority"]["producerSha"] == "e844ed2daaaca9e9694fe1e0fb6b8b7bfac69cbc"
+          assert r["bridgeR30Authority"]["producerSha"] == "ceaee873231a8552c5b7324083baa800eec566a8"
+          assert r["growthR26ExactHeadArtifact"]["liveCapture"] is None
+          assert r["growthR26ExactHeadArtifact"]["creatorEnvelopes"] is None
+          assert c["state"] == r["state"]
+          assert r["liveProviderMutation"] is False
+          assert r["humanLevelQualityClaimed"] is False
+          PY
+      - name: Upload R29 source-ready evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r29-exact-dynamic-source-ready-\${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r29-readiness.json
+            .r29-readiness.stdout.json
+            reports/CREATOR_R29_EXACT_DYNAMIC_E2E_READINESS.json
+            conformance/creator.exact_dynamic_e2e.r29.v1/**
+
   full:
     runs-on: ubuntu-latest
     steps:
