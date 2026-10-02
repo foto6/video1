@@ -204,6 +204,7 @@ def validate_growth_critic_export(
     expected_source_id: str,
     expected_render_sha256: str,
     allow_synthetic: bool,
+    expected_producer_sha: str | None = None,
 ) -> dict[str, Any]:
     required = {
         "contract_version",
@@ -234,8 +235,14 @@ def validate_growth_critic_export(
     if synthetic:
         if not allow_synthetic:
             raise ProducerUnavailable("synthetic Growth critic not allowed")
-    elif commit_sha != GROWTH_CRITIC_PIN["producerSha"]:
-        raise ProducerUnavailable("Growth critic producer SHA is not pinned")
+    else:
+        producer_sha = (
+            GROWTH_CRITIC_PIN["producerSha"]
+            if expected_producer_sha is None
+            else _hex40(expected_producer_sha, "growth.expected_producer_sha")
+        )
+        if commit_sha != producer_sha:
+            raise ProducerUnavailable("Growth critic producer SHA is not pinned")
     if value["source_id"] != expected_source_id:
         raise EditorLoopError("Growth critic source_id mismatch")
     if value["render_sha256"] != expected_render_sha256:
