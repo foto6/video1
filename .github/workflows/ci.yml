@@ -18,6 +18,7 @@ on:
       - agent/creator-r22-autonomous-editor-loop-20261001
       - agent/creator-r23-editor-publish-handoff-20261001
       - agent/creator-r24-exact-pin-closed-loop-20261001
+      - agent/creator-r26-real-review-closed-loop-20261002
   pull_request:
 
 jobs:
@@ -522,6 +523,86 @@ jobs:
             .r24-rehearsal/final.ffprobe.json
             .r24-rehearsal/human-gate-v4-evidence.json
             .r24-rehearsal/candidates/**/media.render_export.v1.json
+
+
+  focused-r26:
+    needs: full
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Checkout exact Media R15
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: a17f782da8144d1e890ac83195396a3192df93c2
+          path: .r26-media
+      - name: Checkout exact Growth R23
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video3
+          ref: 26f769abceb43a63677ea8f7ba028369db371696
+          path: .r26-growth
+      - name: Install R26 runtime prerequisites
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get install -y --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+          python -m pip install -e .
+      - name: Run R26 strict review-boundary unit tests
+        run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_real_review_closed_loop_r26.py' -v
+      - name: Generate real Media source fixture
+        run: |
+          mkdir -p .r26-fixture
+          ffmpeg -hide_banner -nostdin -y \
+            -f lavfi -i "testsrc2=s=180x320:r=15:d=18" \
+            -f lavfi -i "sine=frequency=523:sample_rate=48000:duration=18" \
+            -shortest -threads 1 -c:v libx264 -preset ultrafast -pix_fmt yuv420p \
+            -c:a aac -b:a 96k .r26-fixture/source.mp4 >/dev/null 2>&1
+      - name: Run R26 real Media restart/re-edit integration
+        env:
+          R26_MEDIA_CHECKOUT: ${{ github.workspace }}/.r26-media
+          R26_GROWTH_R23_CHECKOUT: ${{ github.workspace }}/.r26-growth
+          R26_SOURCE_VIDEO: ${{ github.workspace }}/.r26-fixture/source.mp4
+        run: PYTHONPATH=src python integration_tests/r26_real_review_integration.py
+      - name: Prove live-review gate remains blocked without external artifact
+        run: |
+          set +e
+          creator-real-review-r26 readiness --out .r26-readiness.json > .r26-readiness.stdout.json
+          code=$?
+          set -e
+          test "$code" -eq 2
+          python - <<'PY'
+          import json
+          dynamic = json.load(open(".r26-readiness.json"))
+          committed = json.load(open("reports/CREATOR_R26_REAL_REVIEW_READINESS.json"))
+          assert dynamic["implementationStatus"] == "IMPLEMENTED"
+          assert dynamic["realReviewExecutionStatus"] == "BLOCKED"
+          assert dynamic["blocker"]["code"] == "MISSING_EXTERNAL_GROWTH_R23_REAL_REVIEW_EVENT"
+          assert committed["implementationStatus"] == "IMPLEMENTED"
+          assert committed["realReviewExecutionStatus"] == "BLOCKED"
+          assert dynamic["growthProducer"]["sha"] == committed["growthProducerSha"]
+          assert dynamic["mediaProducerSha"] == committed["mediaProducerSha"]
+          assert dynamic["providerInvoked"] is False
+          assert dynamic["credentialsUsed"] is False
+          PY
+      - name: Upload R26 readiness evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r26-real-review-readiness-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r26-readiness.json
+            .r26-readiness.stdout.json
+            reports/CREATOR_R26_REAL_REVIEW_READINESS.json
 
   full:
     runs-on: ubuntu-latest

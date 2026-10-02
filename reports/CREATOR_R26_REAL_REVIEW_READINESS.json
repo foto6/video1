@@ -1,0 +1,20 @@
+{
+  "contractVersion": "creator.real_review_closed_loop_r26.readiness.v1",
+  "implementationStatus": "IMPLEMENTED",
+  "realReviewExecutionStatus": "BLOCKED",
+  "blocker": {
+    "code": "MISSING_EXTERNAL_GROWTH_R23_REAL_REVIEW_EVENT",
+    "requiredContract": "creator.external_real_review_event.r26.v1",
+    "requiredGrowthHandoff": "growth.creator_reedit_handoff.v1",
+    "requiredGrowthProducerSha": "26f769abceb43a63677ea8f7ba028369db371696",
+    "reason": "No genuine externally captured Growth R23 attached-video review artifact is available in this agent chat."
+  },
+  "mediaProducerSha": "a17f782da8144d1e890ac83195396a3192df93c2",
+  "growthProducerSha": "26f769abceb43a63677ea8f7ba028369db371696",
+  "maxReeditRounds": 2,
+  "providerInvoked": false,
+  "liveProviderMutation": false,
+  "credentialsUsed": false,
+  "captchaOr2faBypass": false,
+  "humanLevelQualityClaimed": false
+}

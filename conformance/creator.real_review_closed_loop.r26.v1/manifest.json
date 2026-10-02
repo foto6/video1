@@ -1,0 +1,46 @@
+{
+  "contractVersion": "creator.real_review_closed_loop.r26.v1",
+  "reviewEventContract": "creator.external_real_review_event.r26.v1",
+  "repository": "foto6/video1",
+  "startingSha": "215dc6ef924da45072c9f2c648edd3b3d80e645c",
+  "authorities": {
+    "mediaR15": {
+      "repository": "foto6/video2",
+      "producerSha": "a17f782da8144d1e890ac83195396a3192df93c2",
+      "ciRunId": 36860193113,
+      "contract": "media.render_export.v1",
+      "manifestBlobSha1": "945acb01ff0269d89b91463aa8d862f500e055b2",
+      "schemaBlobSha1": "6353d32d785a2a1f1441bac4cfd0271b46b41d4a"
+    },
+    "growthR23": {
+      "repository": "foto6/video3",
+      "producerSha": "26f769abceb43a63677ea8f7ba028369db371696",
+      "ciRunId": 36981672628,
+      "contract": "growth.creator_reedit_handoff.v1",
+      "adapterContract": "growth.web_video_critic_reedit_adapter.v1",
+      "contractBlobSha1": "ced853aad722aad4c7a88e9a41756baa1b2892a6",
+      "schemaBlobSha1": "ba9ada04488760147136dcaaf012206405c04653",
+      "adapterBlobSha1": "a4f5b1219c874ae13c05651e584dd7fbf5d4449a"
+    }
+  },
+  "invariants": {
+    "exactExternalReviewProvenance": true,
+    "creatorNeverSynthesizesProductionModelJudgment": true,
+    "maxReeditRounds": 2,
+    "currentReviewedRenderIsNextEditInput": true,
+    "staleSourceRenderAttachmentRejected": true,
+    "conflictingDuplicateReviewRejected": true,
+    "restartRecoveryNoExtraRender": true,
+    "terminalWinnerOnlyPublishHandoff": true,
+    "nonwinnerFailClosed": true,
+    "providerInvoked": false,
+    "liveProviderMutation": false,
+    "credentials": false,
+    "captcha2faBypass": false,
+    "humanLevelClaim": false
+  },
+  "liveReviewExecution": {
+    "state": "BLOCKED",
+    "code": "MISSING_EXTERNAL_GROWTH_R23_REAL_REVIEW_EVENT"
+  }
+}

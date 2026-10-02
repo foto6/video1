@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.external_real_review_event.r26.v1",
+  "title": "Creator R26 external real-review event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "producer",
+    "captureMode",
+    "reviewIdentity",
+    "handoff"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.external_real_review_event.r26.v1"
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "sha",
+        "ciRunId",
+        "contract",
+        "adapterContract",
+        "contractBlobSha1",
+        "schemaBlobSha1",
+        "adapterBlobSha1"
+      ],
+      "properties": {
+        "repository": {
+          "const": "foto6/video3"
+        },
+        "sha": {
+          "const": "26f769abceb43a63677ea8f7ba028369db371696"
+        },
+        "ciRunId": {
+          "const": 36981672628
+        },
+        "contract": {
+          "const": "growth.creator_reedit_handoff.v1"
+        },
+        "adapterContract": {
+          "const": "growth.web_video_critic_reedit_adapter.v1"
+        },
+        "contractBlobSha1": {
+          "const": "ced853aad722aad4c7a88e9a41756baa1b2892a6"
+        },
+        "schemaBlobSha1": {
+          "const": "ba9ada04488760147136dcaaf012206405c04653"
+        },
+        "adapterBlobSha1": {
+          "const": "a4f5b1219c874ae13c05651e584dd7fbf5d4449a"
+        }
+      }
+    },
+    "captureMode": {
+      "enum": [
+        "external_live_review",
+        "test_fixture"
+      ]
+    },
+    "reviewIdentity": {
+      "type": "string",
+      "pattern": "^gcrh1:[0-9a-f]{64}$"
+    },
+    "handoff": {
+      "type": "object"
+    }
+  }
+}

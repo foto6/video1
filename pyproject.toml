@@ -15,6 +15,7 @@ creator-publish-sandbox = "creator_orchestrator.publish_execution:main"
 creator-editor-loop-r22 = "creator_orchestrator.autonomous_editor_loop:main"
 creator-editor-publish-r23 = "creator_orchestrator.editor_publish_handoff:main"
 creator-closed-loop-r24 = "creator_orchestrator.exact_pin_closed_loop:main"
+creator-real-review-r26 = "creator_orchestrator.real_review_closed_loop:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
