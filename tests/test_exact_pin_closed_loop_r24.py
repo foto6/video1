@@ -54,6 +54,20 @@ class R24ClosedLoopUnitTests(unittest.TestCase):
                         candidates=count,
                     )
 
+    def test_preterminal_ledger_digest_is_stable_after_terminal_append(self):
+        with tempfile.TemporaryDirectory() as td:
+            ledger = r24.Ledger(Path(td) / "ledger.jsonl")
+            ledger.append_once("start", "run_started", {"source": "a"})
+            ledger.append_once("render:c1", "media_r15_render", {"digest": "b"})
+            before = ledger.preterminal_digest
+            ledger.append_once(
+                "terminal",
+                "publish_handoff_ready",
+                {"winner": "c1"},
+            )
+            self.assertEqual(ledger.preterminal_digest, before)
+            self.assertNotEqual(ledger.digest, before)
+
     def test_duplicate_ledger_event_is_idempotent_conflict_fails(self):
         with tempfile.TemporaryDirectory() as td:
             ledger = r24.Ledger(Path(td) / "ledger.jsonl")

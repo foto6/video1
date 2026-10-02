@@ -178,6 +178,13 @@ class Ledger:
     def digest(self) -> str:
         return _sha(self.events)
 
+    @property
+    def preterminal_digest(self) -> str:
+        return _sha([
+            event for event in self.events
+            if event["eventKey"] != "terminal"
+        ])
+
 
 def _source_context(source_path: Path, brief: str) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     asset = r21.probe_media(source_path)
@@ -565,7 +572,7 @@ def _final_bundle(
             "briefDigest": analysis["briefDigest"],
             "semanticAnalysisDigest": analysis["analysisDigest"],
             "semanticDirectivesDigest": directives["directivesDigest"],
-            "ledgerDigest": ledger.digest,
+            "ledgerDigest": ledger.preterminal_digest,
             "growthCriticPin": {
                 **r22.GROWTH_CRITIC_PIN,
                 "growthR18ProducerSha": GROWTH_SHA,
@@ -673,7 +680,7 @@ def run_closed_loop(
                 "plan": plan,
                 "render": render,
                 "renderPath": result["finalPath"],
-                "mediaResultDigest": _sha(result),
+                "mediaResultDigest": result["renderExportDigest"],
             }
             records.append(record)
             ledger.append_once(
