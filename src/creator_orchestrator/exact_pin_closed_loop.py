@@ -652,6 +652,7 @@ def run_closed_loop(
         caption="R24 closed-loop rehearsal",
         cta="Learn more",
         allow_synthetic_editor=True,
+        expected_growth_producer_sha=GROWTH_SHA,
     )
     # Preparation only: do not instantiate or drive any publish provider.
     ledger.append_once("terminal", "publish_handoff_ready", {
