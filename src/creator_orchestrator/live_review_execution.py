@@ -640,7 +640,12 @@ def validate_growth_r25_envelope(
         or candidate["renderSize"] != candidate["attachmentSize"]
     ):
         raise ReviewLineageError("review render/attachment binding mismatch")
-    handoff = r26.parse_growth_r23_handoff(review["handoff"])
+    try:
+        handoff = r26.parse_growth_r23_handoff(review["handoff"])
+    except r26.RealReviewError as exc:
+        raise ReviewLineageError(
+            f"nested Growth handoff invalid: {exc}"
+        ) from exc
     binding = handoff["binding"]
     if state != handoff["state"]:
         raise ReviewLineageError("R27 state differs from Growth handoff")
