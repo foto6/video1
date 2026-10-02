@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest import mock
 
 from creator_orchestrator import exact_pin_closed_loop as r24
+from creator_orchestrator import r24_growth_bridge
 
 
 class R24ClosedLoopUnitTests(unittest.TestCase):
@@ -24,6 +25,21 @@ class R24ClosedLoopUnitTests(unittest.TestCase):
             "2d3bf275c5b456d53384073fb7ec1ed992e6b996",
         )
         self.assertEqual(r24.GROWTH_CI, "36859378847")
+
+    def test_growth_bridge_uses_exact_r18_rule_identity(self):
+        critic = r24_growth_bridge._critic_export(
+            source_id="source-r24",
+            render_sha="a" * 64,
+            round_index=0,
+            ordinal=0,
+            scenario="winner",
+        )
+        self.assertEqual(
+            critic["model_or_rule_identity"]["kind"],
+            "rule",
+        )
+        self.assertEqual(critic["critic_mode"], "structural_rule")
+        self.assertFalse(critic["human_ground_truth"])
 
     def test_candidate_bound_is_fail_closed(self):
         with tempfile.TemporaryDirectory() as td:
