@@ -975,7 +975,15 @@ def execute_media_r19_reedit(
         "providerInvoked": False,
         "liveProviderMutation": False,
     }
-    evidence["resultDigest"] = _sha(evidence)
+    # Replay state and logical-effect count describe this invocation, not
+    # the durable Media result. Exclude them from the canonical result identity
+    # so first execution and exact Media R19 replay bind to the same output.
+    durable_result = {
+        key: value
+        for key, value in evidence.items()
+        if key not in {"replayed", "logicalEffects"}
+    }
+    evidence["resultDigest"] = _sha(durable_result)
 
     round_out = work_root / f"round-{round_index + 1}"
     round_out.mkdir(parents=True, exist_ok=True)
