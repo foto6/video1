@@ -228,3 +228,10 @@ creator-dynamic-live-review-r28 readiness --out ./r28-readiness.json
 The current production state is `BLOCKED_WAITING_DYNAMIC_REVIEW_CAPTURE`: Media R20, Growth R25, and Bridge R29 are exact-green, but no exact-green dynamic Growth R26 / Bridge R30 capture authority or genuine next-round capture is available here. Creator does not substitute fixture/model evidence for that missing capture.
 
 Only a terminal external-review winner can produce the existing R23 publish handoff, and R28 never invokes a social provider. See `docs/DYNAMIC_LIVE_REVIEW_LOOP_R28.md`.
+
+
+## Coordinator live-review continuation (R30)
+
+R30 consumes an exact Growth R27 coordinator index plus a selected canonical Creator envelope, verifies exact Growth R27 / Bridge R31 / Media R22 authority, executes at most two real Media re-edits, and materializes the next blinded operator package through Media R22. It performs no browser or social-provider mutation.
+
+Use `creator-coordinator-r30 continue ...` for genuine coordinator evidence or `creator-coordinator-r30 rehearsal --out .r30-rehearsal` for a real-MP4 source-ready rehearsal that deliberately stops at `WAITING_GENUINE_CAPTURE`. See `docs/COORDINATOR_CONTINUATION_R30.md`.

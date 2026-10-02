@@ -22,6 +22,7 @@ on:
       - agent/creator-r27-live-review-execution-20261002
       - agent/creator-r28-dynamic-live-review-loop-20261002
       - agent/creator-r29-exact-dynamic-e2e-20261002
+      - agent/creator-r30-coordinator-loop-20261002
   pull_request:
 
 jobs:
@@ -842,6 +843,105 @@ jobs:
             .r29-readiness.stdout.json
             reports/CREATOR_R29_EXACT_DYNAMIC_E2E_READINESS.json
             conformance/creator.exact_dynamic_e2e.r29.v1/**
+
+  focused-r30-coordinator:
+    needs: full
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Checkout exact Media R22
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: e82a7ac04f3758d0e3e21ea3d05265dbc2822132
+          path: .r30-media-r22
+      - name: Checkout R22-pinned exact Media R21
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: d753e9e4c1f4448386608a1425232dbc1dba87ea
+          path: .r30-media-r21
+      - name: Checkout exact Growth R27
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video3
+          ref: d80592ad660b7b73ad13298880918a5944411c38
+          path: .r30-growth-r27
+      - name: Checkout exact Bridge R31
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/WebAIBridge
+          ref: 104281e49122233f251c692abba726ae31cee0d5
+          path: .r30-bridge-r31
+      - name: Install exact runtime prerequisites
+        run: |
+          missing=()
+          command -v ffmpeg >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v ffprobe >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v espeak-ng >/dev/null 2>&1 || missing+=(espeak-ng)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends "${missing[@]}"
+          fi
+          python -m pip install -e .
+      - name: Run R30 exact authority, replay and real-MP4 continuation tests
+        env:
+          R30_MEDIA_R22_CHECKOUT: ${{ github.workspace }}/.r30-media-r22
+          R30_MEDIA_R21_CHECKOUT: ${{ github.workspace }}/.r30-media-r21
+          R30_GROWTH_R27_CHECKOUT: ${{ github.workspace }}/.r30-growth-r27
+          R30_BRIDGE_R31_CHECKOUT: ${{ github.workspace }}/.r30-bridge-r31
+        run: |
+          creator-coordinator-r30 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_coordinator_continuation_r30.py' -v
+      - name: Run real-MP4 source-ready rehearsal
+        run: |
+          creator-coordinator-r30 rehearsal --out .r30-rehearsal > .r30-rehearsal.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r30-rehearsal/real-mp4-rehearsal.r30.json"))
+          assert r["state"] == "WAITING_GENUINE_CAPTURE"
+          assert r["externalReviewBoundaryReached"] is True
+          assert r["sourceReadyMp4"]["size"] > 0
+          assert r["modelEvidenceSynthesized"] is False
+          assert r["providerMutation"] is False
+          PY
+      - name: Verify source-ready readiness
+        run: |
+          set +e
+          creator-coordinator-r30 readiness --out .r30-readiness.json > .r30-readiness.stdout.json
+          code=$?
+          set -e
+          test "$code" -eq 2
+          python - <<'PY'
+          import json
+          r=json.load(open(".r30-readiness.json"))
+          assert r["state"] == "WAITING_GENUINE_CAPTURE"
+          assert r["SOURCE_READY"] is True
+          assert r["mediaR22Authority"]["producerSha"] == "e82a7ac04f3758d0e3e21ea3d05265dbc2822132"
+          assert r["growthR27Authority"]["producerSha"] == "d80592ad660b7b73ad13298880918a5944411c38"
+          assert r["bridgeR31Authority"]["producerSha"] == "104281e49122233f251c692abba726ae31cee0d5"
+          assert r["providerMutation"] is False
+          assert r["browserMutation"] is False
+          assert r["humanParityClaimed"] is False
+          PY
+      - name: Upload R30 source-ready and real-MP4 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r30-coordinator-source-ready-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r30-readiness.json
+            .r30-readiness.stdout.json
+            .r30-rehearsal/**
+            reports/CREATOR_R30_COORDINATOR_READINESS.json
+            conformance/creator.coordinator_continuation.r30.v1/**
 
   full:
     runs-on: ubuntu-latest

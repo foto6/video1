@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.coordinator_continuation_result.r30.v1",
+  "title": "Creator R30 coordinator continuation result",
+  "type": "object",
+  "required": [
+    "contractVersion",
+    "state",
+    "providerMutation",
+    "browserMutation",
+    "humanLevelQualityClaimed",
+    "resultDigest"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.coordinator_continuation_result.r30.v1"
+    },
+    "state": {
+      "enum": [
+        "WAITING_GENUINE_CAPTURE",
+        "REVIEW_ACCEPTED",
+        "REAL_REEDIT_EXECUTED",
+        "NEXT_REVIEW_PACKAGE_READY",
+        "WINNER_HANDOFF_READY",
+        "NON_PUBLISHABLE_REVIEW_RESULT",
+        "BLOCKED"
+      ]
+    },
+    "providerMutation": {
+      "const": false
+    },
+    "browserMutation": {
+      "const": false
+    },
+    "humanLevelQualityClaimed": {
+      "const": false
+    },
+    "resultDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

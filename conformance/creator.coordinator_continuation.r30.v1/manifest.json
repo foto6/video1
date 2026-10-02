@@ -1,0 +1,63 @@
+{
+  "contractVersion": "creator.coordinator_continuation.r30.v1",
+  "creatorBaseSha": "4a58561b07d615c141fa609d212070c894bfd0cb",
+  "resultContract": "creator.coordinator_continuation_result.r30.v1",
+  "journalContract": "creator.coordinator_continuation_journal.r30.v1",
+  "mediaR22": {
+    "repository": "foto6/video2",
+    "producerSha": "e82a7ac04f3758d0e3e21ea3d05265dbc2822132",
+    "ciRunId": 37001071721,
+    "artifactId": 11224061610,
+    "artifactDigest": "sha256:d534f1656e22b72cf42531c827e66516965b4167549906521dee04edafd01734",
+    "contract": "media.live_review_artifact.r22.v1",
+    "blobs": {
+      "contract": "d6e494950b5ab54383733db69912c2384cce188f",
+      "manifest": "be117e83a44720e8e12284991b755c69c8ea0cde",
+      "operatorManifestSchema": "7e78d7be9fffbbda6ee86cf39c4db8e59a635a3d",
+      "implementation": "31845333a6919364d81a7c2bc52aad1cb3ae82ed",
+      "materializer": "ade9e7181ecccf8e78e7dd966240618c872c9b26",
+      "verifier": "86b0a53eed6959af805fd0c492620eb037071e25"
+    },
+    "transitiveR21ProducerSha": "d753e9e4c1f4448386608a1425232dbc1dba87ea"
+  },
+  "growthR27": {
+    "repository": "foto6/video3",
+    "producerSha": "d80592ad660b7b73ad13298880918a5944411c38",
+    "ciRunId": 37002456031,
+    "operatorContract": "growth.live_ingest_operator.r27.v1",
+    "indexContract": "growth.dynamic_live_review_ingest_index.r27.v1",
+    "authorityProfileDigest": "57ab464f85ba95f1ca4dfefeaeb0a19371ce7d666ca8142daeb86e3162d2c634",
+    "artifactId": 11224342240,
+    "artifactDigest": "sha256:2d832e4d9d136b0bd3dbe0efe67a95f6e3d4d5847e3c11411352454b94d17f71",
+    "blobs": {
+      "contract": "040097c5aae0b288de39e35f76eb1816e246568c",
+      "indexSchema": "23e7f90b4704fe173bd8842c04f00b1eeb15e5d6",
+      "authorityProfiles": "256e8fcf228025a2cc09a3173dd82998fd1658d9",
+      "implementation": "125dba66b592ca12934c045c78539cf082a1de07"
+    }
+  },
+  "bridgeR31": {
+    "repository": "foto6/WebAIBridge",
+    "producerSha": "104281e49122233f251c692abba726ae31cee0d5",
+    "ciRunId": 36999908386,
+    "resultContract": "bridge.r31_live_dynamic_operator_result.v1",
+    "blobs": {
+      "resultSchema": "55f403a2c0dca4a05a5002e104cfc29d20b536b5",
+      "manifestSchema": "f90cd2aa4bdc868af845bfba58c612ebef3f32ad",
+      "authorityProfileSchema": "25e2cbfe487ba88f70d233774e585691ad4f70c6",
+      "preflightSchema": "74b4579b4d9d3d08da04b1181863905f024f367a",
+      "mediaOperator": "38509af174fc25aa4229c084fc3cd9b2e35b539e",
+      "finalizer": "a18a10e681efb249275816ab43ceb55e4acc6643"
+    }
+  },
+  "limits": {
+    "maxReeditRounds": 2,
+    "maxReviewRounds": 3
+  },
+  "safety": {
+    "providerMutation": false,
+    "browserMutation": false,
+    "humanParityClaim": false,
+    "merge": false
+  }
+}

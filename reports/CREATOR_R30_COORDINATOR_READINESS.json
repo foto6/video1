@@ -1,0 +1,26 @@
+{
+  "reportVersion": "creator.coordinator_continuation.r30.readiness.v1",
+  "creatorBaseSha": "4a58561b07d615c141fa609d212070c894bfd0cb",
+  "state": "WAITING_GENUINE_CAPTURE",
+  "SOURCE_READY": true,
+  "exactAuthorities": {
+    "mediaR22": "e82a7ac04f3758d0e3e21ea3d05265dbc2822132",
+    "growthR27": "d80592ad660b7b73ad13298880918a5944411c38",
+    "bridgeR31": "104281e49122233f251c692abba726ae31cee0d5",
+    "mediaR21Transitive": "d753e9e4c1f4448386608a1425232dbc1dba87ea"
+  },
+  "gates": {
+    "exactGrowthR27IndexRequired": true,
+    "selectedCreatorEnvelopeRequiredAfterLiveIngest": true,
+    "bridgeR31WrapperRequired": true,
+    "exactMediaR22Materialization": true,
+    "maxReeditRounds": 2,
+    "maxReviewRounds": 3,
+    "winnerOnlyPublishHandoff": true
+  },
+  "genuineCaptureBundledInCreator": false,
+  "modelEvidenceSynthesizedByCreator": false,
+  "providerMutation": false,
+  "browserMutation": false,
+  "humanParityClaimed": false
+}
