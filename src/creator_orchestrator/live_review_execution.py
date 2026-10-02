@@ -290,6 +290,13 @@ def readiness_report() -> dict[str, Any]:
         "credentialsUsed": False,
         "captchaOr2faBypass": False,
         "humanLevelQualityClaimed": False,
+        "safety": {
+            "liveSocialProviderMutation": False,
+            "credentials": False,
+            "captcha2faBypass": False,
+            "humanLevelClaim": False,
+            "fixturePromotedToReal": False,
+        },
     }
     report["reportDigest"] = _sha(report)
     return report
