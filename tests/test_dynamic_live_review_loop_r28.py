@@ -368,6 +368,15 @@ class R28ExactDynamicIntegrationTests(unittest.TestCase):
         with self.assertRaises(r28.AuthorityDrift):
             r28.verify_media_checkout(self.media, stale_media)
 
+    def setUp(self):
+        for name in (
+            ".creator-r28",
+            ".creator-r28-packages",
+            "round-1",
+            "round-2",
+        ):
+            shutil.rmtree(self.demo_root / name, ignore_errors=True)
+
     def _write_inputs(self, root: Path, envelope=None):
         context_path = root / "context.json"
         review_path = root / "review.json"
