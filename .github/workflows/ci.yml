@@ -18,6 +18,7 @@ on:
       - agent/creator-r22-autonomous-editor-loop-20261001
       - agent/creator-r23-editor-publish-handoff-20261001
       - agent/creator-r24-exact-pin-closed-loop-20261001
+      - agent/creator-r24-runner-stability-experiment-20261002
   pull_request:
 
 jobs:
@@ -294,7 +295,8 @@ jobs:
 
   focused-r24-exact-pin:
     needs: full
-    runs-on: ubuntu-latest
+    # CI-only stability experiment after repeated hosted ubuntu-latest shutdown/143.
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -340,7 +342,7 @@ jobs:
 
   focused-r24-exact-pin-nonwinner:
     needs: focused-r24-exact-pin
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -392,7 +394,7 @@ jobs:
 
   focused-r24-exact-pin-rehearsal:
     needs: focused-r24-exact-pin-nonwinner
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
