@@ -312,9 +312,13 @@ jobs:
           repository: foto6/video3
           ref: 2d3bf275c5b456d53384073fb7ec1ed992e6b996
           path: .r24-growth
-      - name: Install exact-pin runtime prerequisites
+      - name: Verify exact-pin runtime prerequisites
         run: |
-          sudo apt-get install -y ffmpeg
+          if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get install -y --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
       - name: Generate source fixture
         run: |
           mkdir -p .r24-fixture
@@ -331,8 +335,10 @@ jobs:
           heartbeat &
           heartbeat_pid=$!
           trap 'kill "$heartbeat_pid" 2>/dev/null || true' EXIT
+          # R24 unit tests already run in the exact same head's full job,
+          # which this job needs. Avoid duplicating them before the expensive
+          # real-render integration on a runner that has repeatedly shut down.
           PYTHONPATH=src:tests python -m unittest \
-            test_exact_pin_closed_loop_r24.R24ClosedLoopUnitTests \
             test_exact_pin_closed_loop_r24.R24ClosedLoopIntegrationTests.test_exact_pin_real_artifact_winner_and_resume \
             -v
           kill "$heartbeat_pid" 2>/dev/null || true
@@ -366,8 +372,13 @@ jobs:
           repository: foto6/video3
           ref: 2d3bf275c5b456d53384073fb7ec1ed992e6b996
           path: .r24-growth
-      - name: Install exact-pin runtime prerequisites
-        run: sudo apt-get install -y ffmpeg
+      - name: Verify exact-pin runtime prerequisites
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get install -y --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
       - name: Generate source fixture
         run: |
           mkdir -p .r24-fixture
@@ -410,9 +421,13 @@ jobs:
           repository: foto6/video3
           ref: 2d3bf275c5b456d53384073fb7ec1ed992e6b996
           path: .r24-growth
-      - name: Install exact-pin runtime prerequisites
+      - name: Verify exact-pin runtime prerequisites
         run: |
-          sudo apt-get install -y ffmpeg
+          if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get install -y --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
           python -m pip install -e .
       - name: Generate source fixture
         run: |
@@ -431,6 +446,82 @@ jobs:
           trap - EXIT
           python -c "import json; r=json.load(open('.r24-rehearsal/closed_loop_rehearsal.v1.json')); assert r['state']=='publish_handoff_ready'; assert r['realMediaRenderEffects'] >= 1; assert r['reeditRounds'] <= 2; assert r['providerInvoked'] is False; assert r['liveProviderMutation'] is False"
           ffprobe -v error -show_entries stream=codec_type,width,height -show_entries format=duration -of json .r24-rehearsal/final.mp4 > .r24-rehearsal/final.ffprobe.json
+      - name: Build Human Gate V4 real-artifact evidence manifest
+        env:
+          CREATOR_SHA: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(".r24-rehearsal")
+          report = json.loads((root / "closed_loop_rehearsal.v1.json").read_text())
+          bundle = json.loads((root / "editor-final-bundle.json").read_text())
+          ledger = root / "closed-loop-ledger.jsonl"
+          final_mp4 = root / "final.mp4"
+
+          def sha256(path):
+              h = hashlib.sha256()
+              with path.open("rb") as handle:
+                  for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          assert report["state"] == "publish_handoff_ready"
+          assert report["reeditRounds"] <= 2
+          assert report["providerInvoked"] is False
+          assert report["liveProviderMutation"] is False
+          assert final_mp4.stat().st_size > 0
+          assert ledger.stat().st_size > 0
+          assert sha256(final_mp4) == report["finalRenderSha256"]
+          assert bundle["bundleDigest"] == report["finalBundleDigest"]
+          assert bundle["winnerCandidateId"] == report["winnerCandidateId"]
+
+          evidence = {
+              "contractVersion": "creator.r24_human_gate_v4_artifact.v1",
+              "creatorSha": os.environ["CREATOR_SHA"],
+              "mediaProducerSha": "a17f782da8144d1e890ac83195396a3192df93c2",
+              "growthProducerSha": "2d3bf275c5b456d53384073fb7ec1ed992e6b996",
+              "source": report["source"],
+              "winnerCandidateId": report["winnerCandidateId"],
+              "finalRenderSha256": report["finalRenderSha256"],
+              "finalMp4SizeBytes": final_mp4.stat().st_size,
+              "finalBundleDigest": report["finalBundleDigest"],
+              "growthDecisionDigest": report["growthDecisionDigest"],
+              "publishHandoffDigest": report["publishHandoffDigest"],
+              "ledgerDigest": report["ledgerDigest"],
+              "ledgerFileSha256": sha256(ledger),
+              "ledgerSizeBytes": ledger.stat().st_size,
+              "reeditRounds": report["reeditRounds"],
+              "candidateCount": report["candidateCount"],
+              "realMediaRenderEffects": report["realMediaRenderEffects"],
+              "renderProvenance": bundle["render"]["render_provenance"],
+              "providerInvoked": False,
+              "liveProviderMutation": False,
+              "humanLevelQualityClaimed": False,
+          }
+          (root / "human-gate-v4-evidence.json").write_text(
+              json.dumps(evidence, indent=2, sort_keys=True) + "\n"
+          )
+          PY
+      - name: Upload Human Gate V4 real-artifact bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r24-human-gate-v4-${{ github.sha }}
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r24-rehearsal/final.mp4
+            .r24-rehearsal/editor-final-bundle.json
+            .r24-rehearsal/editor-publish-handoff.json
+            .r24-rehearsal/closed-loop-ledger.jsonl
+            .r24-rehearsal/closed_loop_rehearsal.v1.json
+            .r24-rehearsal/final.ffprobe.json
+            .r24-rehearsal/human-gate-v4-evidence.json
+            .r24-rehearsal/candidates/**/media.render_export.v1.json
 
   full:
     runs-on: ubuntu-latest
