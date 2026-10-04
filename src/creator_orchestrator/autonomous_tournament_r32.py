@@ -1104,7 +1104,7 @@ class FixtureMediaReeditAdapter:
     ) -> dict[str, Any]:
         existing = self.effects.get(operation_id)
         if existing is not None:
-            if existing["requestDigest"] != _sha(request):
+            if existing["requestDigest"] != request["requestDigest"]:
                 raise ReplayConflict("same re-edit operation changed request")
             return _clone(existing)
         output_sha = _sha(
@@ -1119,7 +1119,7 @@ class FixtureMediaReeditAdapter:
             "sourceClass": "frozen_contract_fixture",
             "upstreamAuthority": _clone(CURRENT_AUTHORITIES["mediaR24"]),
             "operationId": operation_id,
-            "requestDigest": _sha(request),
+            "requestDigest": request["requestDigest"],
             "parentRenderSha256": selected_candidate["renderSha256"],
             "outputRenderSha256": output_sha,
             "outputRenderSize": selected_candidate["renderSize"] + 271,
@@ -1128,7 +1128,7 @@ class FixtureMediaReeditAdapter:
                     "operationId": operation_id,
                     "parent": selected_candidate["renderSha256"],
                     "output": output_sha,
-                    "requestDigest": _sha(request),
+                    "requestDigest": request["requestDigest"],
                 }
             ),
             "humanGroundTruth": False,
