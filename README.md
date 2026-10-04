@@ -283,3 +283,20 @@ creator-publish-transaction-r33 status --ledger .r33-rehearsal/youtube_shorts.js
 ```
 
 Readiness is `SOURCE_READY_NO_LIVE_PUBLISH`. See `docs/PUBLISH_TRANSACTION_R33.md`.
+
+
+## Multi-platform publish saga (R34)
+
+R34 coordinates one R32 winner across Instagram Reels, TikTok and YouTube Shorts using three independent R33 exactly-once child transactions. It freezes the exact R33 candidate `9556108f423a15a40614a8bc9d590e6dc2e49746` / CI `37203622591` / artifact `11304071297`, but explicitly keeps parent acceptance at `PENDING_QA_R3`.
+
+Saga states distinguish `ALL_PENDING`, `PARTIALLY_COMMITTED`, `RECONCILIATION_REQUIRED`, `ALL_COMMITTED`, and `TERMINAL_BLOCKED`. Unknown provider outcome is never replay-authorized; only read-only reconciliation may promote it to committed with exact R33 evidence. Committed external posts are never locally rolled back—R34 compensation is metadata only.
+
+The default release policy requires all three platforms before global success. Release-window start/deadline/revision and per-platform config revision are part of stable intent identity.
+
+```bash
+creator-multiplatform-publish-r34 readiness
+creator-multiplatform-publish-r34 chaos-rehearsal --out .r34-chaos
+creator-multiplatform-publish-r34 status --saga-dir .r34-chaos/partial-saga --at-time 2026-10-05T12:30:00Z
+```
+
+R34 is fake-provider only and performs zero provider-network effects. See `docs/MULTIPLATFORM_PUBLISH_SAGA_R34.md`.

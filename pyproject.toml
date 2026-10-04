@@ -23,6 +23,7 @@ creator-coordinator-r30 = "creator_orchestrator.coordinator_continuation_r30:mai
 creator-live-session-r31 = "creator_orchestrator.live_session_authority_r31:main"
 creator-autonomous-tournament-r32 = "creator_orchestrator.autonomous_tournament_r32:main"
 creator-publish-transaction-r33 = "creator_orchestrator.publish_transaction_r33:main"
+creator-multiplatform-publish-r34 = "creator_orchestrator.multiplatform_publish_saga_r34:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

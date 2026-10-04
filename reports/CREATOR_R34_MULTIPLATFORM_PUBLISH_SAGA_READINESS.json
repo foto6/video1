@@ -1,0 +1,67 @@
+{
+  "reportVersion": "creator.multiplatform_publish_saga_readiness.r34.v1",
+  "state": "SOURCE_READY_WAITING_PARENT_QA",
+  "SOURCE_READY": true,
+  "PARENT_R33_ACCEPTED": false,
+  "parentQa": {
+    "requiredGate": "QA-R3",
+    "status": "PENDING",
+    "acceptanceEvidence": null
+  },
+  "parentR33Authority": {
+    "repository": "foto6/video1",
+    "producerSha": "9556108f423a15a40614a8bc9d590e6dc2e49746",
+    "ciRunId": 37203622591,
+    "artifactId": 11304071297,
+    "artifactName": "creator-r33-publish-transaction-9556108f423a15a40614a8bc9d590e6dc2e49746",
+    "artifactDigest": "sha256:adbfb6d257332220e2be2f9d8f134a87f8bcc6b6e064dfac7f469fd95d690d6d",
+    "contract": "creator.publish_transaction.r33.v1",
+    "contractBlobs": {
+      "runtime": "7ea1d1f23d28cc8e349d308ec18dd960c2721d6a",
+      "schema": "ea1646b8ecd7114ae7d9878c9db09835c7e88a88",
+      "manifest": "503c0eb63efaeb540ce15407c662c2192b956c87",
+      "r32Authority": "09f6ef3a0dafce34f934a5d807a4cd109a08e24b",
+      "readinessReport": "5453ab9ef197be45d1b67d4b7aea09a277981c6f"
+    },
+    "qaR3": {
+      "status": "PENDING",
+      "accepted": false,
+      "acceptanceEvidence": null
+    }
+  },
+  "consumedR32Authority": {
+    "repository": "foto6/video1",
+    "producerSha": "f0dc1d27da6452f1de32cd887651805b47a1735d",
+    "ciRunId": 37199512624,
+    "artifactId": 11302367811,
+    "artifactDigest": "sha256:6803db334974b8dbea1c30c107ec5af00fe2cb892ed67e68540c2b2d74b18599",
+    "contract": "creator.autonomous_tournament.r32.v1"
+  },
+  "contract": "creator.multiplatform_publish_saga.r34.v1",
+  "defaultReleasePolicy": "all_required",
+  "requiredPlatforms": [
+    "instagram_reels",
+    "tiktok",
+    "youtube_shorts"
+  ],
+  "sourceReadyProofs": [
+    "three independent R33 child ledgers",
+    "partial commit and unknown outcome aggregation",
+    "read-only reconciliation only for unknown outcome",
+    "duplicate-confirmed provider evidence",
+    "validation rejection terminal block",
+    "schedule-window and revision identity",
+    "metadata-only compensation",
+    "restart recovery from child ledger truth"
+  ],
+  "safety": {
+    "fakeProviderOnly": true,
+    "providerNetworkEffects": 0,
+    "realProviderEffects": 0,
+    "livePublish": false,
+    "credentialsStored": false,
+    "blindRetryAfterUnknown": false,
+    "parentAcceptedClaimed": false,
+    "mergePerformed": false
+  }
+}

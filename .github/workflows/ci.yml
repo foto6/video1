@@ -26,6 +26,7 @@ on:
       - agent/creator-r31-live-session-authority-20261002
       - agent/creator-r32-autonomous-tournament-coordinator-20261004
       - agent/creator-r33-publish-transaction-safety-20261004
+      - agent/creator-r34-multiplatform-publish-saga-20261004
   pull_request:
 
 jobs:
@@ -1192,6 +1193,99 @@ jobs:
             .r33-youtube-status.stdout.json
             reports/CREATOR_R33_PUBLISH_TRANSACTION_READINESS.json
             conformance/creator.publish_transaction.r33.v1/**
+
+  focused-r34-multiplatform-publish-saga:
+    needs: full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Creator
+        run: python -m pip install -e .
+      - name: Run R34 saga/idempotency/recovery tests
+        run: |
+          creator-multiplatform-publish-r34 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_multiplatform_publish_saga_r34.py' -v
+      - name: Verify parent-QA source-ready gate
+        run: |
+          creator-multiplatform-publish-r34 readiness --out .r34-readiness.json > .r34-readiness.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r34-readiness.json"))
+          assert r["state"] == "SOURCE_READY_WAITING_PARENT_QA"
+          assert r["SOURCE_READY"] is True
+          assert r["PARENT_R33_ACCEPTED"] is False
+          assert r["parentQa"]["requiredGate"] == "QA-R3"
+          assert r["parentQa"]["status"] == "PENDING"
+          assert r["parentR33Authority"]["producerSha"] == "9556108f423a15a40614a8bc9d590e6dc2e49746"
+          assert r["parentR33Authority"]["ciRunId"] == 37203622591
+          assert r["parentR33Authority"]["artifactId"] == 11304071297
+          assert r["parentR33Authority"]["artifactDigest"] == "sha256:adbfb6d257332220e2be2f9d8f134a87f8bcc6b6e064dfac7f469fd95d690d6d"
+          assert r["safety"]["fakeProviderOnly"] is True
+          assert r["safety"]["providerNetworkEffects"] == 0
+          assert r["safety"]["realProviderEffects"] == 0
+          assert r["safety"]["livePublish"] is False
+          PY
+      - name: Run deterministic three-platform partial-commit chaos rehearsal
+        run: |
+          creator-multiplatform-publish-r34 chaos-rehearsal --out .r34-chaos > .r34-chaos.stdout.json
+          creator-multiplatform-publish-r34 status --saga-dir .r34-chaos/partial-saga --at-time 2026-10-05T12:30:00Z --out .r34-final-status.json > .r34-final-status.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r34-chaos/chaos-rehearsal.r34.json"))
+          e=json.load(open(".r34-chaos/evidence-manifest.r34.json"))
+          s=json.load(open(".r34-final-status.json"))
+          assert r["state"] == "SOURCE_READY_WAITING_PARENT_QA"
+          assert r["parentQaAccepted"] is False
+          assert r["crashBeforeWindowBlocked"] is True
+          assert r["afterInstagramCommit"]["state"] == "PARTIALLY_COMMITTED"
+          assert r["afterInstagramCommit"]["committedPlatforms"] == ["instagram_reels"]
+          assert r["partialUnknown"]["state"] == "RECONCILIATION_REQUIRED"
+          assert r["partialUnknown"]["perPlatform"]["tiktok"]["replayAuthorized"] is False
+          assert r["blindRetryBlocked"] is True
+          assert r["afterTikTokDuplicateConfirmed"]["perPlatform"]["tiktok"]["state"] == "COMMITTED"
+          assert r["allCommitted"]["state"] == "ALL_COMMITTED"
+          assert r["allCommitted"]["globalSuccess"] is True
+          assert r["lookupUnavailable"]["perPlatform"]["tiktok"]["state"] == "RECONCILIATION_REQUIRED"
+          assert r["lookupUnavailableBlindRetryBlocked"] is True
+          assert r["validationRejected"]["state"] == "TERMINAL_BLOCKED"
+          assert r["compensationMetadata"]["externalPostStillCommitted"] is True
+          assert r["realProviderEffects"] == 0
+          assert r["providerNetworkEffects"] == 0
+          assert r["livePublish"] is False
+          assert e["partialCommitObserved"] is True
+          assert e["unknownOutcomeObserved"] is True
+          assert e["tiktokDuplicateConfirmed"] is True
+          assert e["outcomeLookupUnavailableRemainsBlocked"] is True
+          assert e["validationRejectTerminalBlocked"] is True
+          assert e["unknownOutcomeBlindRetryForbidden"] is True
+          assert e["compensationNeverRewritesCommittedPost"] is True
+          assert e["realProviderEffects"] == 0
+          assert s["state"] == "ALL_COMMITTED"
+          assert s["globalSuccess"] is True
+          assert all(v["state"] == "COMMITTED" for v in s["perPlatform"].values())
+          assert s["providerNetworkEffects"] == 0
+          assert s["livePublish"] is False
+          PY
+      - name: Upload deterministic R34 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r34-multiplatform-publish-saga-${{ github.sha }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r34-readiness.json
+            .r34-readiness.stdout.json
+            .r34-chaos/**
+            .r34-chaos.stdout.json
+            .r34-final-status.json
+            .r34-final-status.stdout.json
+            reports/CREATOR_R34_MULTIPLATFORM_PUBLISH_SAGA_READINESS.json
+            conformance/creator.multiplatform_publish_saga.r34.v1/**
 
   full:
     runs-on: ubuntu-latest

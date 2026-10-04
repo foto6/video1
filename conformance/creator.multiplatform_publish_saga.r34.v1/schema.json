@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.multiplatform_publish_saga.r34.v1",
+  "title": "Creator R34 Multi-platform Publish Saga",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "sagaId",
+    "immutableDigest",
+    "parentR33Authority",
+    "parentQaStatus",
+    "r32Authority",
+    "winner",
+    "lineage",
+    "releaseWindow",
+    "releasePolicy",
+    "platformIdentity",
+    "validationBlocks",
+    "compensations",
+    "sagaState",
+    "platformStates",
+    "globalSuccess",
+    "blockers",
+    "livePublish",
+    "providerNetworkEffects"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.multiplatform_publish_saga.r34.v1"
+    },
+    "sagaId": {
+      "type": "string",
+      "pattern": "^r34saga:[0-9a-f]{64}$"
+    },
+    "immutableDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "parentR33Authority": {
+      "type": "object"
+    },
+    "parentQaStatus": {
+      "const": "PENDING_QA_R3"
+    },
+    "r32Authority": {
+      "type": "object"
+    },
+    "winner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fileName",
+        "sha256",
+        "size"
+      ],
+      "properties": {
+        "fileName": {
+          "const": "final.mp4"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "lineage": {
+      "type": "object"
+    },
+    "releaseWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "deadline",
+        "revision"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deadline": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "releasePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "requiredPlatforms",
+        "minimumCommittedPlatforms"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "all_required",
+            "explicit_partial"
+          ]
+        },
+        "requiredPlatforms": {
+          "const": [
+            "instagram_reels",
+            "tiktok",
+            "youtube_shorts"
+          ]
+        },
+        "minimumCommittedPlatforms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        }
+      }
+    },
+    "platformIdentity": {
+      "type": "object",
+      "required": [
+        "instagram_reels",
+        "tiktok",
+        "youtube_shorts"
+      ]
+    },
+    "validationBlocks": {
+      "type": "object"
+    },
+    "compensations": {
+      "type": "object"
+    },
+    "sagaState": {
+      "enum": [
+        "ALL_PENDING",
+        "PARTIALLY_COMMITTED",
+        "RECONCILIATION_REQUIRED",
+        "ALL_COMMITTED",
+        "TERMINAL_BLOCKED"
+      ]
+    },
+    "platformStates": {
+      "type": "object"
+    },
+    "globalSuccess": {
+      "type": "boolean"
+    },
+    "blockers": {
+      "type": "array"
+    },
+    "livePublish": {
+      "const": false
+    },
+    "providerNetworkEffects": {
+      "const": 0
+    }
+  }
+}

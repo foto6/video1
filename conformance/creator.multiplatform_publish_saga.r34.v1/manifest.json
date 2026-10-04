@@ -1,0 +1,63 @@
+{
+  "contractVersion": "creator.multiplatform_publish_saga.r34.v1",
+  "ledgerVersion": "creator.multiplatform_publish_saga_ledger.r34.v1",
+  "statusVersion": "creator.multiplatform_publish_saga_status.r34.v1",
+  "readinessVersion": "creator.multiplatform_publish_saga_readiness.r34.v1",
+  "parentAuthority": {
+    "repository": "foto6/video1",
+    "producerSha": "9556108f423a15a40614a8bc9d590e6dc2e49746",
+    "ciRunId": 37203622591,
+    "artifactId": 11304071297,
+    "artifactName": "creator-r33-publish-transaction-9556108f423a15a40614a8bc9d590e6dc2e49746",
+    "artifactDigest": "sha256:adbfb6d257332220e2be2f9d8f134a87f8bcc6b6e064dfac7f469fd95d690d6d",
+    "contract": "creator.publish_transaction.r33.v1",
+    "contractBlobs": {
+      "runtime": "7ea1d1f23d28cc8e349d308ec18dd960c2721d6a",
+      "schema": "ea1646b8ecd7114ae7d9878c9db09835c7e88a88",
+      "manifest": "503c0eb63efaeb540ce15407c662c2192b956c87",
+      "r32Authority": "09f6ef3a0dafce34f934a5d807a4cd109a08e24b",
+      "readinessReport": "5453ab9ef197be45d1b67d4b7aea09a277981c6f"
+    },
+    "qaR3": {
+      "status": "PENDING",
+      "accepted": false,
+      "acceptanceEvidence": null
+    }
+  },
+  "parentAcceptance": "PENDING_QA_R3",
+  "requiredPlatforms": [
+    "instagram_reels",
+    "tiktok",
+    "youtube_shorts"
+  ],
+  "childContract": "creator.publish_transaction.r33.v1",
+  "sagaStates": [
+    "ALL_PENDING",
+    "PARTIALLY_COMMITTED",
+    "RECONCILIATION_REQUIRED",
+    "ALL_COMMITTED",
+    "TERMINAL_BLOCKED"
+  ],
+  "defaultReleasePolicy": {
+    "mode": "all_required",
+    "requiredPlatforms": [
+      "instagram_reels",
+      "tiktok",
+      "youtube_shorts"
+    ],
+    "minimumCommittedPlatforms": 3
+  },
+  "runtime": "src/creator_orchestrator/multiplatform_publish_saga_r34.py",
+  "tests": "tests/test_multiplatform_publish_saga_r34.py",
+  "guarantees": {
+    "perPlatformIndependentDurability": true,
+    "sameKeyChangedPayloadConflicts": true,
+    "unknownOutcomeNoBlindRetry": true,
+    "readOnlyReconcileRequiredForUnknown": true,
+    "committedPostNeverLocallyRolledBack": true,
+    "compensationMetadataOnly": true,
+    "scheduleRevisionInIdentity": true,
+    "fakeProviderOnly": true,
+    "providerNetworkEffects": 0
+  }
+}
