@@ -1180,6 +1180,7 @@ jobs:
         with:
           name: creator-r33-publish-transaction-${{ github.sha }}
           compression-level: 0
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 30
           path: |
