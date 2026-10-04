@@ -2,7 +2,7 @@
 
 R34 orchestrates one approved short-form winner across Instagram Reels, TikTok and YouTube Shorts while preserving R33 exactly-once safety independently for each platform.
 
-This milestone is source-ready only. The parent R33 candidate is exact-green but **QA-R3 is still pending**, so R34 readiness is `SOURCE_READY_WAITING_PARENT_QA`. R34 must not relabel R33 as accepted.
+Independent QA-R3 has now accepted the exact R33 parent as `PUBLISH_TRANSACTION_SOURCE_READY`. R34 therefore binds that parent acceptance and reports `SOURCE_READY_PENDING_R34_QA`. R34 itself is **not** independently accepted and is never labeled LIVE_READY.
 
 ## Frozen parent
 
@@ -13,6 +13,20 @@ R34 freezes the parent candidate at:
 - artifact ID `11304071297`
 - artifact digest `sha256:adbfb6d257332220e2be2f9d8f134a87f8bcc6b6e064dfac7f469fd95d690d6d`
 - child contract `creator.publish_transaction.r33.v1`
+
+Independent parent acceptance is frozen to:
+
+- QA repo `foto6/boss`
+- exact QA SHA `2a48c909bfb5785409b591253f6085642b962d0d`
+- exact QA CI `37207701514 SUCCESS`
+- QA artifact `11305557095`, `hard-wave-acceptance-r3-2a48c909bfb5785409b591253f6085642b962d0d`
+- QA artifact digest `sha256:4c5cb2c476643a03865ec37c084650db4c98c84c3aed04aafeb35b81b4e9fba0`
+- disposition `ACCEPTED / PUBLISH_TRANSACTION_SOURCE_READY`
+- QA status blob `4e71a7a46ddb71031b7a6aa622efaa63209fef02`
+- QA authority fixture blob `68f304b786df348d72a44be5baced1c1f3aa3d8c`
+- QA runtime/tests blobs `34f8be83d8c9e50ee2e4127d04aba66b8c943fd2` / `b9e329132bc68616874e5d43cb8a81da261ba7b9`
+
+The checked-in `parent-qa-r3-acceptance.json` is an exact source-bound acceptance record. Any changed QA SHA, CI run, artifact ID/digest, QA blob pin, or different R33 authority fails closed.
 
 It also consumes the exact R32 winner/publish-handoff authority already frozen by R33.
 
@@ -111,3 +125,10 @@ creator-multiplatform-publish-r34 status \
 ```
 
 The evidence artifact includes the saga ledger, every child R33 transaction ledger, intermediate status evidence, the chaos report, the evidence manifest, conformance files and static readiness report.
+
+
+## Acceptance boundary after QA-R3
+
+Parent R33 is now accepted only for the exact authority above. This does not change R34 product behavior, provider safety, scheduling, reconciliation, or compensation semantics.
+
+R34 self-status remains `SOURCE_READY_PENDING_R34_QA` with blocker `WAITING_R34_INDEPENDENT_QA`. The fake-provider-only boundary remains intact: `providerNetworkEffects=0`, `livePublish=false`, and unknown provider outcomes remain non-replayable until read-only reconciliation proves an exact outcome.

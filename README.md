@@ -287,7 +287,7 @@ Readiness is `SOURCE_READY_NO_LIVE_PUBLISH`. See `docs/PUBLISH_TRANSACTION_R33.m
 
 ## Multi-platform publish saga (R34)
 
-R34 coordinates one R32 winner across Instagram Reels, TikTok and YouTube Shorts using three independent R33 exactly-once child transactions. It freezes the exact R33 candidate `9556108f423a15a40614a8bc9d590e6dc2e49746` / CI `37203622591` / artifact `11304071297`, but explicitly keeps parent acceptance at `PENDING_QA_R3`.
+R34 coordinates one R32 winner across Instagram Reels, TikTok and YouTube Shorts using three independent R33 exactly-once child transactions. It freezes the exact R33 candidate `9556108f423a15a40614a8bc9d590e6dc2e49746` / CI `37203622591` / artifact `11304071297`. Independent QA-R3 at `foto6/boss@2a48c909bfb5785409b591253f6085642b962d0d`, CI `37207701514 SUCCESS`, artifact `11305557095` / `sha256:4c5cb2c476643a03865ec37c084650db4c98c84c3aed04aafeb35b81b4e9fba0` accepts that exact R33 authority as `PUBLISH_TRANSACTION_SOURCE_READY`. R34 itself remains `SOURCE_READY_PENDING_R34_QA`, not LIVE_READY.
 
 Saga states distinguish `ALL_PENDING`, `PARTIALLY_COMMITTED`, `RECONCILIATION_REQUIRED`, `ALL_COMMITTED`, and `TERMINAL_BLOCKED`. Unknown provider outcome is never replay-authorized; only read-only reconciliation may promote it to committed with exact R33 evidence. Committed external posts are never locally rolled back—R34 compensation is metadata only.
 

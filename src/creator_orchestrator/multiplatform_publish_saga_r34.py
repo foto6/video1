@@ -27,6 +27,54 @@ SAGA_STATES = {
     "TERMINAL_BLOCKED",
 }
 
+QA_R3_ACCEPTANCE = {
+    "contractVersion": "creator.r34_parent_qa_r3_acceptance.v1",
+    "qaAuthority": {
+        "repository": "foto6/boss",
+        "branch": "agent/video-hardwave-acceptance-r3-20261004",
+        "exactSha": "2a48c909bfb5785409b591253f6085642b962d0d",
+        "ciRunId": 37207701514,
+        "ciConclusion": "success",
+        "artifactId": 11305557095,
+        "artifactName": "hard-wave-acceptance-r3-2a48c909bfb5785409b591253f6085642b962d0d",
+        "artifactDigest": "sha256:4c5cb2c476643a03865ec37c084650db4c98c84c3aed04aafeb35b81b4e9fba0",
+        "blobPins": {
+            "status": "4e71a7a46ddb71031b7a6aa622efaa63209fef02",
+            "authorityFixture": "68f304b786df348d72a44be5baced1c1f3aa3d8c",
+            "acceptanceRuntime": "34f8be83d8c9e50ee2e4127d04aba66b8c943fd2",
+            "acceptanceTests": "b9e329132bc68616874e5d43cb8a81da261ba7b9",
+            "documentation": "aaa0463b9a4cbe16e8ea6f75b7efaf6397652a3c",
+            "checkpoint": "75874e2d6a4f5c13320439ddb9b87ce660f25894",
+        },
+    },
+    "acceptedParent": {
+        "repository": "foto6/video1",
+        "producerSha": "9556108f423a15a40614a8bc9d590e6dc2e49746",
+        "ciRunId": 37203622591,
+        "artifactId": 11304071297,
+        "artifactName": "creator-r33-publish-transaction-9556108f423a15a40614a8bc9d590e6dc2e49746",
+        "artifactDigest": "sha256:adbfb6d257332220e2be2f9d8f134a87f8bcc6b6e064dfac7f469fd95d690d6d",
+        "contract": r33.CONTRACT_VERSION,
+        "manifestBlob": "503c0eb63efaeb540ce15407c662c2192b956c87",
+        "schemaBlob": "ea1646b8ecd7114ae7d9878c9db09835c7e88a88",
+        "runtimeBlob": "7ea1d1f23d28cc8e349d308ec18dd960c2721d6a",
+        "readinessBlob": "5453ab9ef197be45d1b67d4b7aea09a277981c6f",
+    },
+    "disposition": "ACCEPTED",
+    "publishTransactionStatus": "PUBLISH_TRANSACTION_SOURCE_READY",
+    "r34IndependentQa": {
+        "status": "PENDING",
+        "accepted": False,
+        "liveReady": False,
+    },
+    "safety": {
+        "fakeProviderOnly": True,
+        "providerNetworkEffects": 0,
+        "livePublish": False,
+        "blindRetryAfterUnknown": False,
+    },
+}
+
 PARENT_R33_AUTHORITY = {
     "repository": "foto6/video1",
     "producerSha": "9556108f423a15a40614a8bc9d590e6dc2e49746",
@@ -43,9 +91,10 @@ PARENT_R33_AUTHORITY = {
         "readinessReport": "5453ab9ef197be45d1b67d4b7aea09a277981c6f",
     },
     "qaR3": {
-        "status": "PENDING",
-        "accepted": False,
-        "acceptanceEvidence": None,
+        "status": "ACCEPTED",
+        "accepted": True,
+        "disposition": "PUBLISH_TRANSACTION_SOURCE_READY",
+        "acceptanceEvidence": QA_R3_ACCEPTANCE,
     },
 }
 
@@ -129,9 +178,57 @@ def _window_state(window: Mapping[str, Any], at_time: str) -> str:
     return "OPEN"
 
 
+def validate_parent_qa_r3_acceptance(
+    value: Mapping[str, Any],
+    *,
+    parent_r33_authority: Mapping[str, Any],
+) -> dict[str, Any]:
+    if value != QA_R3_ACCEPTANCE:
+        raise SagaAuthorityDrift("QA-R3 acceptance evidence drift")
+    accepted = value["acceptedParent"]
+    exact_parent = {
+        "repository": parent_r33_authority["repository"],
+        "producerSha": parent_r33_authority["producerSha"],
+        "ciRunId": parent_r33_authority["ciRunId"],
+        "artifactId": parent_r33_authority["artifactId"],
+        "artifactName": parent_r33_authority["artifactName"],
+        "artifactDigest": parent_r33_authority["artifactDigest"],
+        "contract": parent_r33_authority["contract"],
+        "manifestBlob": parent_r33_authority["contractBlobs"]["manifest"],
+        "schemaBlob": parent_r33_authority["contractBlobs"]["schema"],
+        "runtimeBlob": parent_r33_authority["contractBlobs"]["runtime"],
+        "readinessBlob": parent_r33_authority["contractBlobs"]["readinessReport"],
+    }
+    if accepted != exact_parent:
+        raise SagaAuthorityDrift("QA-R3 accepted a different R33 authority")
+    if (
+        value["disposition"] != "ACCEPTED"
+        or value["publishTransactionStatus"] != "PUBLISH_TRANSACTION_SOURCE_READY"
+        or value["r34IndependentQa"] != {
+            "status": "PENDING",
+            "accepted": False,
+            "liveReady": False,
+        }
+    ):
+        raise SagaAuthorityDrift("QA-R3 disposition drift")
+    return _clone(value)
+
+
 def validate_parent_r33_authority(value: Mapping[str, Any]) -> dict[str, Any]:
     if value != PARENT_R33_AUTHORITY:
         raise SagaAuthorityDrift("Creator R33 parent authority drift")
+    qa = value.get("qaR3")
+    if (
+        not isinstance(qa, Mapping)
+        or qa.get("status") != "ACCEPTED"
+        or qa.get("accepted") is not True
+        or qa.get("disposition") != "PUBLISH_TRANSACTION_SOURCE_READY"
+    ):
+        raise SagaAuthorityDrift("Creator R33 parent QA-R3 status drift")
+    validate_parent_qa_r3_acceptance(
+        qa.get("acceptanceEvidence"),
+        parent_r33_authority=value,
+    )
     return _clone(value)
 
 
@@ -306,7 +403,7 @@ def build_saga_spec(
         "contractVersion": CONTRACT_VERSION,
         "sagaId": saga_id,
         "parentR33Authority": parent,
-        "parentQaStatus": "PENDING_QA_R3",
+        "parentQaStatus": "ACCEPTED_QA_R3",
         "r32Authority": _clone(first["r32Authority"]),
         "winner": winner,
         "lineage": lineage,
@@ -372,12 +469,7 @@ class SagaLedger:
             "sagaState": "ALL_PENDING",
             "platformStates": {},
             "globalSuccess": False,
-            "blockers": [
-                {
-                    "code": "WAITING_PARENT_QA_R3",
-                    "parentAccepted": False,
-                }
-            ],
+            "blockers": [],
             "livePublish": False,
             "providerNetworkEffects": 0,
         }
@@ -577,12 +669,7 @@ class SagaLedger:
                 and not any_unknown
             )
 
-        blockers: list[dict[str, Any]] = [
-            {
-                "code": "WAITING_PARENT_QA_R3",
-                "parentAccepted": False,
-            }
-        ]
+        blockers: list[dict[str, Any]] = []
         for platform, item in platform_states.items():
             if item["state"] == "RECONCILIATION_REQUIRED" or (
                 item["state"] == "COMMITTING" and item["providerInvocationStarted"]
@@ -995,15 +1082,24 @@ class DuplicateConfirmedAfterDispatch(r33.FakeProviderHarness):
 
 
 def readiness() -> dict[str, Any]:
+    validate_parent_r33_authority(PARENT_R33_AUTHORITY)
     value = {
         "reportVersion": READINESS_VERSION,
-        "state": "SOURCE_READY_WAITING_PARENT_QA",
+        "state": "SOURCE_READY_PENDING_R34_QA",
         "SOURCE_READY": True,
-        "PARENT_R33_ACCEPTED": False,
+        "PARENT_R33_ACCEPTED": True,
+        "R34_INDEPENDENTLY_ACCEPTED": False,
         "parentQa": {
             "requiredGate": "QA-R3",
+            "status": "ACCEPTED",
+            "disposition": "PUBLISH_TRANSACTION_SOURCE_READY",
+            "acceptanceEvidence": _clone(QA_R3_ACCEPTANCE),
+        },
+        "selfQa": {
+            "requiredGate": "independent R34 QA",
             "status": "PENDING",
-            "acceptanceEvidence": None,
+            "accepted": False,
+            "liveReady": False,
         },
         "parentR33Authority": _clone(PARENT_R33_AUTHORITY),
         "r32Authority": _clone(r33.CREATOR_R32_AUTHORITY),
@@ -1026,8 +1122,8 @@ def readiness() -> dict[str, Any]:
         },
         "blockers": [
             {
-                "code": "WAITING_PARENT_QA_R3",
-                "detail": "R33 exact green candidate exists but is not independently accepted",
+                "code": "WAITING_R34_INDEPENDENT_QA",
+                "detail": "R33 parent is QA-R3 accepted; R34 itself is not independently accepted",
             }
         ],
     }
@@ -1214,9 +1310,9 @@ def run_chaos_rehearsal(work_dir: str | os.PathLike[str]) -> dict[str, Any]:
 
     report = {
         "reportVersion": REHEARSAL_VERSION,
-        "state": "SOURCE_READY_WAITING_PARENT_QA",
+        "state": "SOURCE_READY_PENDING_R34_QA",
         "parentR33Authority": _clone(PARENT_R33_AUTHORITY),
-        "parentQaAccepted": False,
+        "parentQaAccepted": True,
         "crashBeforeWindowBlocked": crash_before_window_blocked,
         "beforeWindow": before_window,
         "afterInstagramCommit": after_ig,
@@ -1249,7 +1345,7 @@ def run_chaos_rehearsal(work_dir: str | os.PathLike[str]) -> dict[str, Any]:
     evidence = {
         "contractVersion": EVIDENCE_VERSION,
         "parentR33Authority": _clone(PARENT_R33_AUTHORITY),
-        "parentQaAccepted": False,
+        "parentQaAccepted": True,
         "rehearsalDigest": report["reportDigest"],
         "mainSaga": {
             "sagaId": final["sagaId"],

@@ -19,12 +19,27 @@
       "readinessReport": "5453ab9ef197be45d1b67d4b7aea09a277981c6f"
     },
     "qaR3": {
-      "status": "PENDING",
-      "accepted": false,
-      "acceptanceEvidence": null
+      "status": "ACCEPTED",
+      "accepted": true,
+      "disposition": "PUBLISH_TRANSACTION_SOURCE_READY",
+      "qaRepository": "foto6/boss",
+      "qaExactSha": "2a48c909bfb5785409b591253f6085642b962d0d",
+      "qaCiRunId": 37207701514,
+      "qaArtifactId": 11305557095,
+      "qaArtifactName": "hard-wave-acceptance-r3-2a48c909bfb5785409b591253f6085642b962d0d",
+      "qaArtifactDigest": "sha256:4c5cb2c476643a03865ec37c084650db4c98c84c3aed04aafeb35b81b4e9fba0",
+      "qaBlobPins": {
+        "status": "4e71a7a46ddb71031b7a6aa622efaa63209fef02",
+        "authorityFixture": "68f304b786df348d72a44be5baced1c1f3aa3d8c",
+        "acceptanceRuntime": "34f8be83d8c9e50ee2e4127d04aba66b8c943fd2",
+        "acceptanceTests": "b9e329132bc68616874e5d43cb8a81da261ba7b9",
+        "documentation": "aaa0463b9a4cbe16e8ea6f75b7efaf6397652a3c",
+        "checkpoint": "75874e2d6a4f5c13320439ddb9b87ce660f25894"
+      }
     }
   },
-  "parentAcceptance": "PENDING_QA_R3",
+  "parentAcceptance": "ACCEPTED_QA_R3",
+  "r34Acceptance": "PENDING_INDEPENDENT_QA",
   "requiredPlatforms": [
     "instagram_reels",
     "tiktok",
@@ -47,8 +62,32 @@
     ],
     "minimumCommittedPlatforms": 3
   },
-  "runtime": "src/creator_orchestrator/multiplatform_publish_saga_r34.py",
-  "tests": "tests/test_multiplatform_publish_saga_r34.py",
+  "files": {
+    "runtime": {
+      "path": "src/creator_orchestrator/multiplatform_publish_saga_r34.py",
+      "blob": "7fa3ecedbefa95c068a7946cfb51a3999ccff32f"
+    },
+    "tests": {
+      "path": "tests/test_multiplatform_publish_saga_r34.py",
+      "blob": "48f3a4700354ca2022747c27f02fd70ebecd7c94"
+    },
+    "schema": {
+      "path": "conformance/creator.multiplatform_publish_saga.r34.v1/schema.json",
+      "blob": "b1df09e22fb648b4b9e6eb5672265fc31cdb2ce1"
+    },
+    "authority": {
+      "path": "conformance/creator.multiplatform_publish_saga.r34.v1/authority.json",
+      "blob": "abbc022b913412205b956ca17fe6b851d62390f2"
+    },
+    "parentQaAcceptance": {
+      "path": "conformance/creator.multiplatform_publish_saga.r34.v1/parent-qa-r3-acceptance.json",
+      "blob": "6e0a96d302ee147af533262cefb3cf4b33f43eb6"
+    },
+    "readiness": {
+      "path": "reports/CREATOR_R34_MULTIPLATFORM_PUBLISH_SAGA_READINESS.json",
+      "blob": "9923169248301dae11b77322a1f2c1a7142448b9"
+    }
+  },
   "guarantees": {
     "perPlatformIndependentDurability": true,
     "sameKeyChangedPayloadConflicts": true,
@@ -58,6 +97,9 @@
     "compensationMetadataOnly": true,
     "scheduleRevisionInIdentity": true,
     "fakeProviderOnly": true,
-    "providerNetworkEffects": 0
+    "providerNetworkEffects": 0,
+    "livePublish": false,
+    "parentR33QaAccepted": true,
+    "r34IndependentQaAccepted": false
   }
 }

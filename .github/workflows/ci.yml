@@ -1208,17 +1208,27 @@ jobs:
         run: |
           creator-multiplatform-publish-r34 --help
           PYTHONPATH=src python -m unittest discover -s tests -p 'test_multiplatform_publish_saga_r34.py' -v
-      - name: Verify parent-QA source-ready gate
+      - name: Verify accepted parent QA and pending R34 self-QA
         run: |
           creator-multiplatform-publish-r34 readiness --out .r34-readiness.json > .r34-readiness.stdout.json
           python - <<'PY'
           import json
           r=json.load(open(".r34-readiness.json"))
-          assert r["state"] == "SOURCE_READY_WAITING_PARENT_QA"
+          assert r["state"] == "SOURCE_READY_PENDING_R34_QA"
           assert r["SOURCE_READY"] is True
-          assert r["PARENT_R33_ACCEPTED"] is False
+          assert r["PARENT_R33_ACCEPTED"] is True
+          assert r["R34_INDEPENDENTLY_ACCEPTED"] is False
           assert r["parentQa"]["requiredGate"] == "QA-R3"
-          assert r["parentQa"]["status"] == "PENDING"
+          assert r["parentQa"]["status"] == "ACCEPTED"
+          assert r["parentQa"]["disposition"] == "PUBLISH_TRANSACTION_SOURCE_READY"
+          assert r["parentQa"]["acceptanceEvidence"]["qaAuthority"]["exactSha"] == "2a48c909bfb5785409b591253f6085642b962d0d"
+          assert r["parentQa"]["acceptanceEvidence"]["qaAuthority"]["ciRunId"] == 37207701514
+          assert r["parentQa"]["acceptanceEvidence"]["qaAuthority"]["artifactId"] == 11305557095
+          assert r["parentQa"]["acceptanceEvidence"]["qaAuthority"]["artifactDigest"] == "sha256:4c5cb2c476643a03865ec37c084650db4c98c84c3aed04aafeb35b81b4e9fba0"
+          assert r["parentQa"]["acceptanceEvidence"]["acceptedParent"]["producerSha"] == "9556108f423a15a40614a8bc9d590e6dc2e49746"
+          assert r["selfQa"]["status"] == "PENDING"
+          assert r["selfQa"]["accepted"] is False
+          assert r["blockers"][0]["code"] == "WAITING_R34_INDEPENDENT_QA"
           assert r["parentR33Authority"]["producerSha"] == "9556108f423a15a40614a8bc9d590e6dc2e49746"
           assert r["parentR33Authority"]["ciRunId"] == 37203622591
           assert r["parentR33Authority"]["artifactId"] == 11304071297
@@ -1227,6 +1237,7 @@ jobs:
           assert r["safety"]["providerNetworkEffects"] == 0
           assert r["safety"]["realProviderEffects"] == 0
           assert r["safety"]["livePublish"] is False
+          assert r["safety"]["blindRetryAfterUnknown"] is False
           PY
       - name: Run deterministic three-platform partial-commit chaos rehearsal
         run: |
@@ -1237,8 +1248,8 @@ jobs:
           r=json.load(open(".r34-chaos/chaos-rehearsal.r34.json"))
           e=json.load(open(".r34-chaos/evidence-manifest.r34.json"))
           s=json.load(open(".r34-final-status.json"))
-          assert r["state"] == "SOURCE_READY_WAITING_PARENT_QA"
-          assert r["parentQaAccepted"] is False
+          assert r["state"] == "SOURCE_READY_PENDING_R34_QA"
+          assert r["parentQaAccepted"] is True
           assert r["crashBeforeWindowBlocked"] is True
           assert r["afterInstagramCommit"]["state"] == "PARTIALLY_COMMITTED"
           assert r["afterInstagramCommit"]["committedPlatforms"] == ["instagram_reels"]
@@ -1255,6 +1266,7 @@ jobs:
           assert r["realProviderEffects"] == 0
           assert r["providerNetworkEffects"] == 0
           assert r["livePublish"] is False
+          assert e["parentQaAccepted"] is True
           assert e["partialCommitObserved"] is True
           assert e["unknownOutcomeObserved"] is True
           assert e["tiktokDuplicateConfirmed"] is True

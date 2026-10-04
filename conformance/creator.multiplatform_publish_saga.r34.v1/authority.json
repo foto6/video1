@@ -15,10 +15,61 @@
       "readinessReport": "5453ab9ef197be45d1b67d4b7aea09a277981c6f"
     },
     "qaR3": {
-      "status": "PENDING",
-      "accepted": false,
-      "acceptanceEvidence": null
+      "status": "ACCEPTED",
+      "accepted": true,
+      "disposition": "PUBLISH_TRANSACTION_SOURCE_READY",
+      "acceptanceEvidence": {
+        "contractVersion": "creator.r34_parent_qa_r3_acceptance.v1",
+        "qaAuthority": {
+          "repository": "foto6/boss",
+          "branch": "agent/video-hardwave-acceptance-r3-20261004",
+          "exactSha": "2a48c909bfb5785409b591253f6085642b962d0d",
+          "ciRunId": 37207701514,
+          "ciConclusion": "success",
+          "artifactId": 11305557095,
+          "artifactName": "hard-wave-acceptance-r3-2a48c909bfb5785409b591253f6085642b962d0d",
+          "artifactDigest": "sha256:4c5cb2c476643a03865ec37c084650db4c98c84c3aed04aafeb35b81b4e9fba0",
+          "blobPins": {
+            "status": "4e71a7a46ddb71031b7a6aa622efaa63209fef02",
+            "authorityFixture": "68f304b786df348d72a44be5baced1c1f3aa3d8c",
+            "acceptanceRuntime": "34f8be83d8c9e50ee2e4127d04aba66b8c943fd2",
+            "acceptanceTests": "b9e329132bc68616874e5d43cb8a81da261ba7b9",
+            "documentation": "aaa0463b9a4cbe16e8ea6f75b7efaf6397652a3c",
+            "checkpoint": "75874e2d6a4f5c13320439ddb9b87ce660f25894"
+          }
+        },
+        "acceptedParent": {
+          "repository": "foto6/video1",
+          "producerSha": "9556108f423a15a40614a8bc9d590e6dc2e49746",
+          "ciRunId": 37203622591,
+          "artifactId": 11304071297,
+          "artifactName": "creator-r33-publish-transaction-9556108f423a15a40614a8bc9d590e6dc2e49746",
+          "artifactDigest": "sha256:adbfb6d257332220e2be2f9d8f134a87f8bcc6b6e064dfac7f469fd95d690d6d",
+          "contract": "creator.publish_transaction.r33.v1",
+          "manifestBlob": "503c0eb63efaeb540ce15407c662c2192b956c87",
+          "schemaBlob": "ea1646b8ecd7114ae7d9878c9db09835c7e88a88",
+          "runtimeBlob": "7ea1d1f23d28cc8e349d308ec18dd960c2721d6a",
+          "readinessBlob": "5453ab9ef197be45d1b67d4b7aea09a277981c6f"
+        },
+        "disposition": "ACCEPTED",
+        "publishTransactionStatus": "PUBLISH_TRANSACTION_SOURCE_READY",
+        "r34IndependentQa": {
+          "status": "PENDING",
+          "accepted": false,
+          "liveReady": false
+        },
+        "safety": {
+          "fakeProviderOnly": true,
+          "providerNetworkEffects": 0,
+          "livePublish": false,
+          "blindRetryAfterUnknown": false
+        }
+      }
     }
+  },
+  "parentQaAcceptanceFile": {
+    "path": "conformance/creator.multiplatform_publish_saga.r34.v1/parent-qa-r3-acceptance.json",
+    "blob": "6e0a96d302ee147af533262cefb3cf4b33f43eb6"
   },
   "r32Authority": {
     "repository": "foto6/video1",
@@ -27,5 +78,10 @@
     "artifactId": 11302367811,
     "artifactDigest": "sha256:6803db334974b8dbea1c30c107ec5af00fe2cb892ed67e68540c2b2d74b18599",
     "contract": "creator.autonomous_tournament.r32.v1"
+  },
+  "r34SelfQa": {
+    "status": "PENDING",
+    "accepted": false,
+    "liveReady": false
   }
 }

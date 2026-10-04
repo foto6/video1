@@ -22,13 +22,44 @@ class R34MultiplatformPublishSagaTests(unittest.TestCase):
             r34.validate_platform(saga, platform)
             r34.mark_platform_commit_eligible(saga, platform)
 
-    def test_readiness_waits_for_parent_qa_r3_without_acceptance_claim(self):
+    def test_readiness_binds_accepted_parent_qa_and_keeps_r34_pending(self):
         value = r34.readiness()
-        self.assertEqual(value["state"], "SOURCE_READY_WAITING_PARENT_QA")
+        self.assertEqual(value["state"], "SOURCE_READY_PENDING_R34_QA")
         self.assertTrue(value["SOURCE_READY"])
-        self.assertFalse(value["PARENT_R33_ACCEPTED"])
+        self.assertTrue(value["PARENT_R33_ACCEPTED"])
+        self.assertFalse(value["R34_INDEPENDENTLY_ACCEPTED"])
         self.assertEqual(value["parentQa"]["requiredGate"], "QA-R3")
-        self.assertEqual(value["parentQa"]["status"], "PENDING")
+        self.assertEqual(value["parentQa"]["status"], "ACCEPTED")
+        self.assertEqual(
+            value["parentQa"]["disposition"],
+            "PUBLISH_TRANSACTION_SOURCE_READY",
+        )
+        evidence = value["parentQa"]["acceptanceEvidence"]
+        self.assertEqual(
+            evidence["qaAuthority"]["exactSha"],
+            "2a48c909bfb5785409b591253f6085642b962d0d",
+        )
+        self.assertEqual(evidence["qaAuthority"]["ciRunId"], 37207701514)
+        self.assertEqual(evidence["qaAuthority"]["artifactId"], 11305557095)
+        self.assertEqual(
+            evidence["qaAuthority"]["artifactDigest"],
+            "sha256:4c5cb2c476643a03865ec37c084650db4c98c84c3aed04aafeb35b81b4e9fba0",
+        )
+        self.assertEqual(
+            evidence["acceptedParent"]["producerSha"],
+            "9556108f423a15a40614a8bc9d590e6dc2e49746",
+        )
+        self.assertEqual(
+            evidence["acceptedParent"]["artifactDigest"],
+            "sha256:adbfb6d257332220e2be2f9d8f134a87f8bcc6b6e064dfac7f469fd95d690d6d",
+        )
+        self.assertEqual(value["selfQa"]["status"], "PENDING")
+        self.assertFalse(value["selfQa"]["accepted"])
+        self.assertFalse(value["selfQa"]["liveReady"])
+        self.assertEqual(
+            value["blockers"][0]["code"],
+            "WAITING_R34_INDEPENDENT_QA",
+        )
         self.assertEqual(
             value["parentR33Authority"]["producerSha"],
             "9556108f423a15a40614a8bc9d590e6dc2e49746",
@@ -39,13 +70,22 @@ class R34MultiplatformPublishSagaTests(unittest.TestCase):
             value["parentR33Authority"]["artifactDigest"],
             "sha256:adbfb6d257332220e2be2f9d8f134a87f8bcc6b6e064dfac7f469fd95d690d6d",
         )
+        self.assertTrue(value["safety"]["fakeProviderOnly"])
         self.assertFalse(value["safety"]["livePublish"])
+        self.assertFalse(value["safety"]["blindRetryAfterUnknown"])
         self.assertEqual(value["safety"]["providerNetworkEffects"], 0)
 
     def test_prepare_creates_three_independent_r33_transactions(self):
         with tempfile.TemporaryDirectory() as td:
             saga = self.prepare(Path(td))
             status = r34.saga_status(saga)
+            self.assertEqual(saga.state["parentQaStatus"], "ACCEPTED_QA_R3")
+            self.assertFalse(
+                any(
+                    item.get("code") == "WAITING_PARENT_QA_R3"
+                    for item in saga.state["blockers"]
+                )
+            )
             self.assertEqual(status["state"], "ALL_PENDING")
             self.assertFalse(status["globalSuccess"])
             self.assertEqual(set(status["perPlatform"]), set(r34.REQUIRED_PLATFORMS))
@@ -148,6 +188,23 @@ class R34MultiplatformPublishSagaTests(unittest.TestCase):
         kwargs["parent_r33_authority"] = parent
         with self.assertRaises(r34.SagaAuthorityDrift):
             r34.build_saga_spec(**kwargs)
+
+    def test_parent_qa_r3_evidence_drift_fails_closed(self):
+        mutations = [
+            ("qa_sha", lambda parent: parent["qaR3"]["acceptanceEvidence"]["qaAuthority"].__setitem__("exactSha", "0" * 40)),
+            ("qa_run", lambda parent: parent["qaR3"]["acceptanceEvidence"]["qaAuthority"].__setitem__("ciRunId", 1)),
+            ("qa_artifact", lambda parent: parent["qaR3"]["acceptanceEvidence"]["qaAuthority"].__setitem__("artifactId", 1)),
+            ("qa_digest", lambda parent: parent["qaR3"]["acceptanceEvidence"]["qaAuthority"].__setitem__("artifactDigest", "sha256:" + "0" * 64)),
+            ("accepted_r33", lambda parent: parent["qaR3"]["acceptanceEvidence"]["acceptedParent"].__setitem__("producerSha", "0" * 40)),
+        ]
+        for name, mutate in mutations:
+            with self.subTest(name=name):
+                kwargs = self.kwargs()
+                parent = copy.deepcopy(r34.PARENT_R33_AUTHORITY)
+                mutate(parent)
+                kwargs["parent_r33_authority"] = parent
+                with self.assertRaises(r34.SagaAuthorityDrift):
+                    r34.build_saga_spec(**kwargs)
 
     def test_nonwinner_r32_handoff_never_prepares_saga(self):
         for outcome in ("tie", "human_review", "insufficient_evidence"):
@@ -513,8 +570,8 @@ class R34MultiplatformPublishSagaTests(unittest.TestCase):
             first = r34.run_chaos_rehearsal(a)
             second = r34.run_chaos_rehearsal(b)
             self.assertEqual(first["reportDigest"], second["reportDigest"])
-            self.assertEqual(first["state"], "SOURCE_READY_WAITING_PARENT_QA")
-            self.assertFalse(first["parentQaAccepted"])
+            self.assertEqual(first["state"], "SOURCE_READY_PENDING_R34_QA")
+            self.assertTrue(first["parentQaAccepted"])
             self.assertTrue(first["crashBeforeWindowBlocked"])
             self.assertEqual(first["afterInstagramCommit"]["state"], "PARTIALLY_COMMITTED")
             self.assertEqual(
@@ -549,6 +606,7 @@ class R34MultiplatformPublishSagaTests(unittest.TestCase):
                     encoding="utf-8"
                 )
             )
+            self.assertTrue(evidence["parentQaAccepted"])
             self.assertTrue(evidence["partialCommitObserved"])
             self.assertTrue(evidence["unknownOutcomeObserved"])
             self.assertTrue(evidence["tiktokDuplicateConfirmed"])

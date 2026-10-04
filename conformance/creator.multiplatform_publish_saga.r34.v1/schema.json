@@ -41,7 +41,7 @@
       "type": "object"
     },
     "parentQaStatus": {
-      "const": "PENDING_QA_R3"
+      "const": "ACCEPTED_QA_R3"
     },
     "r32Authority": {
       "type": "object"
