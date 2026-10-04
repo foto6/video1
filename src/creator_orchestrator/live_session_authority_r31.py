@@ -663,6 +663,29 @@ def export_media_r23_next_round(
     next_round = after["candidate"]["roundIndex"]
     if next_round != before["candidate"]["roundIndex"] + 1 or not 1 <= next_round <= 2:
         raise RoundOverflow("Media R23 next review round must be N+1 within 1..2")
+    application_ref = after["candidate"].get("editorialApplication")
+    if not isinstance(application_ref, Mapping):
+        raise PackageDrift("Media R23 challenger application reference missing")
+    application_path = (
+        Path(candidate_root).resolve() / application_ref["path"]
+    ).resolve()
+    try:
+        application_path.relative_to(Path(candidate_root).resolve())
+    except ValueError as exc:
+        raise PackageDrift("Media R23 application path escapes candidate root") from exc
+    if (
+        not application_path.is_file()
+        or _file_sha(application_path) != application_ref["fileSha256"]
+    ):
+        raise PackageDrift("Media R23 application sidecar identity drift")
+    application = json.loads(application_path.read_text(encoding="utf-8"))
+    media_growth_handoff_digest = application.get("handoff", {}).get("digest")
+    _hex(
+        media_growth_handoff_digest,
+        64,
+        "media.application.handoff.digest",
+    )
+
     request = {
         "contractVersion": MEDIA_R23_AUTHORITY["requestContract"],
         "sessionId": "cr31-" + hashlib.sha256(session_id.encode("utf-8")).hexdigest()[:32],
@@ -675,7 +698,7 @@ def export_media_r23_next_round(
         },
         "briefLineageDigest": before["briefDigest"],
         "growthSelectedEnvelopeDigest": envelope["envelope_digest"],
-        "growthHandoffDigest": envelope["candidate"]["handoff_digest"],
+        "growthHandoffDigest": media_growth_handoff_digest,
         "baseline": {
             "candidate": r28._dynamic_descriptor(before),
             "priorReviewPackageDigest": growth_round["package"]["package_digest"],
@@ -730,7 +753,7 @@ def export_media_r23_next_round(
         }
         or package.get("reviewRound") != next_round
         or package.get("growthSelectedEnvelopeDigest") != envelope["envelope_digest"]
-        or package.get("growthHandoffDigest") != envelope["candidate"]["handoff_digest"]
+        or package.get("growthHandoffDigest") != media_growth_handoff_digest
         or package.get("baseline", {}).get("render", {}).get("sha256") != before["candidate"]["renderSha256"]
         or package.get("challenger", {}).get("render", {}).get("sha256") != after["candidate"]["renderSha256"]
     ):
@@ -749,6 +772,8 @@ def export_media_r23_next_round(
         "sealedMappingDigest": package["sealedMappingDigest"],
         "baselineRenderSha256": before["candidate"]["renderSha256"],
         "challengerRenderSha256": after["candidate"]["renderSha256"],
+        "sourceGrowthHandoffDigest": envelope["candidate"]["handoff_digest"],
+        "mediaCompatibilityHandoffDigest": media_growth_handoff_digest,
         "producerSha": MEDIA_R23_AUTHORITY["producerSha"],
         "producerCiRunId": MEDIA_R23_AUTHORITY["ciRunId"],
         "modelReviewPerformed": False,

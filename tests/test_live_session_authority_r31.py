@@ -515,6 +515,18 @@ class R31ExactIntegrationTests(unittest.TestCase):
             r31.MEDIA_R23_AUTHORITY["producerSha"],
         )
         self.assertEqual(
+            package["package"]["growthHandoffDigest"],
+            result["application"]["handoff"]["digest"],
+        )
+        self.assertEqual(
+            package["evidence"]["sourceGrowthHandoffDigest"],
+            envelope["candidate"]["handoff_digest"],
+        )
+        self.assertEqual(
+            package["evidence"]["mediaCompatibilityHandoffDigest"],
+            result["application"]["handoff"]["digest"],
+        )
+        self.assertEqual(
             package["package"]["challenger"]["render"]["sha256"],
             next_context["candidate"]["renderSha256"],
         )
