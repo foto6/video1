@@ -24,6 +24,7 @@ on:
       - agent/creator-r29-exact-dynamic-e2e-20261002
       - agent/creator-r30-coordinator-loop-20261002
       - agent/creator-r31-live-session-authority-20261002
+      - agent/creator-r32-autonomous-tournament-coordinator-20261004
   pull_request:
 
 jobs:
@@ -1042,6 +1043,82 @@ jobs:
             .r31-rehearsal/**
             reports/CREATOR_R31_LIVE_SESSION_READINESS.json
             conformance/creator.live_session_authority.r31.v1/**
+
+  focused-r32-autonomous-tournament:
+    needs: full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Creator
+        run: python -m pip install -e .
+      - name: Run R32 state, authority, replay and chaos tests
+        run: |
+          creator-autonomous-tournament-r32 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_autonomous_tournament_r32.py' -v
+      - name: Verify next-wave gate is explicit
+        run: |
+          creator-autonomous-tournament-r32 readiness --out .r32-readiness.json > .r32-readiness.stdout.json
+          creator-autonomous-tournament-r32 status --out .r32-status-source.json > .r32-status-source.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r32-readiness.json"))
+          s=json.load(open(".r32-status-source.json"))
+          assert r["status"] == "AUTONOMOUS_LOOP_SOURCE_READY"
+          assert r["SOURCE_READY"] is True
+          assert r["FULL_NEXT_WAVE_PINNED"] is False
+          assert r["blockers"][0]["code"] == "WAITING_UPSTREAM_GREEN"
+          assert s["state"] == "AUTONOMOUS_LOOP_SOURCE_READY"
+          assert s["nextPermittedAction"] == "WAIT_FOR_R25_R30_R35_EXACT_GREEN"
+          assert r["currentAuthorities"]["mediaR24"]["producerSha"] == "244acdf154741e669991b17df3ef2a47e2dfdfa9"
+          assert r["currentAuthorities"]["growthR29"]["producerSha"] == "3e4a8ad6d73b058c953abeadba7a60abe567adbc"
+          assert r["currentAuthorities"]["bridgeR34"]["producerSha"] == "4e2a37545cc0cdd940cf6e86d40e0d620d6c94ae"
+          assert r["safety"]["livePublish"] is False
+          PY
+      - name: Run deterministic crash and lost-ack rehearsal
+        run: |
+          creator-autonomous-tournament-r32 chaos-rehearsal --out .r32-chaos > .r32-chaos.stdout.json
+          creator-autonomous-tournament-r32 status --ledger .r32-chaos/autonomous-tournament-ledger.jsonl --out .r32-chaos/status-after-replay.json > .r32-chaos.status.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r32-chaos/chaos-rehearsal.r32.json"))
+          s=json.load(open(".r32-chaos/status-after-replay.json"))
+          assert r["overallAuthorityStatus"] == "AUTONOMOUS_LOOP_SOURCE_READY"
+          assert r["state"] == "PUBLISH_HANDOFF_READY"
+          assert r["initialCandidateCount"] == 4
+          assert r["independentReviewerCount"] == 3
+          assert r["reviewRoundsCompleted"] == 2
+          assert r["reeditRoundsExecuted"] == 1
+          assert r["dispatchLogicalEffects"] == 6
+          assert r["mediaReeditLogicalEffects"] == 1
+          assert r["reconciliationEvents"] == 1
+          assert r["lostAckConsensusBlocked"] is True
+          assert r["browserMutation"] is False
+          assert r["providerMutation"] is False
+          assert r["livePublish"] is False
+          assert r["humanGroundTruthClaimed"] is False
+          assert s["state"] == "PUBLISH_HANDOFF_READY"
+          assert s["nextPermittedAction"] == "STOP_NO_LIVE_PUBLISH"
+          PY
+      - name: Upload deterministic R32 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r32-autonomous-tournament-${{ github.sha }}
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r32-readiness.json
+            .r32-readiness.stdout.json
+            .r32-status-source.json
+            .r32-status-source.stdout.json
+            .r32-chaos/**
+            .r32-chaos.stdout.json
+            .r32-chaos.status.stdout.json
+            reports/CREATOR_R32_AUTONOMOUS_TOURNAMENT_READINESS.json
+            conformance/creator.autonomous_tournament.r32.v1/**
 
   full:
     runs-on: ubuntu-latest

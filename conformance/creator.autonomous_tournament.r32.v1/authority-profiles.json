@@ -1,0 +1,63 @@
+{
+  "contractVersion": "creator.autonomous_tournament_authorities.r32.v1",
+  "current": {
+    "mediaR24": {
+      "repository": "foto6/video2",
+      "producerSha": "244acdf154741e669991b17df3ef2a47e2dfdfa9",
+      "ciRunId": 37195239582,
+      "contract": "media.canonical_live_review_export.r24.v1",
+      "blobs": {
+        "contract": "e63a7d712f85ad5335e89c9a23c617d178baf2ea",
+        "schema": "79ab876b27143fe9939c90ea7e075b42243285ba",
+        "manifest": "d2d22ca2fb9300053fe58fe5a7c56a517bd18aaa",
+        "implementation": "6ac715d57cb5ec37792a84190ec481c0f7194a77",
+        "exporter": "13552bc37ce752b3980396f49ed503c0c744c587",
+        "verifier": "b01cfab99ffb6a39a6edcc3a29af491d7fb42e9c"
+      }
+    },
+    "growthR29": {
+      "repository": "foto6/video3",
+      "producerSha": "3e4a8ad6d73b058c953abeadba7a60abe567adbc",
+      "ciRunId": 37195373334,
+      "contract": "growth.exact_session_ingest.r29.v1",
+      "blobs": {
+        "contract": "402ca7aed9b2d5a17ac9a1e79e751d3ccb376b5c",
+        "authorityProfiles": "5f59d52d9768b0489ff7655bf90fe0982d7523d8",
+        "implementation": "cfd3a3e8788775b754a2a94af37baa88e7957dc8",
+        "fixture": "f019742318f4f368b6d1b60e9a82bcee90989e3a"
+      }
+    },
+    "bridgeR34": {
+      "repository": "foto6/WebAIBridge",
+      "producerSha": "4e2a37545cc0cdd940cf6e86d40e0d620d6c94ae",
+      "ciRunId": 37196102639,
+      "contract": "bridge.r34_sticky_chat_exact_id.v1",
+      "blobs": {
+        "workflow": "1677f17e9c55be18b2b1bc8c1d4eb25431ecd906",
+        "routing": "0e72ccb822f4e5fd9f29bc8ef17ccec70aeb78da",
+        "rehearsal": "9a8cad3627a3d0d429897cf09d263dae97e8209e",
+        "readiness": "e4cf0ba13e9b51a978f61ac9bac33b9d08ee3bcc"
+      }
+    }
+  },
+  "nextWave": {
+    "mediaR25": {
+      "expectedContract": "media.multicandidate_round.r25.v1",
+      "observedProducerSha": "244acdf154741e669991b17df3ef2a47e2dfdfa9",
+      "observedCiRunId": 37195239582,
+      "contractPresent": false
+    },
+    "growthR30": {
+      "expectedContract": "growth.consensus_review.r30.v1",
+      "observedProducerSha": "3e4a8ad6d73b058c953abeadba7a60abe567adbc",
+      "observedCiRunId": 37195373334,
+      "contractPresent": false
+    },
+    "bridgeR35": {
+      "expectedContract": "bridge.multiagent_dispatch.r35.v1",
+      "observedProducerSha": "4e2a37545cc0cdd940cf6e86d40e0d620d6c94ae",
+      "observedCiRunId": 37196102639,
+      "contractPresent": false
+    }
+  }
+}

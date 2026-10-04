@@ -1,0 +1,25 @@
+{
+  "contractVersion": "creator.autonomous_tournament.r32.v1",
+  "ledgerVersion": "creator.autonomous_tournament_ledger.r32.v1",
+  "statusVersion": "creator.autonomous_tournament_status.r32.v1",
+  "chaosRehearsalVersion": "creator.autonomous_tournament_chaos_rehearsal.r32.v1",
+  "creatorBaseSha": "ed6959472ac958b4f5a8dcae5cee38e7430372d1",
+  "creatorBaseCiRunId": 37196521535,
+  "schemaPath": "conformance/creator.autonomous_tournament.r32.v1/schema.json",
+  "authorityProfilesPath": "conformance/creator.autonomous_tournament.r32.v1/authority-profiles.json",
+  "runtime": "src/creator_orchestrator/autonomous_tournament_r32.py",
+  "expectedNextWaveContracts": [
+    "media.multicandidate_round.r25.v1",
+    "growth.consensus_review.r30.v1",
+    "bridge.multiagent_dispatch.r35.v1"
+  ],
+  "developmentMode": "frozen_contract_fixture",
+  "completionStatus": "AUTONOMOUS_LOOP_SOURCE_READY",
+  "safety": {
+    "browserMutation": false,
+    "providerMutation": false,
+    "livePublish": false,
+    "humanGroundTruthClaim": false,
+    "blindRetryAfterUnknownSend": false
+  }
+}

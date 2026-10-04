@@ -249,3 +249,20 @@ creator-live-session-r31 rehearsal --out ./r31-rehearsal
 ```
 
 Without a genuine live session capture, readiness intentionally remains `WAITING_GENUINE_CAPTURE`. See `docs/LIVE_SESSION_AUTHORITY_R31.md`.
+
+
+## Autonomous tournament coordinator (R32)
+
+R32 adds `creator.autonomous_tournament.r32.v1`: a crash-safe tournament state machine for 2–4 edit candidates, three independent blinded reviews, consensus, at most two targeted re-edits, the next review round, and a winner-only publish-handoff boundary.
+
+The current exact-green authority floor is Media R24 `244acdf154741e669991b17df3ef2a47e2dfdfa9`, Growth R29 `3e4a8ad6d73b058c953abeadba7a60abe567adbc`, and Bridge R34 `4e2a37545cc0cdd940cf6e86d40e0d620d6c94ae`. The expected R25/R30/R35 contracts are not present at the observed heads, so runtime status is deliberately `AUTONOMOUS_LOOP_SOURCE_READY` / `WAITING_UPSTREAM_GREEN`; branch names are not accepted as authority.
+
+The deterministic chaos rehearsal uses frozen contract fixtures only and proves crash/restart, lost-Send acknowledgement reconciliation, no blind retry, one targeted re-edit, second-round winner selection, and byte-stable winner-handoff replay:
+
+```bash
+creator-autonomous-tournament-r32 readiness
+creator-autonomous-tournament-r32 chaos-rehearsal --out .r32-chaos
+creator-autonomous-tournament-r32 status --ledger .r32-chaos/autonomous-tournament-ledger.jsonl
+```
+
+No browser/provider mutation, live publish, credentials, or human-ground-truth claim is performed. See `docs/AUTONOMOUS_TOURNAMENT_R32.md`.

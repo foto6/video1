@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.autonomous_tournament.r32.v1",
+  "title": "Creator Autonomous Tournament R32",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "sessionId",
+    "tournamentId",
+    "state",
+    "source",
+    "briefDigest",
+    "authorityDigest",
+    "reviewRound",
+    "reeditRound",
+    "candidatePackageDigest",
+    "candidateIds",
+    "dispatches",
+    "consensusDigest",
+    "selectedCandidateId",
+    "selectedRender",
+    "reeditApplicationDigest",
+    "publishHandoffDigest",
+    "reconciliationRequired",
+    "blockers"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.autonomous_tournament.r32.v1"
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^r32s:[0-9a-f]{64}$"
+    },
+    "tournamentId": {
+      "type": "string",
+      "pattern": "^r32t:[0-9a-f]{64}$"
+    },
+    "state": {
+      "enum": [
+        "SOURCE_READY",
+        "CANDIDATES_READY",
+        "DISPATCHING",
+        "RECONCILIATION_REQUIRED",
+        "REVIEWS_COMPLETE",
+        "CONSENSUS_ACCEPTED",
+        "REEDIT_APPLIED",
+        "WINNER_READY",
+        "PUBLISH_HANDOFF_READY",
+        "HUMAN_REVIEW_REQUIRED"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "size",
+        "durationMs"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "briefDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "authorityDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "reviewRound": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "reeditRound": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "candidatePackageDigest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "candidateIds": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 4,
+      "items": {
+        "type": "string"
+      }
+    },
+    "dispatches": {
+      "type": "object"
+    },
+    "consensusDigest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "selectedCandidateId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "selectedRender": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "reeditApplicationDigest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "publishHandoffDigest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reconciliationRequired": {
+      "type": "boolean"
+    },
+    "blockers": {
+      "type": "array"
+    }
+  }
+}
