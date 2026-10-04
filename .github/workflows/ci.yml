@@ -27,6 +27,7 @@ on:
       - agent/creator-r32-autonomous-tournament-coordinator-20261004
       - agent/creator-r33-publish-transaction-safety-20261004
       - agent/creator-r34-multiplatform-publish-saga-20261004
+      - agent/creator-r35-release-escrow-canary-20261005
   pull_request:
 
 jobs:
@@ -1298,6 +1299,112 @@ jobs:
             .r34-final-status.stdout.json
             reports/CREATOR_R34_MULTIPLATFORM_PUBLISH_SAGA_READINESS.json
             conformance/creator.multiplatform_publish_saga.r34.v1/**
+
+  focused-r35-release-escrow-canary:
+    needs: full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Creator
+        run: python -m pip install -e .
+      - name: Run R35 escrow/canary/reconciliation tests
+        run: |
+          creator-release-escrow-r35 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_release_escrow_canary_r35.py' -v
+      - name: Verify R35 exact accepted authorities and no-live-provider gate
+        run: |
+          creator-release-escrow-r35 readiness --out .r35-readiness.json > .r35-readiness.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r35-readiness.json"))
+          assert r["state"] == "SOURCE_READY_NO_LIVE_PROVIDER"
+          assert r["SOURCE_READY"] is True
+          assert r["LIVE_PROVIDER_ENABLED"] is False
+          assert r["r34Authority"]["producerSha"] == "77dfe83d582eac98e60728974efc77345612b364"
+          assert r["r34Authority"]["ciRunId"] == 37209289425
+          assert r["r34Authority"]["artifactId"] == 11305609870
+          assert r["r34Authority"]["artifactDigest"] == "sha256:366dc6b7f43982c23489f7119a04805b4be9b8eed2717f61a9db3a0e6ece1032"
+          assert r["r34Authority"]["qaR5"]["producerSha"] == "1583c853108b0fb88507448eb8b4c61f0f07b0bc"
+          assert r["r34Authority"]["qaR5"]["ciRunId"] == 37211964139
+          assert r["r34Authority"]["qaR5"]["artifactId"] == 11306289580
+          assert r["r34Authority"]["qaR5"]["artifactDigest"] == "sha256:846c97206fb332d0ffa1011f44b884b3148736ba9ca96a756b4ae585eab50bfa"
+          assert r["growthR33Authority"]["producerSha"] == "8bedb5ad79023006b87b17933863ff915ab5e046"
+          assert r["growthR33Authority"]["ciRunId"] == 37210963972
+          assert r["growthR33Authority"]["artifactId"] == 11306727215
+          assert r["growthR33Authority"]["artifactDigest"] == "sha256:132845c0aaa6d4fec5aaf60e1ade60d779183f2a637a9513e4176bd2ee569660"
+          assert r["safety"]["fakeProviderOnly"] is True
+          assert r["safety"]["providerNetworkEffects"] == 0
+          assert r["safety"]["realProviderEffects"] == 0
+          assert r["safety"]["realProviderEffectAuthorized"] is False
+          assert r["safety"]["livePublish"] is False
+          assert r["safety"]["credentialsAccessed"] is False
+          assert r["safety"]["blindRetryAfterUnknown"] is False
+          assert r["safety"]["automaticDestructiveCompensation"] is False
+          assert r["safety"]["growthAdvisoryCanAuthorizeMutation"] is False
+          PY
+      - name: Run >=25-case deterministic release chaos rehearsal
+        run: |
+          creator-release-escrow-r35 chaos-rehearsal --out .r35-chaos > .r35-chaos.stdout.json
+          creator-release-escrow-r35 status --release-dir .r35-chaos/clean-full-confirmation --out .r35-final-status.json > .r35-final-status.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r35-chaos/chaos-rehearsal.r35.json"))
+          e=json.load(open(".r35-chaos/evidence-manifest.r35.json"))
+          s=json.load(open(".r35-final-status.json"))
+          assert r["state"] == "SOURCE_READY_NO_LIVE_PROVIDER"
+          assert r["caseCount"] >= 25
+          assert r["allCasesPassed"] is True
+          assert all(v["passed"] for v in r["cases"].values())
+          assert r["cases"]["restart_after_canary_send_before_ack"]["passed"] is True
+          assert r["cases"]["unknown_canary_never_blind_retried"]["passed"] is True
+          assert r["cases"]["stale_window_after_restart"]["passed"] is True
+          assert r["cases"]["clock_crosses_deadline_during_preflight"]["passed"] is True
+          assert r["cases"]["wrong_canary_account_human_review"]["passed"] is True
+          assert r["cases"]["changed_render_hash"]["passed"] is True
+          assert r["cases"]["changed_platform_set"]["passed"] is True
+          assert r["cases"]["stale_growth_decision"]["passed"] is True
+          assert r["cases"]["downgraded_r34_authority"]["passed"] is True
+          assert r["cases"]["replayed_release_id_changed_bytes"]["passed"] is True
+          assert r["unknownEffectReconciliationProof"]["unknownState"] == "RECONCILIATION_REQUIRED"
+          assert r["unknownEffectReconciliationProof"]["blindRetry"] is False
+          assert r["unknownEffectReconciliationProof"]["nextPermittedAction"] == "READ_ONLY_RECONCILE_ONLY"
+          assert r["providerNetworkEffects"] == 0
+          assert r["realProviderEffects"] == 0
+          assert r["realProviderEffectAuthorized"] is False
+          assert r["livePublish"] is False
+          assert r["credentialsAccessed"] is False
+          assert e["caseCount"] >= 25
+          assert e["allCasesPassed"] is True
+          assert e["unknownEffectNeverBlindRetried"] is True
+          assert e["providerNetworkEffects"] == 0
+          assert e["realProviderEffects"] == 0
+          assert e["realProviderEffectAuthorized"] is False
+          assert e["livePublish"] is False
+          assert s["state"] == "FULLY_CONFIRMED"
+          assert s["realProviderEffectAuthorized"] is False
+          assert s["providerNetworkEffects"] == 0
+          assert s["livePublish"] is False
+          PY
+      - name: Upload deterministic R35 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r35-release-escrow-canary-${{ github.sha }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r35-readiness.json
+            .r35-readiness.stdout.json
+            .r35-chaos/**
+            .r35-chaos.stdout.json
+            .r35-final-status.json
+            .r35-final-status.stdout.json
+            reports/CREATOR_R35_RELEASE_ESCROW_READINESS.json
+            conformance/creator.release_escrow_canary.r35.v1/**
 
   full:
     runs-on: ubuntu-latest

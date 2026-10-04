@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.release_escrow_canary.r35.v1",
+  "title": "Creator R35 Release Escrow / Canary Controller",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "releaseOperationId",
+    "revisionId",
+    "state",
+    "immutableDigest",
+    "sourceSha256",
+    "sessionId",
+    "tournamentId",
+    "winnerCandidateId",
+    "winner",
+    "r34Authority",
+    "r34SagaId",
+    "r34ImmutableDigest",
+    "growthR33Authority",
+    "growthDecisionDigest",
+    "growthAdvisoryDigest",
+    "releasePolicy",
+    "policyDigest",
+    "scheduleWindow",
+    "platformCopyHashes",
+    "platformAccounts",
+    "platforms",
+    "escrow",
+    "preflight",
+    "unresolvedOperations",
+    "compensations",
+    "blockers",
+    "fakeProviderEffects",
+    "providerNetworkEffects",
+    "realProviderEffectAuthorized",
+    "livePublish"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.release_escrow_canary.r35.v1"
+    },
+    "releaseOperationId": {
+      "type": "string",
+      "pattern": "^r35release:[0-9a-f]{64}$"
+    },
+    "revisionId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "state": {
+      "enum": [
+        "PREPARED",
+        "ESCROWED",
+        "PREFLIGHT_GREEN",
+        "CANARY_ELIGIBLE",
+        "CANARY_COMMITTING",
+        "CANARY_CONFIRMED",
+        "EXPANSION_ELIGIBLE",
+        "EXPANSION_COMMITTING",
+        "FULLY_CONFIRMED",
+        "HUMAN_REVIEW_REQUIRED",
+        "RECONCILIATION_REQUIRED",
+        "TERMINALLY_BLOCKED"
+      ]
+    },
+    "immutableDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "sourceSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "sessionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tournamentId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "winnerCandidateId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "winner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fileName",
+        "sha256",
+        "size"
+      ],
+      "properties": {
+        "fileName": {
+          "const": "final.mp4"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "r34Authority": {
+      "type": "object"
+    },
+    "r34SagaId": {
+      "type": "string",
+      "pattern": "^r34saga:[0-9a-f]{64}$"
+    },
+    "r34ImmutableDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "growthR33Authority": {
+      "type": "object"
+    },
+    "growthDecisionDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "growthAdvisoryDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "releasePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "mode",
+        "requiredPlatforms",
+        "canaryPlatform",
+        "expansionOrder",
+        "configRevision",
+        "operatorAuthorizationDigest",
+        "growthAdvisoryMayAuthorizeMutation",
+        "automaticDestructiveCompensation"
+      ],
+      "properties": {
+        "contractVersion": {
+          "const": "creator.release_policy.r35.v1"
+        },
+        "mode": {
+          "const": "all_required"
+        },
+        "requiredPlatforms": {
+          "const": [
+            "instagram_reels",
+            "tiktok",
+            "youtube_shorts"
+          ]
+        },
+        "canaryPlatform": {
+          "enum": [
+            "instagram_reels",
+            "tiktok",
+            "youtube_shorts"
+          ]
+        },
+        "expansionOrder": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "configRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "operatorAuthorizationDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "growthAdvisoryMayAuthorizeMutation": {
+          "const": false
+        },
+        "automaticDestructiveCompensation": {
+          "const": false
+        }
+      }
+    },
+    "policyDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "scheduleWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "deadline",
+        "revision"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deadline": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "platformCopyHashes": {
+      "type": "object"
+    },
+    "platformAccounts": {
+      "type": "object"
+    },
+    "platforms": {
+      "type": "object"
+    },
+    "escrow": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "preflight": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "unresolvedOperations": {
+      "type": "array"
+    },
+    "compensations": {
+      "type": "object"
+    },
+    "blockers": {
+      "type": "array"
+    },
+    "fakeProviderEffects": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "providerNetworkEffects": {
+      "const": 0
+    },
+    "realProviderEffectAuthorized": {
+      "const": false
+    },
+    "livePublish": {
+      "const": false
+    }
+  }
+}

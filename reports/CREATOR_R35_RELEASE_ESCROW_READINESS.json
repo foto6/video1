@@ -1,0 +1,136 @@
+{
+  "reportVersion": "creator.release_escrow_canary_readiness.r35.v1",
+  "state": "SOURCE_READY_NO_LIVE_PROVIDER",
+  "SOURCE_READY": true,
+  "LIVE_PROVIDER_ENABLED": false,
+  "contract": "creator.release_escrow_canary.r35.v1",
+  "r34Authority": {
+    "repository": "foto6/video1",
+    "producerSha": "77dfe83d582eac98e60728974efc77345612b364",
+    "ciRunId": 37209289425,
+    "artifactId": 11305609870,
+    "artifactName": "creator-r34-multiplatform-publish-saga-77dfe83d582eac98e60728974efc77345612b364",
+    "artifactDigest": "sha256:366dc6b7f43982c23489f7119a04805b4be9b8eed2717f61a9db3a0e6ece1032",
+    "contract": "creator.multiplatform_publish_saga.r34.v1",
+    "blobs": {
+      "runtime": "7fa3ecedbefa95c068a7946cfb51a3999ccff32f",
+      "tests": "48f3a4700354ca2022747c27f02fd70ebecd7c94",
+      "schema": "b1df09e22fb648b4b9e6eb5672265fc31cdb2ce1",
+      "manifest": "27ecee8d4e2e5de7c2724542b3bcb3e2005e8c27",
+      "authority": "abbc022b913412205b956ca17fe6b851d62390f2",
+      "parentQa": "6e0a96d302ee147af533262cefb3cf4b33f43eb6",
+      "readiness": "9923169248301dae11b77322a1f2c1a7142448b9"
+    },
+    "hardWaveQaR5": {
+      "repository": "foto6/boss",
+      "exactSha": "1583c853108b0fb88507448eb8b4c61f0f07b0bc",
+      "ciRunId": 37211964139,
+      "artifactId": 11306289580,
+      "artifactName": "hard-wave-acceptance-r5-1583c853108b0fb88507448eb8b4c61f0f07b0bc",
+      "artifactDigest": "sha256:846c97206fb332d0ffa1011f44b884b3148736ba9ca96a756b4ae585eab50bfa",
+      "disposition": "ACCEPTED",
+      "authorityTupleError": "E_AUTHORITY_TUPLE_MISMATCH",
+      "blobs": {
+        "authorityFixture": "403abe30972348a2b93edd7aafaa1998e3c7af13",
+        "implementation": "18facd0030c3039e874939e471922d37bac02a7d",
+        "tests": "9b541d6c9c41934bce9ea9a3f98b53d1fdce7273",
+        "docs": "1ee1dcfea654b05d3c011a208e805ff509de2808",
+        "checkpoint": "e80fae9f8e20708ddd6f98b9741ff1dd5ec8245e",
+        "compatibilityMatrix": "82c79639607a691eefe307591247ef376e8932cd",
+        "rejectedFaults": "87c7d405e39c146bfb6de97ae741008ae778b23c"
+      }
+    }
+  },
+  "growthR33Authority": {
+    "repository": "foto6/video3",
+    "producerSha": "8bedb5ad79023006b87b17933863ff915ab5e046",
+    "ciRunId": 37210963972,
+    "artifactId": 11306727215,
+    "artifactName": "growth-r33-adaptive-portfolio-governor",
+    "artifactDigest": "sha256:132845c0aaa6d4fec5aaf60e1ade60d779183f2a637a9513e4176bd2ee569660",
+    "contract": "growth.adaptive_portfolio_governor.r33.v1",
+    "blobs": {
+      "authority": "35426e8f05f708d0a6db4356c4211458bf033c16",
+      "campaignBundleSchema": "95b9e692deb136ed03afb3b6a44108632c32f7e5",
+      "contract": "518f293756564ca9bf0f004a728d34201f491dfa",
+      "decisionSchema": "7e96c9afb74670aa34874c98c8427d443ae80c9b",
+      "policy": "0f4da630a87d08ccac2e22dfc307b1abb6120dd9",
+      "portfolioSchema": "392ceb044fed02e4f1da5eb46155bb8342c4875d",
+      "implementation": "a6fddc11e5c5014ff16a69fd7b6944d17a71e9f2",
+      "tests": "f1a56b1ebd628356de8913d8112e806063f720f1",
+      "docs": "ea23f9e287405c1d6e1845469e36fb0b2912974a"
+    },
+    "hardWaveQaR5": {
+      "repository": "foto6/boss",
+      "exactSha": "1583c853108b0fb88507448eb8b4c61f0f07b0bc",
+      "ciRunId": 37211964139,
+      "artifactId": 11306289580,
+      "artifactDigest": "sha256:846c97206fb332d0ffa1011f44b884b3148736ba9ca96a756b4ae585eab50bfa",
+      "disposition": "ACCEPTED",
+      "authorityFixtureBlob": "403abe30972348a2b93edd7aafaa1998e3c7af13"
+    },
+    "advisoryOnly": true,
+    "creatorMutation": false,
+    "providerMutation": false,
+    "livePublish": false
+  },
+  "phases": [
+    "PREPARED",
+    "ESCROWED",
+    "PREFLIGHT_GREEN",
+    "CANARY_ELIGIBLE",
+    "CANARY_COMMITTING",
+    "CANARY_CONFIRMED",
+    "EXPANSION_ELIGIBLE",
+    "EXPANSION_COMMITTING",
+    "FULLY_CONFIRMED",
+    "HUMAN_REVIEW_REQUIRED",
+    "RECONCILIATION_REQUIRED",
+    "TERMINALLY_BLOCKED"
+  ],
+  "defaultReleasePolicy": {
+    "mode": "all_required",
+    "requiredPlatforms": [
+      "instagram_reels",
+      "tiktok",
+      "youtube_shorts"
+    ],
+    "canaryPlatform": "instagram_reels",
+    "expansionOrder": [
+      "tiktok",
+      "youtube_shorts"
+    ],
+    "growthAdvisoryMayAuthorizeMutation": false,
+    "automaticDestructiveCompensation": false
+  },
+  "requiredProofs": [
+    "immutable winner/source/tournament/R34/Growth/schedule/policy intent",
+    "escrow before provider eligibility",
+    "all R34 child preflight green",
+    "explicit operator authorization separate from Growth advisory",
+    "durable canary confirmation before expansion",
+    "unknown provider outcome requires read-only reconciliation",
+    "stable R33/R34 idempotency per platform",
+    "restart recovery from append-only R35 + R34/R33 ledgers",
+    "metadata-only compensation; no automatic delete/repost",
+    "at least 25 deterministic chaos cases"
+  ],
+  "safety": {
+    "fakeProviderOnly": true,
+    "providerNetworkEffects": 0,
+    "realProviderEffects": 0,
+    "realProviderEffectAuthorized": false,
+    "livePublish": false,
+    "credentialsAccessed": false,
+    "blindRetryAfterUnknown": false,
+    "automaticDestructiveCompensation": false,
+    "growthAdvisoryCanAuthorizeMutation": false,
+    "mergePerformed": false
+  },
+  "blockers": [
+    {
+      "code": "LIVE_PROVIDER_OUT_OF_SCOPE_R35",
+      "detail": "R35 is source-ready fake-provider escrow/canary control only"
+    }
+  ]
+}

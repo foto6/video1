@@ -1,0 +1,100 @@
+{
+  "contractVersion": "creator.release_escrow_canary.r35.v1",
+  "ledgerVersion": "creator.release_escrow_canary_ledger.r35.v1",
+  "statusVersion": "creator.release_escrow_canary_status.r35.v1",
+  "readinessVersion": "creator.release_escrow_canary_readiness.r35.v1",
+  "chaosVersion": "creator.release_escrow_canary_chaos.r35.v1",
+  "evidenceVersion": "creator.release_escrow_canary_evidence.r35.v1",
+  "states": [
+    "PREPARED",
+    "ESCROWED",
+    "PREFLIGHT_GREEN",
+    "CANARY_ELIGIBLE",
+    "CANARY_COMMITTING",
+    "CANARY_CONFIRMED",
+    "EXPANSION_ELIGIBLE",
+    "EXPANSION_COMMITTING",
+    "FULLY_CONFIRMED",
+    "HUMAN_REVIEW_REQUIRED",
+    "RECONCILIATION_REQUIRED",
+    "TERMINALLY_BLOCKED"
+  ],
+  "creatorR34Authority": {
+    "producerSha": "77dfe83d582eac98e60728974efc77345612b364",
+    "ciRunId": 37209289425,
+    "artifactId": 11305609870,
+    "artifactDigest": "sha256:366dc6b7f43982c23489f7119a04805b4be9b8eed2717f61a9db3a0e6ece1032",
+    "contract": "creator.multiplatform_publish_saga.r34.v1",
+    "qaR5": {
+      "producerSha": "1583c853108b0fb88507448eb8b4c61f0f07b0bc",
+      "ciRunId": 37211964139,
+      "artifactId": 11306289580,
+      "artifactDigest": "sha256:846c97206fb332d0ffa1011f44b884b3148736ba9ca96a756b4ae585eab50bfa",
+      "disposition": "ACCEPTED"
+    }
+  },
+  "growthR33Authority": {
+    "producerSha": "8bedb5ad79023006b87b17933863ff915ab5e046",
+    "ciRunId": 37210963972,
+    "artifactId": 11306727215,
+    "artifactDigest": "sha256:132845c0aaa6d4fec5aaf60e1ade60d779183f2a637a9513e4176bd2ee569660",
+    "contract": "growth.adaptive_portfolio_governor.r33.v1",
+    "advisoryOnly": true
+  },
+  "files": {
+    "runtime": {
+      "path": "src/creator_orchestrator/release_escrow_canary_r35.py",
+      "blob": "5a565ee384cf767cd47125d9101b607c927d8818"
+    },
+    "tests": {
+      "path": "tests/test_release_escrow_canary_r35.py",
+      "blob": "1dd211439c502fd8c5f0bdc34f1ba1ab283c55c7"
+    },
+    "schema": {
+      "path": "conformance/creator.release_escrow_canary.r35.v1/schema.json",
+      "blob": "8bcd58df2b38bb83301f676b2ea4a82cef274976"
+    },
+    "authority": {
+      "path": "conformance/creator.release_escrow_canary.r35.v1/authority.json",
+      "blob": "2e25dcb9e5d588120fbbcea3d316fd79655a0707"
+    },
+    "readiness": {
+      "path": "reports/CREATOR_R35_RELEASE_ESCROW_READINESS.json",
+      "blob": "9eb4502dae33026156921d2d46a6dc3af752c54b"
+    },
+    "docs": {
+      "path": "docs/RELEASE_ESCROW_CANARY_R35.md",
+      "blob": "accf3723cd34073f78cd3172921de0d048f99bf9"
+    }
+  },
+  "defaultPolicy": {
+    "mode": "all_required",
+    "requiredPlatforms": [
+      "instagram_reels",
+      "tiktok",
+      "youtube_shorts"
+    ],
+    "canaryPlatform": "instagram_reels",
+    "expansionOrder": [
+      "tiktok",
+      "youtube_shorts"
+    ]
+  },
+  "guarantees": {
+    "escrowBeforeProviderEligibility": true,
+    "growthAdvisoryCannotAuthorizeMutation": true,
+    "canaryConfirmationBeforeExpansion": true,
+    "unknownOutcomeNoBlindRetry": true,
+    "readOnlyReconciliationOnlyForUnknown": true,
+    "exactPerPlatformR34R33Idempotency": true,
+    "stableAccountIdentity": true,
+    "metadataOnlyCompensation": true,
+    "automaticDeleteRepost": false,
+    "fakeProviderOnly": true,
+    "providerNetworkEffects": 0,
+    "livePublish": false,
+    "realProviderEffectAuthorized": false,
+    "chaosCasesMinimum": 25
+  },
+  "disposition": "SOURCE_READY_NO_LIVE_PROVIDER"
+}

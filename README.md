@@ -300,3 +300,20 @@ creator-multiplatform-publish-r34 status --saga-dir .r34-chaos/partial-saga --at
 ```
 
 R34 is fake-provider only and performs zero provider-network effects. See `docs/MULTIPLATFORM_PUBLISH_SAGA_R34.md`.
+
+
+## Release escrow / canary controller (R35)
+
+R35 adds `creator.release_escrow_canary.r35.v1` above the exact accepted R34 multi-platform saga. It freezes R34 `77dfe83d582eac98e60728974efc77345612b364` / CI `37209289425` / artifact `11305609870` and Hard Wave QA R5 acceptance `foto6/boss@1583c853108b0fb88507448eb8b4c61f0f07b0bc` / CI `37211964139` / artifact `11306289580`. It also freezes Growth R33 `8bedb5ad79023006b87b17933863ff915ab5e046` / CI `37210963972` / artifact `11306727215` strictly as shadow/read-only policy input.
+
+The durable path is `PREPARED -> ESCROWED -> PREFLIGHT_GREEN -> CANARY_ELIGIBLE -> CANARY_COMMITTING -> CANARY_CONFIRMED -> EXPANSION_ELIGIBLE -> EXPANSION_COMMITTING -> FULLY_CONFIRMED`, with explicit human-review, reconciliation and terminal-block states. Growth advisory cannot authorize provider mutation; unknown provider outcome cannot be blindly retried.
+
+R35 remains fake-provider only:
+
+```bash
+creator-release-escrow-r35 readiness
+creator-release-escrow-r35 chaos-rehearsal --out .r35-chaos
+creator-release-escrow-r35 status --release-dir .r35-chaos/clean-full-confirmation
+```
+
+The deterministic chaos harness executes at least 25 cases covering lost acknowledgements, delayed/duplicate confirmation, account/render/policy/authority drift, restart boundaries, deadline crossings, partial expansion, and metadata-only compensation. Every status reports `realProviderEffectAuthorized=false`, `providerNetworkEffects=0`, and `livePublish=false`. See `docs/RELEASE_ESCROW_CANARY_R35.md`.
