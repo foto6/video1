@@ -1,0 +1,63 @@
+{
+  "contractVersion": "creator.live_session_authorities.r31.v1",
+  "creatorBaseSha": "50c17852a910c57f0894dcdb356d4d4923edb62b",
+  "creatorBaseCiRunId": 37006988818,
+  "mediaR23": {
+    "repository": "foto6/video2",
+    "producerSha": "78c6982a91d7e3e8c037cd9ce740ee077babdccc",
+    "ciRunId": 37007419237,
+    "contract": "media.review_session_package.r23.v1",
+    "requestContract": "media.review_session_request.r23.v1",
+    "blobs": {
+      "contract": "63f863493054dea4ad0e2ebf3a996137602f8940",
+      "schema": "92470d29b4a524ee6d797194f023a20c5b0dbaa6",
+      "manifest": "09564e2d530a7315f58856c55b33bb52534e05c1",
+      "implementation": "442ca6a46cbf107d29e6cd320fbb1a4cb38951b0",
+      "exporter": "4799338cf58edee89bebd773eb544719cdb7f56d"
+    }
+  },
+  "growthR28": {
+    "repository": "foto6/video3",
+    "producerSha": "629a2b9ddf59b84eee4e87b257c161dad42831dc",
+    "ciRunId": 37006476121,
+    "authorityContract": "growth.multiround_session_authorities.r28.v1",
+    "sessionContract": "growth.multiround_review_session.r28.v1",
+    "roundResultContract": "growth.multiround_review_round_result.r28.v1",
+    "selectedResultContract": "growth.creator_r30_selected_review_result.r28.v1",
+    "blobs": {
+      "contract": "d7ec52f25fa1ff12e633f2ac3ba042265f93fe51",
+      "roundResultSchema": "8eb405c42a4fea6a354cf7e3afcbd1774b542e75",
+      "authorityProfiles": "5799d71528ec4e94f922b43cfb2db70b54e00206",
+      "implementation": "8d75e086c5db161124d487a885b95999081e2521"
+    }
+  },
+  "bridgeR32": {
+    "repository": "foto6/WebAIBridge",
+    "producerSha": "805bf628d3d2844549b54db1112736fae0200fc7",
+    "ciRunId": 37006524677,
+    "roundResultContract": "bridge.r32_live_review_session_round_result.v1",
+    "journalContract": "bridge.r32_multiround_live_review_session_journal.v1",
+    "sessionResultContract": "bridge.r32_multiround_live_review_session_result.v1",
+    "blobs": {
+      "roundResultSchema": "bff0985b243650ad5f40954234646da9c2d9c074",
+      "journalSchema": "3b39faa9e8a1de5baf297f85640d36907aa06db1",
+      "requestSchema": "3d6943806d7542eddb59813459e34136d5187050",
+      "resultSchema": "152fd55f783a0798eab040bfb4fc84b2d5e01d01",
+      "implementation": "91cf49ce6e856c5d975a4c7c9daef88b13165fa1",
+      "driver": "df2b27b1bc2240fc2ba651404b13ca202d0f5ed7"
+    }
+  },
+  "bounds": {
+    "reviewRounds": [
+      0,
+      1,
+      2
+    ],
+    "maxReeditRounds": 2
+  },
+  "safety": {
+    "browserMutation": false,
+    "providerMutation": false,
+    "humanParityClaimed": false
+  }
+}

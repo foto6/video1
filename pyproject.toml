@@ -20,6 +20,7 @@ creator-live-review-r27 = "creator_orchestrator.live_review_execution:main"
 creator-dynamic-live-review-r28 = "creator_orchestrator.dynamic_live_review_loop:main"
 creator-exact-dynamic-r29 = "creator_orchestrator.exact_dynamic_e2e_r29:main"
 creator-coordinator-r30 = "creator_orchestrator.coordinator_continuation_r30:main"
+creator-live-session-r31 = "creator_orchestrator.live_session_authority_r31:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

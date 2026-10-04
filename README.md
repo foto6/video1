@@ -235,3 +235,17 @@ Only a terminal external-review winner can produce the existing R23 publish hand
 R30 consumes an exact Growth R27 coordinator index plus a selected canonical Creator envelope, verifies exact Growth R27 / Bridge R31 / Media R22 authority, executes at most two real Media re-edits, and materializes the next blinded operator package through Media R22. It performs no browser or social-provider mutation.
 
 Use `creator-coordinator-r30 continue ...` for genuine coordinator evidence or `creator-coordinator-r30 rehearsal --out .r30-rehearsal` for a real-MP4 source-ready rehearsal that deliberately stops at `WAITING_GENUINE_CAPTURE`. See `docs/COORDINATOR_CONTINUATION_R30.md`.
+
+
+## Live session authority / continuation (R31)
+
+R31 freezes Media R23 `78c6982a91d7e3e8c037cd9ce740ee077babdccc`, Growth R28 `629a2b9ddf59b84eee4e87b257c161dad42831dc`, and Bridge R32 `805bf628d3d2844549b54db1112736fae0200fc7` by exact producer SHA, CI run, contracts, schemas, and implementation blobs.
+
+The continuation command consumes a Growth R28 multi-round session ledger, matching Bridge R32 round result, and exact Creator envelope. A targeted re-edit runs the real Media R19 path inside the exact R23 checkout and immediately creates the next `media.review_session_package.r23.v1`. Only a terminal winner can create `final.mp4` and the existing publish handoff; no social provider is invoked.
+
+```bash
+creator-live-session-r31 readiness --out ./r31-readiness.json
+creator-live-session-r31 rehearsal --out ./r31-rehearsal
+```
+
+Without a genuine live session capture, readiness intentionally remains `WAITING_GENUINE_CAPTURE`. See `docs/LIVE_SESSION_AUTHORITY_R31.md`.

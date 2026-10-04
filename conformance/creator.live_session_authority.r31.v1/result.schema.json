@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.live_session_authority_result.r31.v1",
+  "title": "Creator R31 live session continuation result",
+  "type": "object",
+  "required": [
+    "contractVersion",
+    "state",
+    "resultDigest"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.live_session_authority_result.r31.v1"
+    },
+    "state": {
+      "enum": [
+        "WAITING_GENUINE_CAPTURE",
+        "NEXT_REVIEW_PACKAGE_READY",
+        "WINNER_HANDOFF_READY",
+        "NON_PUBLISHABLE_REVIEW_RESULT",
+        "BLOCKED"
+      ]
+    },
+    "reviewRound": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "nextReviewRound": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2
+    },
+    "resultDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "providerMutation": {
+      "const": false
+    },
+    "browserMutation": {
+      "const": false
+    },
+    "humanParityClaimed": {
+      "const": false
+    }
+  }
+}

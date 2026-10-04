@@ -1,0 +1,39 @@
+{
+  "contractVersion": "creator.live_session_authority.r31.v1",
+  "creatorBaseSha": "50c17852a910c57f0894dcdb356d4d4923edb62b",
+  "authorityProfile": "conformance/creator.live_session_authority.r31.v1/authority-profiles.json",
+  "runtime": "src/creator_orchestrator/live_session_authority_r31.py",
+  "test": "tests/test_live_session_authority_r31.py",
+  "consumes": [
+    "growth.multiround_review_session_ledger.r28.v1",
+    "growth.multiround_review_round_result.r28.v1",
+    "growth.creator_r30_selected_review_result.r28.v1",
+    "bridge.r32_live_review_session_round_result.v1",
+    "growth.dynamic_creator_external_review_envelope.r26.v1",
+    "media.editorial_reedit_application.v1",
+    "media.render_export.v1",
+    "media.review_session_package.r23.v1"
+  ],
+  "outputs": [
+    "creator.live_session_authority_result.r31.v1",
+    "creator.live_session_authority_journal.r31.v1"
+  ],
+  "terminalStates": [
+    "WAITING_GENUINE_CAPTURE",
+    "NEXT_REVIEW_PACKAGE_READY",
+    "WINNER_HANDOFF_READY",
+    "NON_PUBLISHABLE_REVIEW_RESULT",
+    "BLOCKED"
+  ],
+  "guarantees": {
+    "exactAuthorityPins": true,
+    "maxReviewRounds": 3,
+    "maxReeditRounds": 2,
+    "idempotentReplay": true,
+    "conflictFailsClosed": true,
+    "winnerOnlyPublishHandoff": true,
+    "socialProviderMutation": false,
+    "browserMutation": false,
+    "humanParityClaimed": false
+  }
+}

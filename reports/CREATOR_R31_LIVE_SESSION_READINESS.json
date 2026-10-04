@@ -1,0 +1,45 @@
+{
+  "contractVersion": "creator.live_session_authority.r31.readiness.v1",
+  "creatorBaseSha": "50c17852a910c57f0894dcdb356d4d4923edb62b",
+  "state": "WAITING_GENUINE_CAPTURE",
+  "SOURCE_READY": true,
+  "REAL_REVIEW_INGESTED": false,
+  "REAL_REEDIT_EXECUTED": false,
+  "NEXT_REVIEW_PACKAGE_READY": false,
+  "PUBLISH_HANDOFF_READY": false,
+  "exactAuthorities": {
+    "mediaR23": {
+      "sha": "78c6982a91d7e3e8c037cd9ce740ee077babdccc",
+      "ciRunId": 37007419237
+    },
+    "growthR28": {
+      "sha": "629a2b9ddf59b84eee4e87b257c161dad42831dc",
+      "ciRunId": 37006476121
+    },
+    "bridgeR32": {
+      "sha": "805bf628d3d2844549b54db1112736fae0200fc7",
+      "ciRunId": 37006524677
+    }
+  },
+  "missingEvidence": {
+    "code": "MISSING_GENUINE_GROWTH_R28_BRIDGE_R32_SESSION_CAPTURE",
+    "required": [
+      "Growth R28 growth-r28-session-ledger.json containing a genuine live round",
+      "matching Bridge R32 bridge.r32_live_review_session_round_result.v1",
+      "exact selected Creator envelope for that round",
+      "reviewed candidate bytes and sidecars under the supplied candidate root"
+    ]
+  },
+  "bounds": {
+    "reviewRounds": [
+      0,
+      1,
+      2
+    ],
+    "maxReeditRounds": 2
+  },
+  "deterministicRealMp4Rehearsal": "SOURCE_READY_TO_EXTERNAL_REVIEW_BOUNDARY",
+  "providerMutation": false,
+  "browserMutation": false,
+  "humanParityClaimed": false
+}

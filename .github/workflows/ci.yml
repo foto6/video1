@@ -23,6 +23,7 @@ on:
       - agent/creator-r28-dynamic-live-review-loop-20261002
       - agent/creator-r29-exact-dynamic-e2e-20261002
       - agent/creator-r30-coordinator-loop-20261002
+      - agent/creator-r31-live-session-authority-20261002
   pull_request:
 
 jobs:
@@ -941,6 +942,106 @@ jobs:
             .r30-rehearsal/**
             reports/CREATOR_R30_COORDINATOR_READINESS.json
             conformance/creator.coordinator_continuation.r30.v1/**
+
+  focused-r31-live-session:
+    needs: full
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Checkout exact Media R23
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video2
+          ref: 78c6982a91d7e3e8c037cd9ce740ee077babdccc
+          path: .r31-media-r23
+      - name: Checkout exact Growth R28
+        uses: actions/checkout@v4
+        with:
+          repository: foto6/video3
+          ref: 629a2b9ddf59b84eee4e87b257c161dad42831dc
+          path: .r31-growth-r28
+      - name: Record Bridge R32 immutable authority boundary
+        run: |
+          echo "Bridge R32 805bf628d3d2844549b54db1112736fae0200fc7 / CI 37006524677"
+          echo "Round schema bff0985b243650ad5f40954234646da9c2d9c074 / impl 91cf49ce6e856c5d975a4c7c9daef88b13165fa1"
+      - name: Install exact runtime prerequisites
+        run: |
+          missing=()
+          command -v ffmpeg >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v ffprobe >/dev/null 2>&1 || missing+=(ffmpeg)
+          command -v espeak-ng >/dev/null 2>&1 || missing+=(espeak-ng)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends "${missing[@]}"
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+          espeak-ng --version | head -n 1
+          python -m pip install -e .
+      - name: Run R31 authority, continuity, replay and real Media R23 tests
+        env:
+          R31_MEDIA_R23_CHECKOUT: ${{ github.workspace }}/.r31-media-r23
+          R31_GROWTH_R28_CHECKOUT: ${{ github.workspace }}/.r31-growth-r28
+        run: |
+          creator-live-session-r31 --help
+          PYTHONPATH=src:tests python -m unittest discover -s tests -p 'test_live_session_authority_r31.py' -v
+      - name: Run deterministic real-MP4 rehearsal to external review boundary
+        run: |
+          creator-live-session-r31 rehearsal --out .r31-rehearsal > .r31-rehearsal.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r31-rehearsal/real-mp4-rehearsal.r31.json"))
+          assert r["state"] == "WAITING_GENUINE_CAPTURE"
+          assert r["nextExternalReviewBoundaryReached"] is True
+          assert r["sourceReadyMp4"]["size"] > 0
+          assert r["modelEvidenceSynthesized"] is False
+          assert r["providerMutation"] is False
+          assert r["browserMutation"] is False
+          assert r["humanLevelQualityClaimed"] is False
+          PY
+      - name: Verify genuine-capture readiness gate
+        run: |
+          set +e
+          creator-live-session-r31 readiness --out .r31-readiness.json > .r31-readiness.stdout.json
+          code=$?
+          set -e
+          test "$code" -eq 2
+          python - <<'PY'
+          import json
+          r=json.load(open(".r31-readiness.json"))
+          c=json.load(open("reports/CREATOR_R31_LIVE_SESSION_READINESS.json"))
+          assert r["state"] == "WAITING_GENUINE_CAPTURE"
+          assert r["SOURCE_READY"] is True
+          assert r["REAL_REVIEW_INGESTED"] is False
+          assert r["REAL_REEDIT_EXECUTED"] is False
+          assert r["NEXT_REVIEW_PACKAGE_READY"] is False
+          assert r["PUBLISH_HANDOFF_READY"] is False
+          assert r["mediaR23Authority"]["producerSha"] == "78c6982a91d7e3e8c037cd9ce740ee077babdccc"
+          assert r["growthR28Authority"]["producerSha"] == "629a2b9ddf59b84eee4e87b257c161dad42831dc"
+          assert r["bridgeR32Authority"]["producerSha"] == "805bf628d3d2844549b54db1112736fae0200fc7"
+          assert c["state"] == r["state"]
+          assert r["providerMutation"] is False
+          assert r["browserMutation"] is False
+          assert r["humanParityClaimed"] is False
+          PY
+      - name: Upload R31 source-ready and real-MP4 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r31-live-session-source-ready-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r31-readiness.json
+            .r31-readiness.stdout.json
+            .r31-rehearsal/**
+            reports/CREATOR_R31_LIVE_SESSION_READINESS.json
+            conformance/creator.live_session_authority.r31.v1/**
 
   full:
     runs-on: ubuntu-latest
