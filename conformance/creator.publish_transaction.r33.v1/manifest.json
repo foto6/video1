@@ -1,0 +1,55 @@
+{
+  "contractVersion": "creator.publish_transaction.r33.v1",
+  "ledgerVersion": "creator.publish_transaction_ledger.r33.v1",
+  "statusVersion": "creator.publish_transaction_status.r33.v1",
+  "batchVersion": "creator.publish_batch_status.r33.v1",
+  "readinessVersion": "creator.publish_transaction.r33.readiness.v1",
+  "creatorR32Authority": {
+    "repository": "foto6/video1",
+    "producerSha": "f0dc1d27da6452f1de32cd887651805b47a1735d",
+    "ciRunId": 37199512624,
+    "artifactId": 11302367811,
+    "artifactName": "creator-r32-autonomous-tournament-f0dc1d27da6452f1de32cd887651805b47a1735d",
+    "artifactDigest": "sha256:6803db334974b8dbea1c30c107ec5af00fe2cb892ed67e68540c2b2d74b18599",
+    "contract": "creator.autonomous_tournament.r32.v1",
+    "blobs": {
+      "runtime": "6d35bb30d0834908ed6043c89ba7d9980da388e4",
+      "schema": "d6a593b8d9351de81213b179ae7d3d8e51497bbe",
+      "manifest": "3304a4cdc8b2130ed98075e5a9653f4c25e178aa",
+      "authorityProfiles": "89674be575ad87d44da46ec3c64a976df71201b3",
+      "publishHandoffSchema": "bf0cbd4073e275ef3b00dc05c23b48463779ea90",
+      "publishHandoffManifest": "2f1c9c4a93e5a508501e4c44d8f3a64c8e3cf2e4",
+      "publishHandoffRuntime": "e18a06dc482f2a23b43b689c935209cd1415f08e"
+    }
+  },
+  "stateMachine": [
+    "PREPARED",
+    "VALIDATED",
+    "COMMIT_ELIGIBLE",
+    "COMMITTING",
+    "RECONCILIATION_REQUIRED",
+    "COMMITTED",
+    "ABORTED"
+  ],
+  "platformAdapters": [
+    "InstagramReelsProvider",
+    "TikTokDirectPostProvider",
+    "YouTubeShortsProvider"
+  ],
+  "fakeProviderScenarios": [
+    "clean_success",
+    "timeout_before_dispatch",
+    "timeout_after_dispatch",
+    "duplicate_confirmed",
+    "unknown_no_lookup"
+  ],
+  "runtime": "src/creator_orchestrator/publish_transaction_r33.py",
+  "tests": "tests/test_publish_transaction_r33.py",
+  "safety": {
+    "livePublish": false,
+    "networkCalls": false,
+    "realProviderInvocation": false,
+    "secretsInArtifacts": false,
+    "blindRetryAfterUnknown": false
+  }
+}

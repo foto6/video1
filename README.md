@@ -266,3 +266,20 @@ creator-autonomous-tournament-r32 status --ledger .r32-chaos/autonomous-tourname
 ```
 
 No browser/provider mutation, live publish, credentials, or human-ground-truth claim is performed. See `docs/AUTONOMOUS_TOURNAMENT_R32.md`.
+
+
+## Exactly-once publish transaction safety (R33)
+
+R33 inserts a provider-neutral crash-safe transaction coordinator between the R32 winner handoff and the existing Instagram Reels, TikTok Direct Post and YouTube Shorts adapters. It freezes Creator R32 at `f0dc1d27da6452f1de32cd887651805b47a1735d`, CI `37199512624`, artifact `11302367811`, digest `sha256:6803db334974b8dbea1c30c107ec5af00fe2cb892ed67e68540c2b2d74b18599`.
+
+The transaction states are `PREPARED -> VALIDATED -> COMMIT_ELIGIBLE -> COMMITTING -> COMMITTED`, with `RECONCILIATION_REQUIRED` for ambiguous provider outcome and `ABORTED` only where no side effect can have occurred or provider absence has been proven. Unknown outcome never triggers blind retry.
+
+R33 has no real-provider execution path. CI and the deterministic rehearsal use only the explicit fake-provider harness and record zero network/provider effects:
+
+```bash
+creator-publish-transaction-r33 readiness
+creator-publish-transaction-r33 rehearsal --out .r33-rehearsal
+creator-publish-transaction-r33 status --ledger .r33-rehearsal/youtube_shorts.jsonl
+```
+
+Readiness is `SOURCE_READY_NO_LIVE_PUBLISH`. See `docs/PUBLISH_TRANSACTION_R33.md`.

@@ -1,0 +1,254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.publish_transaction.r33.v1",
+  "title": "Creator R33 Publish Transaction",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "transactionId",
+    "idempotencyKey",
+    "revision",
+    "parentTransactionId",
+    "state",
+    "r32Authority",
+    "winner",
+    "lineage",
+    "target",
+    "contentHashes",
+    "mediaMetadata",
+    "publishPolicyHash",
+    "schedule",
+    "providerMetadata",
+    "providerMetadataDigest",
+    "dryRunRequest",
+    "requestDigest",
+    "validationDigest",
+    "commit",
+    "blockers",
+    "liveSideEffectPermitted",
+    "networkPermitted"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.publish_transaction.r33.v1"
+    },
+    "transactionId": {
+      "type": "string",
+      "pattern": "^r33tx:[0-9a-f]{64}$"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "parentTransactionId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "state": {
+      "enum": [
+        "PREPARED",
+        "VALIDATED",
+        "COMMIT_ELIGIBLE",
+        "COMMITTING",
+        "RECONCILIATION_REQUIRED",
+        "COMMITTED",
+        "ABORTED"
+      ]
+    },
+    "r32Authority": {
+      "type": "object"
+    },
+    "winner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fileName",
+        "sha256",
+        "size"
+      ],
+      "properties": {
+        "fileName": {
+          "const": "final.mp4"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceSha256",
+        "sessionId",
+        "tournamentId",
+        "reviewRound",
+        "winnerCandidateId",
+        "consensusDigest",
+        "publishHandoffDigest"
+      ],
+      "properties": {
+        "sourceSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tournamentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewRound": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "winnerCandidateId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "consensusDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "publishHandoffDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "target": {
+      "type": "object"
+    },
+    "contentHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "captionSha256",
+        "titleSha256",
+        "thumbnailSha256"
+      ],
+      "properties": {
+        "captionSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "titleSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "thumbnailSha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "mediaMetadata": {
+      "type": "object"
+    },
+    "publishPolicyHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "schedule": {
+      "type": "object"
+    },
+    "providerMetadata": {
+      "type": "object"
+    },
+    "providerMetadataDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "dryRunRequest": {
+      "type": "object"
+    },
+    "requestDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "validationDigest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "commit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attemptNumber",
+        "attemptId",
+        "invocationStarted",
+        "externalOperationId",
+        "externalPostId",
+        "outcomeProofDigest",
+        "providerOutcome"
+      ],
+      "properties": {
+        "attemptNumber": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "attemptId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "invocationStarted": {
+          "type": "boolean"
+        },
+        "externalOperationId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "externalPostId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "outcomeProofDigest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "providerOutcome": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "blockers": {
+      "type": "array"
+    },
+    "liveSideEffectPermitted": {
+      "const": false
+    },
+    "networkPermitted": {
+      "const": false
+    }
+  }
+}

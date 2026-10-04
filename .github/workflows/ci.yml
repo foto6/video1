@@ -25,6 +25,7 @@ on:
       - agent/creator-r30-coordinator-loop-20261002
       - agent/creator-r31-live-session-authority-20261002
       - agent/creator-r32-autonomous-tournament-coordinator-20261004
+      - agent/creator-r33-publish-transaction-safety-20261004
   pull_request:
 
 jobs:
@@ -1119,6 +1120,77 @@ jobs:
             .r32-chaos.status.stdout.json
             reports/CREATOR_R32_AUTONOMOUS_TOURNAMENT_READINESS.json
             conformance/creator.autonomous_tournament.r32.v1/**
+
+  focused-r33-publish-transaction:
+    needs: full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Creator
+        run: python -m pip install -e .
+      - name: Run R33 exactly-once transaction tests
+        run: |
+          creator-publish-transaction-r33 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_publish_transaction_r33.py' -v
+      - name: Verify R33 readiness and no-live-publish gate
+        run: |
+          creator-publish-transaction-r33 readiness --out .r33-readiness.json > .r33-readiness.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r33-readiness.json"))
+          assert r["state"] == "SOURCE_READY_NO_LIVE_PUBLISH"
+          assert r["SOURCE_READY"] is True
+          assert r["LIVE_PUBLISH_ENABLED"] is False
+          assert r["creatorR32Authority"]["producerSha"] == "f0dc1d27da6452f1de32cd887651805b47a1735d"
+          assert r["creatorR32Authority"]["ciRunId"] == 37199512624
+          assert r["creatorR32Authority"]["artifactId"] == 11302367811
+          assert r["creatorR32Authority"]["artifactDigest"] == "sha256:6803db334974b8dbea1c30c107ec5af00fe2cb892ed67e68540c2b2d74b18599"
+          assert r["safety"]["realSideEffectPermitted"] is False
+          assert r["safety"]["networkPermitted"] is False
+          assert r["safety"]["blindRetryAfterUnknown"] is False
+          PY
+      - name: Run deterministic crash replay and reconciliation rehearsal
+        run: |
+          creator-publish-transaction-r33 rehearsal --out .r33-rehearsal > .r33-rehearsal.stdout.json
+          creator-publish-transaction-r33 status --ledger .r33-rehearsal/youtube_shorts.jsonl --out .r33-youtube-status.json > .r33-youtube-status.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r33-rehearsal/rehearsal.r33.json"))
+          s=json.load(open(".r33-youtube-status.json"))
+          assert r["state"] == "SOURCE_READY_NO_LIVE_PUBLISH"
+          assert r["cleanSuccess"]["state"] == "COMMITTED"
+          assert r["timeoutAfterDispatchReconciled"]["state"] == "COMMITTED"
+          assert r["unknownNoLookup"]["state"] == "RECONCILIATION_REQUIRED"
+          assert r["timeoutBeforeDispatchSafeRetry"]["state"] == "COMMITTED"
+          assert r["unknownOutcomeBlindRetryAttempted"] is False
+          assert r["effects"]["realProvider"] == 0
+          assert r["networkUsed"] is False
+          assert r["livePublish"] is False
+          assert r["credentialsStored"] is False
+          assert s["state"] == "RECONCILIATION_REQUIRED"
+          assert s["allowedNextAction"] == "READ_ONLY_RECONCILE_ONLY"
+          assert s["blindRetryPermitted"] is False
+          assert s["realSideEffectPermitted"] is False
+          PY
+      - name: Upload deterministic R33 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r33-publish-transaction-${{ github.sha }}
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r33-readiness.json
+            .r33-readiness.stdout.json
+            .r33-rehearsal/**
+            .r33-rehearsal.stdout.json
+            .r33-youtube-status.json
+            .r33-youtube-status.stdout.json
+            reports/CREATOR_R33_PUBLISH_TRANSACTION_READINESS.json
+            conformance/creator.publish_transaction.r33.v1/**
 
   full:
     runs-on: ubuntu-latest
