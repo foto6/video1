@@ -28,6 +28,7 @@ on:
       - agent/creator-r33-publish-transaction-safety-20261004
       - agent/creator-r34-multiplatform-publish-saga-20261004
       - agent/creator-r35-release-escrow-canary-20261005
+      - agent/creator-r36-proof-carrying-release-rehearsal-20261005
   pull_request:
 
 jobs:
@@ -1405,6 +1406,88 @@ jobs:
             .r35-final-status.stdout.json
             reports/CREATOR_R35_RELEASE_ESCROW_READINESS.json
             conformance/creator.release_escrow_canary.r35.v1/**
+
+  focused-r36-proof-carrying-release:
+    needs: full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Creator
+        run: python -m pip install -e .
+      - name: Run R36 proof/verifier/tamper tests
+        run: |
+          creator-proof-release-r36 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_proof_carrying_release_r36.py' -v
+      - name: Verify exact accepted authorities and Media R25 exclusion
+        run: |
+          creator-proof-release-r36 readiness --out .r36-readiness.json > .r36-readiness.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r36-readiness.json"))
+          a=r["authorityEnvelope"]
+          assert r["state"] == "SOURCE_READY_NO_LIVE_PROVIDER"
+          assert r["implementedAdversarialCases"] >= 35
+          assert a["creatorR35"]["producerSha"] == "4793b7cb1735d21db6d211244018591b80c329a4"
+          assert a["creatorR35"]["artifactId"] == 11318269083
+          assert a["growthR34"]["producerSha"] == "9ff243bc5ec6977bc5f0eb8f16cd5e51aa0dcdfc"
+          assert a["growthR34"]["artifactId"] == 11318054384
+          assert a["bridgeR38"]["producerSha"] == "f4f6070a975ac2c5bd8323777db1514c4733e427"
+          assert a["qaR6"]["producerSha"] == "aa415759795beb24f1333d190ff842451020be5f"
+          assert a["qaR6"]["artifactId"] == 11318958558
+          assert a["mediaR25"]["status"] == "UNACCEPTED"
+          assert a["mediaR25"]["consumption"] == "NOT_CONSUMED"
+          assert r["safety"]["provider_effects"] == 0
+          assert r["safety"]["live_authorization"] is False
+          PY
+      - name: Run >=35-case proof-carrying chaos rehearsal and independent verification
+        run: |
+          creator-proof-release-r36 rehearsal --out .r36-rehearsal > .r36-rehearsal.stdout.json
+          creator-proof-release-r36 verify --bundle .r36-rehearsal/proof-bundle.r36.json --out .r36-verification.json > .r36-verification.stdout.json
+          creator-proof-release-r36 status --bundle .r36-rehearsal/proof-bundle.r36.json --out .r36-status.json > .r36-status.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r36-rehearsal/chaos-rehearsal.r36.json"))
+          v=json.load(open(".r36-verification.json"))
+          s=json.load(open(".r36-status.json"))
+          assert r["caseCount"] >= 35
+          assert r["allCasesPassed"] is True
+          assert all(x["passed"] for x in r["cases"].values())
+          assert r["unknownEffectProof"]["canaryOutcome"] == "FAKE_UNKNOWN"
+          assert r["unknownEffectProof"]["nextNode"] == "CANARY_RECONCILED"
+          assert r["unknownEffectProof"]["blindRetry"] is False
+          assert r["provider_effects"] == 0
+          assert r["network_effects"] == 0
+          assert r["live_authorization"] is False
+          assert r["mediaR25"] == "UNACCEPTED_NOT_CONSUMED"
+          assert v["valid"] is True
+          assert v["provider_effects"] == 0
+          assert v["live_authorization"] is False
+          assert s["state"] == "SOURCE_READY_NO_LIVE_PROVIDER"
+          assert s["provider_effects"] == 0
+          assert s["live_authorization"] is False
+          PY
+      - name: Upload deterministic R36 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r36-proof-carrying-release-${{ github.sha }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r36-readiness.json
+            .r36-readiness.stdout.json
+            .r36-rehearsal/**
+            .r36-rehearsal.stdout.json
+            .r36-verification.json
+            .r36-verification.stdout.json
+            .r36-status.json
+            .r36-status.stdout.json
+            reports/CREATOR_R36_PROOF_CARRYING_RELEASE_READINESS.json
+            conformance/creator.proof_carrying_release_rehearsal.r36.v1/**
 
   full:
     runs-on: ubuntu-latest

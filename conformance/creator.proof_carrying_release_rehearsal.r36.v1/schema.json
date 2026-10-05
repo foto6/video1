@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.proof_carrying_release_rehearsal.r36.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "authorityEnvelope",
+    "intent",
+    "proofGraph",
+    "fakeProviderJournal",
+    "safety",
+    "verdict",
+    "bundleDigest"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.proof_carrying_release_rehearsal.r36.v1"
+    },
+    "authorityEnvelope": {
+      "type": "object"
+    },
+    "intent": {
+      "type": "object"
+    },
+    "proofGraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "nodes",
+        "rootDigest",
+        "finalDigest"
+      ],
+      "properties": {
+        "contractVersion": {
+          "const": "creator.proof_graph.r36.v1"
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "items": {
+            "type": "object"
+          }
+        },
+        "rootDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "finalDigest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "fakeProviderJournal": {
+      "type": "array",
+      "minItems": 5
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider_effects",
+        "network_effects",
+        "live_authorization",
+        "fakeProviderOnly",
+        "blindRetryAfterUnknown",
+        "mediaR25Consumed"
+      ],
+      "properties": {
+        "provider_effects": {
+          "const": 0
+        },
+        "network_effects": {
+          "const": 0
+        },
+        "live_authorization": {
+          "const": false
+        },
+        "fakeProviderOnly": {
+          "const": true
+        },
+        "blindRetryAfterUnknown": {
+          "const": false
+        },
+        "mediaR25Consumed": {
+          "const": false
+        }
+      }
+    },
+    "verdict": {
+      "const": "SOURCE_READY_NO_LIVE_PROVIDER"
+    },
+    "bundleDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

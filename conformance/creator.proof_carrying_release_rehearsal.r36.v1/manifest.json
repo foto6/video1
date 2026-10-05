@@ -1,0 +1,64 @@
+{
+  "contractVersion": "creator.proof_carrying_release_rehearsal.r36.v1",
+  "graphVersion": "creator.proof_graph.r36.v1",
+  "statusVersion": "creator.proof_carrying_release_status.r36.v1",
+  "readinessVersion": "creator.proof_carrying_release_readiness.r36.v1",
+  "chaosVersion": "creator.proof_carrying_release_chaos.r36.v1",
+  "proofGraph": [
+    "INTENT_FROZEN",
+    "AUTHORITY_VERIFIED",
+    "ESCROW_REHEARSED",
+    "CANARY_REHEARSED",
+    "CANARY_RECONCILED",
+    "EXPANSION_REHEARSED",
+    "FINAL_REHEARSAL_VERDICT"
+  ],
+  "files": {
+    "runtime": {
+      "path": "src/creator_orchestrator/proof_carrying_release_r36.py",
+      "blob": "dd71da6c1615c30aa25a372cdf93af7b299af5aa"
+    },
+    "tests": {
+      "path": "tests/test_proof_carrying_release_r36.py",
+      "blob": "4b6074cf8c747600a7708e10bc20cab8fb1389a2"
+    },
+    "authority": {
+      "path": "conformance/creator.proof_carrying_release_rehearsal.r36.v1/authority.json",
+      "blob": "efd063a3d1c92d816154cecd98d602ae4c1e679f"
+    },
+    "schema": {
+      "path": "conformance/creator.proof_carrying_release_rehearsal.r36.v1/schema.json",
+      "blob": "e6fb2ec5e8c6450775f67efd7f82a0600a36c796"
+    },
+    "readiness": {
+      "path": "reports/CREATOR_R36_PROOF_CARRYING_RELEASE_READINESS.json",
+      "blob": "4b80b1a43b943ff64e9ff54025d1999f20eb652f"
+    },
+    "docs": {
+      "path": "docs/PROOF_CARRYING_RELEASE_R36.md",
+      "blob": "5caa904f48a0a013415257b0c5a7b78de5ddb242"
+    }
+  },
+  "acceptedAuthorities": {
+    "creatorR35": "4793b7cb1735d21db6d211244018591b80c329a4",
+    "growthR34": "9ff243bc5ec6977bc5f0eb8f16cd5e51aa0dcdfc",
+    "bridgeR38": "f4f6070a975ac2c5bd8323777db1514c4733e427",
+    "qaR6": "aa415759795beb24f1333d190ff842451020be5f"
+  },
+  "mediaR25": {
+    "status": "UNACCEPTED",
+    "consumption": "NOT_CONSUMED",
+    "qaR6Disposition": "WAITING_EXACT_GREEN"
+  },
+  "adversarialCases": 40,
+  "guarantees": {
+    "independentVerifier": true,
+    "contentAddressedProofGraph": true,
+    "fakeProviderJournalOnly": true,
+    "provider_effects": 0,
+    "live_authorization": false,
+    "unknownEffectBlindRetry": false,
+    "livePublish": false
+  },
+  "disposition": "SOURCE_READY_NO_LIVE_PROVIDER"
+}

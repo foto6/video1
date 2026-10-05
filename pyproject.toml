@@ -25,6 +25,7 @@ creator-autonomous-tournament-r32 = "creator_orchestrator.autonomous_tournament_
 creator-publish-transaction-r33 = "creator_orchestrator.publish_transaction_r33:main"
 creator-multiplatform-publish-r34 = "creator_orchestrator.multiplatform_publish_saga_r34:main"
 creator-release-escrow-r35 = "creator_orchestrator.release_escrow_canary_r35:main"
+creator-proof-release-r36 = "creator_orchestrator.proof_carrying_release_r36:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

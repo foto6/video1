@@ -317,3 +317,23 @@ creator-release-escrow-r35 status --release-dir .r35-chaos/clean-full-confirmati
 ```
 
 The deterministic chaos harness executes at least 25 cases covering lost acknowledgements, delayed/duplicate confirmation, account/render/policy/authority drift, restart boundaries, deadline crossings, partial expansion, and metadata-only compensation. Every status reports `realProviderEffectAuthorized=false`, `providerNetworkEffects=0`, and `livePublish=false`. See `docs/RELEASE_ESCROW_CANARY_R35.md`.
+
+
+## Proof-carrying release rehearsal (R36)
+
+R36 freezes the QA-R6 accepted Creator R35, Growth R34 and Bridge R38 authorities into an independently verifiable content-addressed bundle. Media R25 is explicitly `UNACCEPTED / NOT_CONSUMED` at the immutable QA-R6 cutoff and is never promoted by later branch movement.
+
+The proof chain is:
+
+`INTENT_FROZEN -> AUTHORITY_VERIFIED -> ESCROW_REHEARSED -> CANARY_REHEARSED -> CANARY_RECONCILED -> EXPANSION_REHEARSED -> FINAL_REHEARSAL_VERDICT`.
+
+The fake-provider journal records zero provider/network effects and `live_authorization=false`. The adversarial rehearsal runs 40 deterministic tamper cases, and the standalone verifier must reject every altered authority, graph, journal, intent, Media-consumption, retry, or LIVE_READY claim.
+
+```bash
+creator-proof-release-r36 readiness
+creator-proof-release-r36 rehearsal --out .r36-rehearsal
+creator-proof-release-r36 verify --bundle .r36-rehearsal/proof-bundle.r36.json
+creator-proof-release-r36 status --bundle .r36-rehearsal/proof-bundle.r36.json
+```
+
+Disposition is `SOURCE_READY_NO_LIVE_PROVIDER`. See `docs/PROOF_CARRYING_RELEASE_R36.md`.
