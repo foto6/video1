@@ -1,0 +1,45 @@
+{
+  "reportVersion": "creator.current_authority_readiness.r39.v1",
+  "state": "WAITING_MEDIA_R27_QA",
+  "SOURCE_READY": true,
+  "MEDIA_R27_EXACT_GREEN": true,
+  "MEDIA_R27_QA_ACCEPTED": false,
+  "ACTUAL_LOCAL_PC_E2E_EXECUTED": false,
+  "exactAuthorities": {
+    "creatorR38": {
+      "sha": "b4d0b3a940357eec333d5a1d9b9141bd61b89809",
+      "ciRunId": 37405132939,
+      "artifactId": 11387350709,
+      "artifactDigest": "sha256:2b37c0a5747daf2baff343001f58d16de9b1e2ee0098ceba31e345c87e72e407"
+    },
+    "growthCurrent": {
+      "sha": "f3cb8ec0d8aa7155b6169d5f86828de3fbc9d3ba",
+      "ciRunId": 37406299930,
+      "artifactId": 11387826461,
+      "artifactDigest": "sha256:d53c063ffd68481fd88901111e1683a175e8c54fd8fc07574b6c798cd12ff463"
+    },
+    "bridgeCurrent": {
+      "sha": "a6adf698764776856567239b07b0687e8ac89fa5",
+      "ciRunId": 37416629592,
+      "ubuntuArtifactId": 11391281748,
+      "windowsArtifactId": 11391646754
+    },
+    "mediaR27": {
+      "sha": "183838a24205c6885b2366ad6ffa394164283d91",
+      "ciRunId": 37451069045,
+      "artifactId": 11406357346,
+      "artifactDigest": "sha256:9cfa2ddd358f2b25a3066ee60792c44c460c62715590210bacf5c5430d14a4b5",
+      "authorityState": "PENDING_INDEPENDENT_QA"
+    }
+  },
+  "blocker": "EXACT_MEDIA_R27_INDEPENDENT_QA_TUPLE_REQUIRED",
+  "safety": {
+    "providerEffects": 0,
+    "networkEffects": 0,
+    "browserEffects": 0,
+    "liveAuthorization": false,
+    "publishAllowed": false,
+    "liveBridgeCutover": false,
+    "mergePerformed": false
+  }
+}
