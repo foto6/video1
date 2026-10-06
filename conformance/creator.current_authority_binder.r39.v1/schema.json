@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.current_authority_manifest.r39.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "binderContract",
+    "state",
+    "finalDisposition",
+    "readinessState",
+    "operationIdentity",
+    "authoritySetDigest",
+    "sealedBundleDigest",
+    "authorityEvidence",
+    "bundleEvidence",
+    "growthDecisionEvidence",
+    "proofEscrowEvidence",
+    "growthDecisionDigest",
+    "proofFinalDigest",
+    "releaseEscrowDigest",
+    "selectedWinnerSha256",
+    "targetedReeditSha256",
+    "ledgerDigest",
+    "stageReuse",
+    "providerEffects",
+    "networkEffects",
+    "browserEffects",
+    "liveAuthorization",
+    "publishAllowed",
+    "liveBridgeCutover",
+    "actualLocalPcE2EExecuted",
+    "manifestDigest"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.current_authority_manifest.r39.v1"
+    },
+    "binderContract": {
+      "const": "creator.current_authority_binder.r39.v1"
+    },
+    "state": {
+      "const": "LOCAL_REHEARSAL_COMPLETE"
+    },
+    "finalDisposition": {
+      "const": "LOCAL_REHEARSAL_COMPLETE / LIVE_AUTHORIZATION_FALSE"
+    },
+    "readinessState": {
+      "enum": [
+        "SOURCE_READY",
+        "WAITING_MEDIA_R27_QA"
+      ]
+    },
+    "operationIdentity": {
+      "type": "object"
+    },
+    "authoritySetDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "sealedBundleDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "authorityEvidence": {
+      "type": "object"
+    },
+    "bundleEvidence": {
+      "type": "object"
+    },
+    "growthDecisionEvidence": {
+      "type": "object"
+    },
+    "proofEscrowEvidence": {
+      "type": "object"
+    },
+    "growthDecisionDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "proofFinalDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "releaseEscrowDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "selectedWinnerSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "targetedReeditSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ledgerDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "stageReuse": {
+      "type": "object"
+    },
+    "providerEffects": {
+      "const": 0
+    },
+    "networkEffects": {
+      "const": 0
+    },
+    "browserEffects": {
+      "const": 0
+    },
+    "liveAuthorization": {
+      "const": false
+    },
+    "publishAllowed": {
+      "const": false
+    },
+    "liveBridgeCutover": {
+      "const": false
+    },
+    "actualLocalPcE2EExecuted": {
+      "const": false
+    },
+    "manifestDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
