@@ -1,0 +1,44 @@
+{
+  "contractVersion": "creator.bound_media_authority.r39.v1",
+  "authorityClass": "EXACT_GREEN_PENDING_INDEPENDENT_QA",
+  "repository": "foto6/video2",
+  "producerSha": "183838a24205c6885b2366ad6ffa394164283d91",
+  "ciRunId": 37451069045,
+  "ciConclusion": "success",
+  "artifactId": 11406357346,
+  "artifactName": "media-r27-real-input-local-rehearsal-control",
+  "artifactDigest": "sha256:9cfa2ddd358f2b25a3066ee60792c44c460c62715590210bacf5c5430d14a4b5",
+  "contract": "media.real_input_local_rehearsal.r27.v1",
+  "growthBundleContract": "media.real_input_growth_bundle.r27.v1",
+  "authorityState": "PENDING_INDEPENDENT_QA",
+  "parentR26": {
+    "producerSha": "dba0dce8d44c3b5786c37d2ce793172a058fb40f",
+    "ciRunId": 37405928263,
+    "contract": "media.local_windows_render_gate.r26.v1"
+  },
+  "blobs": {
+    "workflow": "d22801623b4493fe9126d212d21ca143653e9fb8",
+    "contract": "b86e97b0bdb9e066edd494723a58bc19cce4b714",
+    "schema": "3bfbba26106400b83ccd4858a3a24ba890bb2559",
+    "growthBundleContract": "256b4397bd197ddd4901bdbea119add36231c0bb",
+    "runtime": "87c03720860b4497bf9a2dff44501e81be22f873",
+    "runner": "770842129e6fd648728003e557bff2c611b6d95a",
+    "tests": "f75a0d64142c13996acc203b26d6980813f30572",
+    "ciEvidence": "e14de5437641457de744a04565006276b5218bf5",
+    "runCmd": "1fd9e0fc19fac03e2be4e7777c029761bbe302f1",
+    "statusCmd": "8f1ae729f2e15465eedabd7c8047107c133b0135",
+    "verifyCmd": "fd48b765c8b7ac2c6519f9f20647a29830f75a31",
+    "docs": "7aad17c247900da029cb341ec95f346fee5c0c26"
+  },
+  "independentQa": {
+    "disposition": "PENDING",
+    "repository": "foto6/boss",
+    "producerSha": null,
+    "ciRunId": null,
+    "ciConclusion": null,
+    "artifactId": null,
+    "artifactDigest": null,
+    "matrixDigest": null
+  },
+  "movingRefsAccepted": false
+}
