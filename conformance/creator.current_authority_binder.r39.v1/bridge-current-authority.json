@@ -1,0 +1,38 @@
+{
+  "contractVersion": "creator.bound_bridge_authority.r39.v1",
+  "authorityClass": "CURRENT_ACCEPTED_CONTROL_PLANE",
+  "repository": "foto6/WebAIBridge",
+  "producerSha": "a6adf698764776856567239b07b0687e8ac89fa5",
+  "ciRunId": 37416629592,
+  "ciConclusion": "success",
+  "contract": "bridge.projects_live_control_plane_cutover.r42.v1",
+  "rollbackContract": "bridge.projects_live_control_plane_rollback.r42.v1",
+  "artifacts": [
+    {
+      "platform": "ubuntu-latest",
+      "id": 11391281748,
+      "name": "r42-live-control-plane-ubuntu-latest",
+      "digest": "sha256:a6562035438c131650182b0e8230c2b75fb9a7f3315273874026840fe161a6af"
+    },
+    {
+      "platform": "windows-latest",
+      "id": 11391646754,
+      "name": "r42-live-control-plane-windows-latest",
+      "digest": "sha256:5d805a7a3354fe260f11369e0e5891cb4c792d73280092ca3df4225db7e9f03b"
+    }
+  ],
+  "blobs": {
+    "workflow": "2f5e6d08d55d98f3402d50cbcda430a62a752d11",
+    "runtime": "a8516de66611848631abba2250f7bd7014f01155",
+    "runtimeTests": "e0c5439d4022c7478625cf5f8ffb1a27260d8cf2",
+    "contractTests": "e4978a229dab0272488f22671326941f97666451",
+    "cutoverScript": "2417b6a8d1d93621ff80b6e3fe9c8f71d5d7d223",
+    "rollbackScript": "a17e520c0025c759e45887848fcd92c7ebee314f",
+    "readiness": "a4b880f8c6c3cc9193faac962c5008dedd9a65f6",
+    "rehearsal": "f13e5a24a3e304edb18eebe08e6c3d6266778c09",
+    "incidentTests": "0662281f07ac301fbb6b0be88af6944a710b0cd5",
+    "powershellRegression": "bede7a58d2f77f4665f874a0672af20b2532f3a3"
+  },
+  "liveCutoverAuthorizedByCreator": false,
+  "movingRefsAccepted": false
+}
