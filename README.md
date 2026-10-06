@@ -367,3 +367,8 @@ See `docs/LOCAL_INTEGRATION_DRIVER_R37.md`.
 ## Creator R38 local full-stack rehearsal
 
 R38 adds the Windows-first creator-local-fullstack-r38 coordinator for deterministic local source -> Media candidates -> review -> Growth decision -> targeted re-edit -> final.mp4 -> sealed evidence. It is currently fail-closed at WAITING_MEDIA_AUTHORITY until an independently accepted exact Media R26 tuple is supplied. There is no Media R25 fallback, no live publish, no credentials, and no Bridge cutover. See docs/LOCAL_FULLSTACK_REHEARSAL_R38.md.
+
+
+## Creator R39 current-authority binder
+
+R39 adds `creator.current_authority_binder.r39.v1` over immutable R38 history. It binds exact current Creator/Growth/Bridge/Media authority manifests and refuses moving refs. Media R27 is exact-green but remains `PENDING_INDEPENDENT_QA`, so default readiness is `WAITING_MEDIA_R27_QA`. The deterministic fixture proves `LOCAL_REHEARSAL_COMPLETE / LIVE_AUTHORIZATION_FALSE` with zero provider/browser/publish effects. See `docs/CURRENT_AUTHORITY_BINDER_R39.md`.
