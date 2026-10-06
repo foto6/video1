@@ -31,6 +31,7 @@ on:
       - agent/creator-r36-proof-carrying-release-rehearsal-20261005
       - agent/creator-r37-local-integration-driver-20261006
       - agent/creator-r38-local-fullstack-rehearsal-20261006
+      - agent/creator-r39-current-authority-binder-20261006
   pull_request:
 
 jobs:
@@ -1690,6 +1691,109 @@ jobs:
             docs/LOCAL_FULLSTACK_REHEARSAL_R38.md
             tools/creator-local-fullstack-r38.ps1
             tools/creator-local-fullstack-r38.cmd
+
+
+  focused-r39-current-authority-binder:
+    needs: full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Creator
+        run: python -m pip install -e .
+      - name: Run R39 authority binder and adversarial tests
+        run: |
+          creator-current-authority-r39 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_current_authority_binder_r39.py' -v
+      - name: Verify exact current authorities and Media R27 QA blocker
+        run: |
+          set +e
+          creator-current-authority-r39 readiness --out .r39-readiness.json > .r39-readiness.stdout.json
+          code=$?
+          set -e
+          test "$code" -eq 3
+          python - <<'PY'
+          import json
+          r=json.load(open(".r39-readiness.json"))
+          assert r["state"] == "WAITING_MEDIA_R27_QA"
+          assert r["sourceReady"] is True
+          assert r["mediaR27ExactGreen"] is True
+          assert r["mediaR27QaAccepted"] is False
+          assert r["creatorR38Sha"] == "b4d0b3a940357eec333d5a1d9b9141bd61b89809"
+          assert r["growthCurrentSha"] == "f3cb8ec0d8aa7155b6169d5f86828de3fbc9d3ba"
+          assert r["bridgeCurrentSha"] == "a6adf698764776856567239b07b0687e8ac89fa5"
+          assert r["mediaR27Sha"] == "183838a24205c6885b2366ad6ffa394164283d91"
+          assert r["mediaR27CiRunId"] == 37451069045
+          assert r["mediaR27ArtifactId"] == 11406357346
+          assert r["movingRefsAccepted"] is False
+          assert r["liveAuthorization"] is False
+          assert r["publishAllowed"] is False
+          PY
+      - name: Run deterministic current-authority fixture and exact replay
+        run: |
+          creator-current-authority-r39 fixture --workspace .r39-fixture > .r39-fixture.stdout.json
+          cp .r39-fixture/evidence/final-current-authority-manifest.r39.json .r39-first-manifest.json
+          before="$(wc -l < .r39-fixture/ledger/stage-ledger.r38.jsonl)"
+          creator-current-authority-r39 fixture --workspace .r39-fixture > .r39-replay.stdout.json
+          after="$(wc -l < .r39-fixture/ledger/stage-ledger.r38.jsonl)"
+          test "$before" -eq "$after"
+          cmp .r39-first-manifest.json .r39-fixture/evidence/final-current-authority-manifest.r39.json
+          python - <<'PY'
+          import json
+          s=json.load(open(".r39-fixture/evidence/status.r39.json"))
+          m=json.load(open(".r39-fixture/evidence/final-current-authority-manifest.r39.json"))
+          assert s["state"] == "LOCAL_REHEARSAL_COMPLETE"
+          assert s["readinessState"] == "WAITING_MEDIA_R27_QA"
+          assert s["finalDisposition"] == "LOCAL_REHEARSAL_COMPLETE / LIVE_AUTHORIZATION_FALSE"
+          assert m["providerEffects"] == 0
+          assert m["networkEffects"] == 0
+          assert m["browserEffects"] == 0
+          assert m["liveAuthorization"] is False
+          assert m["publishAllowed"] is False
+          assert m["liveBridgeCutover"] is False
+          assert m["actualLocalPcE2EExecuted"] is False
+          PY
+      - name: Emit deterministic R39 evidence
+        run: |
+          creator-current-authority-r39 evidence --out .r39-evidence > .r39-evidence.stdout.json
+          python - <<'PY'
+          import json
+          s=json.load(open(".r39-evidence/evidence-summary.r39.json"))
+          a=json.load(open(".r39-evidence/adversarial-cases.r39.json"))
+          assert s["state"] == "WAITING_MEDIA_R27_QA"
+          assert s["fixtureState"] == "LOCAL_REHEARSAL_COMPLETE"
+          assert s["fixtureDisposition"] == "LOCAL_REHEARSAL_COMPLETE / LIVE_AUTHORIZATION_FALSE"
+          assert s["adversarialCaseCount"] >= 25
+          assert s["allAdversarialCasesPassed"] is True
+          assert a["caseCount"] >= 25
+          assert a["allCasesPassed"] is True
+          assert all(a["cases"].values())
+          assert s["liveAuthorization"] is False
+          assert s["publishAllowed"] is False
+          PY
+      - name: Upload deterministic R39 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r39-current-authority-binder-${{ github.sha }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r39-readiness.json
+            .r39-readiness.stdout.json
+            .r39-fixture/**
+            .r39-fixture.stdout.json
+            .r39-replay.stdout.json
+            .r39-first-manifest.json
+            .r39-evidence/**
+            .r39-evidence.stdout.json
+            reports/CREATOR_R39_CURRENT_AUTHORITY_READINESS.json
+            conformance/creator.current_authority_binder.r39.v1/**
+            docs/CURRENT_AUTHORITY_BINDER_R39.md
+            TASKS/R39_CURRENT_AUTHORITY_BINDER.md
 
 
   full:
