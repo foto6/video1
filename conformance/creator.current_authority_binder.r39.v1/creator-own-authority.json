@@ -1,0 +1,28 @@
+{
+  "contractVersion": "creator.current_creator_authority.r39.v1",
+  "repository": "foto6/video1",
+  "r39AssignmentAnchor": {
+    "sourceSha": "66efe791d816f07aca42d772e57eb53ad7ed331f",
+    "taskBlob": "b37a8e28be305c43cd9d4f83ec6e3b1382374b2a",
+    "parentR38Sha": "b4d0b3a940357eec333d5a1d9b9141bd61b89809"
+  },
+  "acceptedR38": {
+    "producerSha": "b4d0b3a940357eec333d5a1d9b9141bd61b89809",
+    "ciRunId": 37405132939,
+    "ciConclusion": "success",
+    "artifactId": 11387350709,
+    "artifactName": "creator-r38-local-fullstack-rehearsal-b4d0b3a940357eec333d5a1d9b9141bd61b89809",
+    "artifactDigest": "sha256:2b37c0a5747daf2baff343001f58d16de9b1e2ee0098ceba31e345c87e72e407",
+    "contract": "creator.local_fullstack_rehearsal.r38.v1",
+    "blobs": {
+      "authority": "31bee01ede79db2a373a98ee47621f7928f67da6",
+      "manifest": "5b0e079bb02996195a2bbf7293f783fa44ae392f",
+      "schema": "6b48bb2239ecc6437bc8b273fecfccd8f89d1ebc",
+      "runtime": "8a14b0787efa580d6a63195926327dbc67ecd4ce",
+      "tests": "a453301a9f62c6e56dc4d04e38260668957f3bae",
+      "docs": "bf47e1d008d32c221bc80b93e1a8502109e81f54",
+      "readiness": "b1a078783f915c1f24a3df2dba40d60e830e16d0"
+    }
+  },
+  "movingRefsAccepted": false
+}
