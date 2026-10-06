@@ -1,0 +1,25 @@
+{
+  "contractVersion": "creator.bound_growth_authority.r39.v1",
+  "authorityClass": "CURRENT_ACCEPTED",
+  "repository": "foto6/video3",
+  "producerSha": "f3cb8ec0d8aa7155b6169d5f86828de3fbc9d3ba",
+  "ciRunId": 37406299930,
+  "ciConclusion": "success",
+  "artifactId": 11387826461,
+  "artifactName": "growth-r37-local-fullstack-verifier",
+  "artifactDigest": "sha256:d53c063ffd68481fd88901111e1683a175e8c54fd8fc07574b6c798cd12ff463",
+  "contract": "growth.local_fullstack_verifier.r37.v1",
+  "blobs": {
+    "authority": "6e98b021bf70359e1af2e25c6829671576ccb450",
+    "contract": "cb8af8636d0991eb0a77ed59463ceeb6314592f4",
+    "creatorR38Authority": "b7baa4a549bb34adbd76fcbddcec6acb4d12d1f3",
+    "policy": "52a3c2f80882b8eb8d91550d3fa7950269a19425",
+    "sealedBundleSchema": "210c57801733c1cc9a1523d59334a679693312b7",
+    "verificationSchema": "e27c378013180324d596c1a8b360126dd5cd5b53",
+    "runtime": "96c8c643a49513018f310a6db7cf1ca958c30040",
+    "simulator": "f7c304310305e9c6116d08586862d2bf3d549770",
+    "tests": "d39bfb3c1ea13b81befc9fb60bad0855a54bbe1f",
+    "docs": "77a4fbbc927376f3a1a4b38c5a0c6215a9ebc616"
+  },
+  "movingRefsAccepted": false
+}
