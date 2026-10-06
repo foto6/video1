@@ -1,0 +1,31 @@
+{
+  "contractVersion": "creator.current_authority_binder.r39.v1",
+  "authoritySetContract": "creator.current_authority_set.r39.v1",
+  "readinessContract": "creator.current_authority_readiness.r39.v1",
+  "operationContract": "creator.current_authority_operation.r39.v1",
+  "finalManifestContract": "creator.current_authority_manifest.r39.v1",
+  "exactAuthorities": {
+    "creator": "creator.current_creator_authority.r39.v1",
+    "growth": "creator.bound_growth_authority.r39.v1",
+    "bridge": "creator.bound_bridge_authority.r39.v1",
+    "media": "creator.bound_media_authority.r39.v1",
+    "mediaQa": "creator.media_r27_independent_qa.r39.v1"
+  },
+  "rules": {
+    "movingBranchNamesAreAuthority": false,
+    "mediaR27IndependentQaRequiredForSourceReady": true,
+    "immutableR38History": true,
+    "operationIdentityBindsAuthorityDigests": true,
+    "operationIdentityBindsSealedBundleDigest": true,
+    "changedAuthorityOrBundleSameWorkspaceConflicts": true,
+    "reuseR38MediaValidation": true,
+    "reuseR38StageLedger": true,
+    "reuseR37ProofGraph": true,
+    "reuseR37ReleaseEscrow": true,
+    "providerMutation": false,
+    "browserMutation": false,
+    "livePublish": false,
+    "liveAuthorization": false
+  },
+  "currentReadiness": "WAITING_MEDIA_R27_QA"
+}
