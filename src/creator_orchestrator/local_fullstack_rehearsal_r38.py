@@ -732,7 +732,7 @@ def run_rehearsal(
         "selectedWinner": {"kind": "TARGETED_REEDIT", "sha256": reedit_artifacts[0]["sha256"], "size": reedit_artifacts[0]["size"]},
         "finalMp4": final_record,
         "ledgerDigest": ledger.digest,
-        "stageReuse": {"mediaCandidates": reused_candidates, "reviewPackage": reused_review, "growthDecision": reused_decision, "targetedReedit": reused_reedit, "finalize": reused_final},
+        "stageReuse": {"policy": "VERIFY_COMPLETED_ARTIFACTS", "exactRerunSupported": True},
         "providerEffects": 0,
         "networkEffects": 0,
         "liveAuthorization": False,
