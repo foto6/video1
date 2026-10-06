@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.media_r27_independent_qa.r39.v1",
+  "type": "object",
+  "required": [
+    "contractVersion",
+    "repository",
+    "producerSha",
+    "ciRunId",
+    "ciConclusion",
+    "artifactId",
+    "artifactDigest",
+    "matrixDigest",
+    "disposition",
+    "acceptedMediaProducerSha",
+    "acceptedMediaCiRunId",
+    "acceptedMediaArtifactId",
+    "acceptedMediaArtifactDigest",
+    "acceptedMediaContract",
+    "acceptedMediaGrowthBundleContract"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.media_r27_independent_qa.r39.v1"
+    },
+    "repository": {
+      "const": "foto6/boss"
+    },
+    "producerSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "ciRunId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "ciConclusion": {
+      "const": "success"
+    },
+    "artifactId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "artifactDigest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "matrixDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "disposition": {
+      "const": "ACCEPTED"
+    },
+    "acceptedMediaProducerSha": {
+      "const": "183838a24205c6885b2366ad6ffa394164283d91"
+    },
+    "acceptedMediaCiRunId": {
+      "const": 37451069045
+    },
+    "acceptedMediaArtifactId": {
+      "const": 11406357346
+    },
+    "acceptedMediaArtifactDigest": {
+      "const": "sha256:9cfa2ddd358f2b25a3066ee60792c44c460c62715590210bacf5c5430d14a4b5"
+    },
+    "acceptedMediaContract": {
+      "const": "media.real_input_local_rehearsal.r27.v1"
+    },
+    "acceptedMediaGrowthBundleContract": {
+      "const": "media.real_input_growth_bundle.r27.v1"
+    },
+    "fixtureOnly": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}
