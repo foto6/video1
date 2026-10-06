@@ -1,0 +1,18 @@
+{
+  "contractVersion": "creator.local_fullstack_rehearsal.r38.v1",
+  "authorityContract": "creator.local_fullstack_authority.r38.v1",
+  "statusContract": "creator.local_fullstack_status.r38.v1",
+  "stageLedgerContract": "creator.local_fullstack_stage_ledger.r38.v1",
+  "finalManifestContract": "creator.local_fullstack_rehearsal_manifest.r38.v1",
+  "mediaRequestContract": "creator.media_local_request.r38.v1",
+  "mediaResponseContract": "creator.media_local_response.r38.v1",
+  "reviewContract": "creator.local_review_package.r38.v1",
+  "currentReadiness": "WAITING_MEDIA_AUTHORITY",
+  "mediaR26Required": true,
+  "oldMediaR25Forbidden": true,
+  "windowsRunner": "tools/creator-local-fullstack-r38.ps1",
+  "windowsLauncher": "tools/creator-local-fullstack-r38.cmd",
+  "hostedCiHeavyRender": false,
+  "livePublish": false,
+  "liveBridgeCutover": false
+}

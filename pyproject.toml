@@ -27,6 +27,7 @@ creator-multiplatform-publish-r34 = "creator_orchestrator.multiplatform_publish_
 creator-release-escrow-r35 = "creator_orchestrator.release_escrow_canary_r35:main"
 creator-proof-release-r36 = "creator_orchestrator.proof_carrying_release_r36:main"
 creator-local-integration-r37 = "creator_orchestrator.local_integration_driver_r37:main"
+creator-local-fullstack-r38 = "creator_orchestrator.local_fullstack_rehearsal_r38:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

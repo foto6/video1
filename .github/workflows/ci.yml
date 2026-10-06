@@ -30,6 +30,7 @@ on:
       - agent/creator-r35-release-escrow-canary-20261005
       - agent/creator-r36-proof-carrying-release-rehearsal-20261005
       - agent/creator-r37-local-integration-driver-20261006
+      - agent/creator-r38-local-fullstack-rehearsal-20261006
   pull_request:
 
 jobs:
@@ -1591,6 +1592,105 @@ jobs:
             reports/CREATOR_R37_LOCAL_INTEGRATION_READINESS.json
             conformance/creator.local_integration_driver.r37.v1/**
             tools/creator-local-integration-r37.cmd
+
+  focused-r38-local-fullstack-rehearsal:
+    needs: full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Creator
+        run: python -m pip install -e .
+      - name: Run R38 unit and tiny orchestration tests
+        run: |
+          creator-local-fullstack-r38 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_local_fullstack_rehearsal_r38.py' -v
+      - name: Verify fail-closed Media gate and exact authorities
+        run: |
+          set +e
+          creator-local-fullstack-r38 readiness --out .r38-readiness.json > .r38-readiness.stdout.json
+          code=$?
+          set -e
+          test "$code" -eq 3
+          creator-local-fullstack-r38 dry-run --workspace .r38-dry --out .r38-dry-run.json > .r38-dry-run.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r38-readiness.json"))
+          d=json.load(open(".r38-dry-run.json"))
+          assert r["state"] == "WAITING_MEDIA_AUTHORITY"
+          assert r["mediaRequired"] is True
+          assert r["mediaAccepted"] is False
+          assert r["creatorR37"]["producerSha"] == "1f7cb9ed8f1985cd4faca79ce55f1c5fda9e3a57"
+          assert r["creatorR37"]["ciRunId"] == 37398299900
+          assert r["growthR36"]["producerSha"] == "a53f9deb180bb256d193f0422c6ffd7a5923d97a"
+          assert r["growthR36"]["ciRunId"] == 37398558145
+          assert r["growthR36"]["artifactId"] == 11383953328
+          assert r["bridgeR40"]["producerSha"] == "9fca5e7e4cdc820a1a3aee6ada9102fc97649d16"
+          assert r["bridgeR40"]["ciRunId"] == 37399009019
+          assert r["mediaRequirement"]["oldR25Forbidden"] is True
+          assert r["defaultResources"]["cudaAssumed"] is False
+          assert d["state"] == "WAITING_MEDIA_AUTHORITY"
+          assert d["networkRequired"] is False
+          assert d["credentialsRequired"] is False
+          assert d["liveBridgeCutover"] is False
+          PY
+      - name: Run deterministic tiny full-stack fixture and exact replay
+        run: |
+          creator-local-fullstack-r38 fixture-rehearsal --workspace .r38-fixture > .r38-fixture.stdout.json
+          cp .r38-fixture/evidence/final-rehearsal-manifest.r38.json .r38-first-manifest.json
+          before="$(wc -l < .r38-fixture/ledger/stage-ledger.r38.jsonl)"
+          creator-local-fullstack-r38 fixture-rehearsal --workspace .r38-fixture > .r38-replay.stdout.json
+          after="$(wc -l < .r38-fixture/ledger/stage-ledger.r38.jsonl)"
+          test "$before" -eq "$after"
+          cmp .r38-first-manifest.json .r38-fixture/evidence/final-rehearsal-manifest.r38.json
+          creator-local-fullstack-r38 cleanup --workspace .r38-fixture > .r38-cleanup.json
+          python - <<'PY'
+          import json, pathlib
+          root=pathlib.Path(".r38-fixture")
+          m=json.load(open(root/"evidence/final-rehearsal-manifest.r38.json"))
+          c=json.load(open(".r38-cleanup.json"))
+          assert m["state"] == "LOCAL_REHEARSAL_COMPLETE"
+          assert len(m["candidates"]) == 3
+          assert m["selectedWinner"]["sha256"] == m["targetedReedit"]["sha256"]
+          assert m["finalMp4"]["sha256"] == m["targetedReedit"]["sha256"]
+          assert m["providerEffects"] == 0
+          assert m["networkEffects"] == 0
+          assert m["liveAuthorization"] is False
+          assert m["publishAllowed"] is False
+          assert m["credentialsUsed"] is False
+          assert m["liveBridgeCutover"] is False
+          assert not (root/"temp").exists()
+          assert (root/"final/final.mp4").is_file()
+          assert (root/"evidence/final-rehearsal-manifest.r38.json").is_file()
+          assert c["sourceMaterialDeleted"] is False
+          assert c["acceptedEvidenceDeleted"] is False
+          PY
+      - name: Upload deterministic R38 package and tiny evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r38-local-fullstack-rehearsal-${{ github.sha }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r38-readiness.json
+            .r38-readiness.stdout.json
+            .r38-dry-run.json
+            .r38-dry-run.stdout.json
+            .r38-fixture/**
+            .r38-fixture.stdout.json
+            .r38-replay.stdout.json
+            .r38-first-manifest.json
+            .r38-cleanup.json
+            reports/CREATOR_R38_LOCAL_FULLSTACK_READINESS.json
+            conformance/creator.local_fullstack_rehearsal.r38.v1/**
+            docs/LOCAL_FULLSTACK_REHEARSAL_R38.md
+            tools/creator-local-fullstack-r38.ps1
+            tools/creator-local-fullstack-r38.cmd
+
 
   full:
     runs-on: ubuntu-latest

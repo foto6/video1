@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.local_fullstack_rehearsal.r38.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "rehearsalContract",
+    "rehearsalId",
+    "state",
+    "source",
+    "authorities",
+    "resources",
+    "candidates",
+    "reviewPackage",
+    "growthDecision",
+    "targetedReedit",
+    "selectedWinner",
+    "finalMp4",
+    "ledgerDigest",
+    "stageReuse",
+    "providerEffects",
+    "networkEffects",
+    "liveAuthorization",
+    "publishAllowed",
+    "credentialsUsed",
+    "liveBridgeCutover",
+    "manifestDigest"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.local_fullstack_rehearsal_manifest.r38.v1"
+    },
+    "rehearsalContract": {
+      "const": "creator.local_fullstack_rehearsal.r38.v1"
+    },
+    "rehearsalId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state": {
+      "const": "LOCAL_REHEARSAL_COMPLETE"
+    },
+    "source": {
+      "type": "object"
+    },
+    "authorities": {
+      "type": "object"
+    },
+    "resources": {
+      "type": "object"
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object"
+      }
+    },
+    "reviewPackage": {
+      "type": "object"
+    },
+    "growthDecision": {
+      "type": "object"
+    },
+    "targetedReedit": {
+      "type": "object"
+    },
+    "selectedWinner": {
+      "type": "object"
+    },
+    "finalMp4": {
+      "type": "object"
+    },
+    "ledgerDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "stageReuse": {
+      "type": "object"
+    },
+    "providerEffects": {
+      "const": 0
+    },
+    "networkEffects": {
+      "const": 0
+    },
+    "liveAuthorization": {
+      "const": false
+    },
+    "publishAllowed": {
+      "const": false
+    },
+    "credentialsUsed": {
+      "const": false
+    },
+    "liveBridgeCutover": {
+      "const": false
+    },
+    "manifestDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

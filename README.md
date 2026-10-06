@@ -362,3 +362,8 @@ tools\creator-local-integration-r37.cmd fixture-rehearsal --out .r37-fixture
 ```
 
 See `docs/LOCAL_INTEGRATION_DRIVER_R37.md`.
+
+
+## Creator R38 local full-stack rehearsal
+
+R38 adds the Windows-first creator-local-fullstack-r38 coordinator for deterministic local source -> Media candidates -> review -> Growth decision -> targeted re-edit -> final.mp4 -> sealed evidence. It is currently fail-closed at WAITING_MEDIA_AUTHORITY until an independently accepted exact Media R26 tuple is supplied. There is no Media R25 fallback, no live publish, no credentials, and no Bridge cutover. See docs/LOCAL_FULLSTACK_REHEARSAL_R38.md.

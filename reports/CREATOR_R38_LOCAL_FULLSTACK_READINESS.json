@@ -1,0 +1,57 @@
+{
+  "reportVersion": "creator.local_fullstack_readiness.r38.v1",
+  "state": "WAITING_MEDIA_AUTHORITY",
+  "SOURCE_READY": true,
+  "LOCAL_RUNNER_READY": true,
+  "ACTUAL_LOCAL_PC_E2E_EXECUTED": false,
+  "contract": "creator.local_fullstack_rehearsal.r38.v1",
+  "creatorR37": {
+    "producerSha": "1f7cb9ed8f1985cd4faca79ce55f1c5fda9e3a57",
+    "ciRunId": 37398299900,
+    "ciConclusion": "success"
+  },
+  "growthR36": {
+    "producerSha": "a53f9deb180bb256d193f0422c6ffd7a5923d97a",
+    "ciRunId": 37398558145,
+    "artifactId": 11383953328,
+    "artifactDigest": "sha256:89e719718b5480ad889190a09c837efdfff31a15ea899f1e836ddb9d033f0894"
+  },
+  "bridgeR40": {
+    "producerSha": "9fca5e7e4cdc820a1a3aee6ada9102fc97649d16",
+    "ciRunId": 37399009019,
+    "ubuntuArtifactId": 11384052747,
+    "windowsArtifactId": 11384304238
+  },
+  "mediaR26": {
+    "required": true,
+    "status": "UNACCEPTED",
+    "blocker": "EXACT_INDEPENDENTLY_ACCEPTED_MEDIA_R26_TUPLE_REQUIRED",
+    "oldR25Forbidden": true
+  },
+  "resources": {
+    "cpuWorkers": 2,
+    "gpuMode": "none",
+    "cudaAssumed": false,
+    "diskBudgetMb": 4096,
+    "tempRoot": "temp"
+  },
+  "safety": {
+    "providerEffects": 0,
+    "networkEffects": 0,
+    "liveAuthorization": false,
+    "publishAllowed": false,
+    "credentialsRequired": false,
+    "liveBridgeCutover": false,
+    "mergePerformed": false
+  },
+  "guarantees": {
+    "durableBeforeAfterStageLedger": true,
+    "exactReplayReuse": true,
+    "changedInputConflict": true,
+    "offlineFakeReview": true,
+    "exactLiveReviewInputOptional": true,
+    "cleanupPreservesSourceAndEvidence": true,
+    "sealedFinalManifest": true,
+    "hostedCiTinyFixturesOnly": true
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "contractVersion": "creator.local_fullstack_authority.r38.v1",
+  "creatorR37": {
+    "repository": "foto6/video1",
+    "producerSha": "1f7cb9ed8f1985cd4faca79ce55f1c5fda9e3a57",
+    "ciRunId": 37398299900,
+    "ciConclusion": "success",
+    "contract": "creator.local_integration_driver.r37.v1"
+  },
+  "growthR36": {
+    "repository": "foto6/video3",
+    "producerSha": "a53f9deb180bb256d193f0422c6ffd7a5923d97a",
+    "ciRunId": 37398558145,
+    "ciConclusion": "success",
+    "artifactId": 11383953328,
+    "artifactName": "growth-r36-local-rehearsal-evidence",
+    "artifactDigest": "sha256:89e719718b5480ad889190a09c837efdfff31a15ea899f1e836ddb9d033f0894",
+    "contract": "growth.local_rehearsal_evidence.r36.v1",
+    "offlineOnly": true
+  },
+  "bridgeR40": {
+    "repository": "foto6/WebAIBridge",
+    "producerSha": "9fca5e7e4cdc820a1a3aee6ada9102fc97649d16",
+    "ciRunId": 37399009019,
+    "ciConclusion": "success",
+    "contract": "bridge.operator_lifecycle.r40.v1",
+    "artifacts": [
+      {
+        "id": 11384052747,
+        "name": "r40-operator-lifecycle-ubuntu-latest",
+        "digest": "sha256:324183d5f94f2794f5391c472484e81952293555f0189544d7deb13db6402c0e"
+      },
+      {
+        "id": 11384304238,
+        "name": "r40-operator-lifecycle-windows-latest",
+        "digest": "sha256:6c18e7220aecb59b4b249fdb34b0c644a9ff0e950f82973e6d844c0867fb9709"
+      }
+    ],
+    "liveCutoverAllowed": false
+  },
+  "mediaR26": {
+    "repository": "foto6/video2",
+    "milestone": "R26",
+    "status": "UNACCEPTED",
+    "acceptedTupleRequired": true,
+    "oldR25Forbidden": true
+  },
+  "safety": {
+    "providerEffects": 0,
+    "networkEffects": 0,
+    "liveAuthorization": false,
+    "publishAllowed": false,
+    "credentialsRequired": false,
+    "liveBridgeCutover": false
+  }
+}
