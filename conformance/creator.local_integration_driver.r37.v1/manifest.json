@@ -1,0 +1,27 @@
+{
+  "contractVersion": "creator.local_integration_driver.r37.v1",
+  "ledgerVersion": "creator.local_integration_driver_ledger.r37.v1",
+  "statusVersion": "creator.local_integration_driver_status.r37.v1",
+  "proofVersion": "creator.local_integration_proof_graph.r37.v1",
+  "rehearsalVersion": "creator.local_integration_rehearsal.r37.v1",
+  "readinessVersion": "creator.local_integration_driver_readiness.r37.v1",
+  "runtime": "src/creator_orchestrator/local_integration_driver_r37.py",
+  "tests": "tests/test_local_integration_driver_r37.py",
+  "windowsWrapper": "tools/creator-local-integration-r37.cmd",
+  "schema": "conformance/creator.local_integration_driver.r37.v1/schema.json",
+  "authority": "conformance/creator.local_integration_driver.r37.v1/authority.json",
+  "readiness": "reports/CREATOR_R37_LOCAL_INTEGRATION_READINESS.json",
+  "expectedFocusedAdversarialCaseCount": 38,
+  "actualLocalPcE2EExecuted": false,
+  "mediaRequired": true,
+  "mediaStatus": "UNACCEPTED",
+  "fixtureFinalState": "LOCAL_REHEARSAL_COMPLETE",
+  "liveAuthorization": false,
+  "safety": {
+    "providerEffects": 0,
+    "networkEffects": 0,
+    "browserMutation": false,
+    "providerMutation": false,
+    "livePublish": false
+  }
+}

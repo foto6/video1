@@ -1,0 +1,45 @@
+{
+  "reportVersion": "creator.local_integration_driver_readiness.r37.v1",
+  "state": "SOURCE_READY_WAITING_ACCEPTED_MEDIA",
+  "SOURCE_READY": true,
+  "LOCAL_FIXTURE_REHEARSAL_AVAILABLE": true,
+  "ACTUAL_LOCAL_PC_E2E_EXECUTED": false,
+  "contract": "creator.local_integration_driver.r37.v1",
+  "fixtureFinalState": "LOCAL_REHEARSAL_COMPLETE",
+  "fixtureDisposition": "LOCAL_REHEARSAL_COMPLETE / LIVE_AUTHORIZATION_FALSE",
+  "media": {
+    "required": true,
+    "status": "UNACCEPTED",
+    "consumption": "NOT_CONSUMED",
+    "contract": "media.multicandidate_round.r25.v1",
+    "blocker": "INDEPENDENTLY_ACCEPTED_MEDIA_TUPLE_REQUIRED"
+  },
+  "exactAuthorities": {
+    "growthSha": "9ff243bc5ec6977bc5f0eb8f16cd5e51aa0dcdfc",
+    "growthCi": 37244660304,
+    "growthArtifact": 11318054384,
+    "bridgeSha": "f4f6070a975ac2c5bd8323777db1514c4733e427",
+    "bridgeCi": 37244988343,
+    "qaR6Sha": "aa415759795beb24f1333d190ff842451020be5f",
+    "qaR6Ci": 37245738748
+  },
+  "guarantees": {
+    "durableRestartLedger": true,
+    "exactReplayIdempotent": true,
+    "fixtureClosedLoop": true,
+    "creatorProofGraph": true,
+    "releaseEscrowFixture": true,
+    "mediaFailClosed": true,
+    "acceptedMediaTupleRequiredForActualLocalRun": true,
+    "actualLocalPcE2EClaimed": false
+  },
+  "safety": {
+    "providerEffects": 0,
+    "networkEffects": 0,
+    "liveAuthorization": false,
+    "browserMutation": false,
+    "providerMutation": false,
+    "livePublish": false,
+    "mergePerformed": false
+  }
+}

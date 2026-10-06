@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.local_integration_driver.r37.v1",
+  "title": "Creator R37 Local Integration Driver",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "state",
+    "mode",
+    "sessionId",
+    "source",
+    "briefDigest",
+    "authorityDigest",
+    "authority",
+    "round",
+    "reeditRound",
+    "candidates",
+    "review",
+    "winner",
+    "proof",
+    "releaseEscrow",
+    "providerEffects",
+    "networkEffects",
+    "liveAuthorization",
+    "blockers"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.local_integration_driver.r37.v1"
+    },
+    "state": {
+      "enum": [
+        "INITIALIZED",
+        "AUTHORITIES_VERIFIED",
+        "CANDIDATES_READY",
+        "REVIEW_DECISION_READY",
+        "TARGETED_REEDIT_APPLIED",
+        "WINNER_SELECTED",
+        "PROOF_GRAPH_VERIFIED",
+        "RELEASE_ESCROWED",
+        "LOCAL_REHEARSAL_COMPLETE"
+      ]
+    },
+    "mode": {
+      "enum": [
+        "fixture",
+        "local"
+      ]
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^r37:[0-9a-f]{64}$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "size"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "briefDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "authorityDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "authority": {
+      "type": "object"
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "reeditRound": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "candidates": {
+      "type": "array"
+    },
+    "review": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "winner": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "proof": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "releaseEscrow": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "providerEffects": {
+      "const": 0
+    },
+    "networkEffects": {
+      "const": 0
+    },
+    "liveAuthorization": {
+      "const": false
+    },
+    "blockers": {
+      "type": "array"
+    }
+  }
+}

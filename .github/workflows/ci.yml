@@ -29,6 +29,7 @@ on:
       - agent/creator-r34-multiplatform-publish-saga-20261004
       - agent/creator-r35-release-escrow-canary-20261005
       - agent/creator-r36-proof-carrying-release-rehearsal-20261005
+      - agent/creator-r37-local-integration-driver-20261006
   pull_request:
 
 jobs:
@@ -1488,6 +1489,108 @@ jobs:
             .r36-status.stdout.json
             reports/CREATOR_R36_PROOF_CARRYING_RELEASE_READINESS.json
             conformance/creator.proof_carrying_release_rehearsal.r36.v1/**
+
+  focused-r37-local-integration-driver:
+    needs: full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Creator
+        run: python -m pip install -e .
+      - name: Run R37 local-driver and >=25 adversarial tests
+        run: |
+          creator-local-integration-r37 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_local_integration_driver_r37.py' -v
+      - name: Verify required Media blocker and exact accepted read-only authorities
+        run: |
+          creator-local-integration-r37 readiness --out .r37-readiness.json > .r37-readiness.stdout.json
+          creator-local-integration-r37 status --out .r37-status.json > .r37-status.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r37-readiness.json"))
+          s=json.load(open(".r37-status.json"))
+          assert r["state"] == "SOURCE_READY_WAITING_ACCEPTED_MEDIA"
+          assert r["SOURCE_READY"] is True
+          assert r["ACTUAL_LOCAL_PC_E2E_EXECUTED"] is False
+          assert r["media"]["required"] is True
+          assert r["media"]["status"] == "UNACCEPTED"
+          assert r["media"]["consumption"] == "NOT_CONSUMED"
+          assert r["growthAuthority"]["producerSha"] == "9ff243bc5ec6977bc5f0eb8f16cd5e51aa0dcdfc"
+          assert r["growthAuthority"]["ciRunId"] == 37244660304
+          assert r["growthAuthority"]["artifactId"] == 11318054384
+          assert r["bridgeAuthority"]["producerSha"] == "f4f6070a975ac2c5bd8323777db1514c4733e427"
+          assert r["bridgeAuthority"]["ciRunId"] == 37244988343
+          assert r["qaR6"]["producerSha"] == "aa415759795beb24f1333d190ff842451020be5f"
+          assert r["qaR6"]["disposition"]["mediaR25"] == "WAITING_EXACT_GREEN"
+          assert s["state"] == "BLOCKED_WAITING_ACCEPTED_MEDIA_AUTHORITY"
+          assert s["nextPermittedAction"] == "SUPPLY_INDEPENDENTLY_ACCEPTED_MEDIA_R25_TUPLE"
+          assert s["actualLocalPcE2EExecuted"] is False
+          assert r["safety"]["providerEffects"] == 0
+          assert r["safety"]["networkEffects"] == 0
+          assert r["safety"]["liveAuthorization"] is False
+          PY
+      - name: Prove actual run fails closed without accepted Media authority
+        run: |
+          mkdir -p .r37-blocked
+          printf 'fixture-video-bytes' > .r37-blocked/source.mp4
+          set +e
+          creator-local-integration-r37 run --source .r37-blocked/source.mp4 --brief "fixture brief" --out .r37-blocked/run > .r37-blocked/run.stdout.json
+          code=$?
+          set -e
+          test "$code" -eq 3
+          python - <<'PY'
+          import json
+          s=json.load(open(".r37-blocked/run.stdout.json"))
+          assert s["state"] == "BLOCKED_WAITING_ACCEPTED_MEDIA_AUTHORITY"
+          assert s["actualLocalPcE2EExecuted"] is False
+          assert s["liveAuthorization"] is False
+          PY
+      - name: Run deterministic fixture closed loop and adversarial evidence
+        run: |
+          creator-local-integration-r37 evidence --out .r37-evidence > .r37-evidence.stdout.json
+          python - <<'PY'
+          import json
+          s=json.load(open(".r37-evidence/evidence-summary.r37.json"))
+          r=json.load(open(".r37-evidence/fixture/local-rehearsal.r37.json"))
+          a=json.load(open(".r37-evidence/adversarial-cases.r37.json"))
+          assert s["state"] == "SOURCE_READY_WAITING_ACCEPTED_MEDIA"
+          assert s["fixtureState"] == "LOCAL_REHEARSAL_COMPLETE"
+          assert s["fixtureDisposition"] == "LOCAL_REHEARSAL_COMPLETE / LIVE_AUTHORIZATION_FALSE"
+          assert s["actualLocalPcE2EExecuted"] is False
+          assert s["mediaRequired"] is True
+          assert s["mediaAccepted"] is False
+          assert s["adversarialCaseCount"] >= 25
+          assert s["allAdversarialCasesPassed"] is True
+          assert a["caseCount"] >= 25
+          assert a["allCasesPassed"] is True
+          assert all(v["passed"] for v in a["cases"].values())
+          assert r["eventsAddedOnReplay"] == 0
+          assert r["providerEffects"] == 0
+          assert r["networkEffects"] == 0
+          assert r["liveAuthorization"] is False
+          PY
+      - name: Upload deterministic R37 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r37-local-integration-driver-${{ github.sha }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r37-readiness.json
+            .r37-readiness.stdout.json
+            .r37-status.json
+            .r37-status.stdout.json
+            .r37-blocked/**
+            .r37-evidence/**
+            .r37-evidence.stdout.json
+            reports/CREATOR_R37_LOCAL_INTEGRATION_READINESS.json
+            conformance/creator.local_integration_driver.r37.v1/**
+            tools/creator-local-integration-r37.cmd
 
   full:
     runs-on: ubuntu-latest

@@ -337,3 +337,28 @@ creator-proof-release-r36 status --bundle .r36-rehearsal/proof-bundle.r36.json
 ```
 
 Disposition is `SOURCE_READY_NO_LIVE_PROVIDER`. See `docs/PROOF_CARRYING_RELEASE_R36.md`.
+
+
+## Local integration driver (R37)
+
+R37 adds `creator.local_integration_driver.r37.v1` plus a Windows wrapper. It freezes the QA-R6-accepted Growth R34 and Bridge R38 tuples, but Media R25 remains required and explicitly `UNACCEPTED / NOT_CONSUMED`.
+
+The deterministic fixture loop exercises candidate generation, review/decision, one targeted re-edit, winner selection, Creator proof-graph verification and release escrow. It terminates at `LOCAL_REHEARSAL_COMPLETE / LIVE_AUTHORIZATION_FALSE` with zero provider/network effects and restart-idempotent evidence.
+
+The actual local command fails closed until an independently accepted Media R25 tuple is supplied; R37 does not claim an actual local-PC E2E execution.
+
+```bash
+creator-local-integration-r37 readiness
+creator-local-integration-r37 fixture-rehearsal --out .r37-fixture
+creator-local-integration-r37 evidence --out .r37-evidence
+creator-local-integration-r37 run --source input.mp4 --brief "short brief" --out .r37-local
+```
+
+Windows:
+
+```bat
+tools\creator-local-integration-r37.cmd readiness
+tools\creator-local-integration-r37.cmd fixture-rehearsal --out .r37-fixture
+```
+
+See `docs/LOCAL_INTEGRATION_DRIVER_R37.md`.
