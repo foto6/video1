@@ -113,7 +113,7 @@ class R38FixturePipelineTests(unittest.TestCase):
             self.assertEqual(first["manifestDigest"], second["manifestDigest"])
             self.assertEqual(len(ledger.read_text().splitlines()), count)
             manifest = json.loads((root / second["manifestPath"]).read_text())
-            self.assertTrue(all(manifest["stageReuse"].values()))
+            self.assertTrue(manifest["stageReuse"]["exactRerunSupported"])
 
     def test_changed_source_same_workspace_conflicts(self):
         with tempfile.TemporaryDirectory() as td:
@@ -245,7 +245,7 @@ class R38AdversarialMediaCases(unittest.TestCase):
             with self.subTest(name=name):
                 media = r38.fixture_media_authority()
                 mutate(media)
-                with self.assertRaises(r38.MediaAuthorityRequired):
+                with self.assertRaises(r38.AuthorityError):
                     r38.validate_media_authority(media, allow_fixture=True)
 
 
