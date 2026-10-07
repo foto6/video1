@@ -1,0 +1,18 @@
+{
+  "contractVersion": "creator.media_r27_independent_qa.r39.v1",
+  "repository": "foto6/boss",
+  "producerSha": "6ab529846e99e572d77006dee48d6c4b01caea12",
+  "ciRunId": 37452884976,
+  "ciConclusion": "success",
+  "artifactId": 11407720740,
+  "artifactDigest": "sha256:910326676dd9371745cb70099ec3db76a21ad7f0d5e171bcd59bddfa091bd7d8",
+  "matrixDigest": "831804bedce4652156ac052e1c50f1e6f3642cd36dadbc58a00907804e646a54",
+  "disposition": "ACCEPTED",
+  "acceptedMediaProducerSha": "183838a24205c6885b2366ad6ffa394164283d91",
+  "acceptedMediaCiRunId": 37451069045,
+  "acceptedMediaArtifactId": 11406357346,
+  "acceptedMediaArtifactDigest": "sha256:9cfa2ddd358f2b25a3066ee60792c44c460c62715590210bacf5c5430d14a4b5",
+  "acceptedMediaContract": "media.real_input_local_rehearsal.r27.v1",
+  "acceptedMediaGrowthBundleContract": "media.real_input_growth_bundle.r27.v1",
+  "fixtureOnly": false
+}
