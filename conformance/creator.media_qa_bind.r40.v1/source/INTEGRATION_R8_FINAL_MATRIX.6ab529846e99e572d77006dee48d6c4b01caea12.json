@@ -1,0 +1,130 @@
+{
+  "schema_version": "boss.integration_r8_final_matrix.v1",
+  "overall": "LOCAL_PC_REHEARSAL_BLOCKED",
+  "rows": [
+    {
+      "role": "BridgeR43",
+      "status": "WAITING_EXACT_GREEN",
+      "repo": "foto6/WebAIBridge",
+      "branch": "agent/bridge-r43-porcelain-cutover-fix-20261006",
+      "exact_sha": "24b511cdf522ac915213adcf90620a2d73dabd39",
+      "ci": {
+        "run_id": 37445974063,
+        "head_sha": "24b511cdf522ac915213adcf90620a2d73dabd39",
+        "conclusion": "failure"
+      },
+      "artifacts": [],
+      "parent": {
+        "sha": "a6adf698764776856567239b07b0687e8ac89fa5",
+        "ci_run_id": 37416629592,
+        "conclusion": "success"
+      },
+      "blocker": "E_I8_BRIDGE_ROLLBACK_RAW_PORCELAIN_UNFIXED",
+      "detail": "R43 exact-head Ubuntu/Windows suite fails the raw-identical filter-only dirtiness test because rollback still does not preserve raw porcelain bytes. New exact-green preflight/cutover/Projects reconcile/successor IDs are therefore not accepted."
+    },
+    {
+      "role": "NativeMcpR39",
+      "status": "BLOCKED",
+      "repo": "foto6/help-pc-2",
+      "branch": "agent/native-mcp-r39-local-canary-20261006",
+      "exact_sha": "d8c7661d52670fe50e58bc68d50f59a624253e44",
+      "ci": null,
+      "artifacts": [],
+      "parent": {
+        "sha": "a0d8438f0e4fa93e6be50402efb6783f92c3412b",
+        "ci_run_id": 37406258361,
+        "conclusion": "success"
+      },
+      "blocker": "E_I8_POINTER_ONLY",
+      "detail": "Only TASKS/R39_LOCAL_CANARY.md differs from accepted R38; native_mcp.local_canary.r39.v1 implementation, staged canary CI, fallback proof and readiness artifacts do not exist."
+    },
+    {
+      "role": "MediaR27",
+      "status": "ACCEPTED",
+      "repo": "foto6/video2",
+      "branch": "agent/media-r27-real-input-local-rehearsal-20261006",
+      "exact_sha": "183838a24205c6885b2366ad6ffa394164283d91",
+      "ci": {
+        "run_id": 37451069045,
+        "head_sha": "183838a24205c6885b2366ad6ffa394164283d91",
+        "conclusion": "success"
+      },
+      "artifacts": [
+        {
+          "id": 11406357346,
+          "name": "media-r27-real-input-local-rehearsal-control",
+          "digest": "sha256:9cfa2ddd358f2b25a3066ee60792c44c460c62715590210bacf5c5430d14a4b5"
+        }
+      ],
+      "contract": "media.real_input_local_rehearsal.r27.v1",
+      "growth_bundle_contract": "media.real_input_growth_bundle.r27.v1",
+      "parent": {
+        "sha": "dba0dce8d44c3b5786c37d2ce793172a058fb40f",
+        "ci_run_id": 37405928263,
+        "conclusion": "success",
+        "contract": "media.local_windows_render_gate.r26.v1"
+      },
+      "qa_scope": "Independent acceptance of R27 software/control-plane authority for a future explicit local real-input rehearsal. Producer remains PENDING_INDEPENDENT_QA in its own evidence; QA does not claim a heavy render occurred."
+    },
+    {
+      "role": "CreatorR39",
+      "status": "BLOCKED",
+      "repo": "foto6/video1",
+      "branch": "agent/creator-r39-current-authority-binder-20261006",
+      "exact_sha": "66efe791d816f07aca42d772e57eb53ad7ed331f",
+      "ci": null,
+      "artifacts": [],
+      "parent": {
+        "sha": "b4d0b3a940357eec333d5a1d9b9141bd61b89809",
+        "ci_run_id": 37405132939,
+        "conclusion": "success"
+      },
+      "blocker": "E_I8_POINTER_ONLY",
+      "detail": "Only TASKS/R39_CURRENT_AUTHORITY_BINDER.md differs from R38; no current-authority binder implementation, exact authority inputs, adversarial suite, exact-head CI or artifact exists."
+    },
+    {
+      "role": "GrowthR38",
+      "status": "BLOCKED",
+      "repo": "foto6/video3",
+      "branch": "agent/growth-r38-real-local-bundle-verifier-20261006",
+      "exact_sha": "d74147329c4c0269c5ac5fbdf4fa99e7a1b9b2d1",
+      "ci": {
+        "run_id": 37445978266,
+        "head_sha": "d74147329c4c0269c5ac5fbdf4fa99e7a1b9b2d1",
+        "conclusion": "success"
+      },
+      "artifacts": [],
+      "parent": {
+        "sha": "f3cb8ec0d8aa7155b6169d5f86828de3fbc9d3ba",
+        "ci_run_id": 37406299930,
+        "conclusion": "success"
+      },
+      "blocker": "E_I8_POINTER_ONLY",
+      "detail": "Only TASKS/R38.md differs from R37. The green run publishes inherited R37-and-earlier artifacts and no growth-r38-real-local-bundle-verifier artifact, so it is not R38 successor authority."
+    }
+  ],
+  "adversarial": {
+    "new_cross_repo_cases": 74,
+    "r7_and_earlier_regressions_preserved": true
+  },
+  "media_independent_qa": {
+    "status": "ACCEPTED",
+    "producer_sha": "183838a24205c6885b2366ad6ffa394164283d91",
+    "ci_run_id": 37451069045,
+    "artifact_id": 11406357346,
+    "artifact_name": "media-r27-real-input-local-rehearsal-control",
+    "artifact_digest": "sha256:9cfa2ddd358f2b25a3066ee60792c44c460c62715590210bacf5c5430d14a4b5",
+    "contract": "media.real_input_local_rehearsal.r27.v1",
+    "growth_bundle_contract": "media.real_input_growth_bundle.r27.v1",
+    "heavy_local_render_executed_by_qa": false,
+    "live_authorization": false
+  },
+  "boundaries": {
+    "product_repo_mutations": false,
+    "merge": false,
+    "live_publish": false,
+    "live_bridge_cutover": false,
+    "heavy_local_render": false,
+    "spectratrack": false
+  }
+}
