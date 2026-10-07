@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.media_qa_bind_manifest.r40.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "state",
+    "readinessState",
+    "finalDisposition",
+    "authorityBindingDigest",
+    "qaCertificateDigest",
+    "qaCertificateRawSha256",
+    "sourceMatrixDigest",
+    "bridgeRefreshDigest",
+    "selectedBridgeAuthoritySha",
+    "bridgeAuthorityRefreshed",
+    "r39ManifestDigest",
+    "r39AuthoritySetDigest",
+    "mediaQaAccepted",
+    "mediaQaFixtureOnly",
+    "localRehearsalReady",
+    "providerEffects",
+    "networkEffects",
+    "browserEffects",
+    "liveAuthorization",
+    "publishAllowed",
+    "liveBridgeCutover",
+    "actualLocalPcE2EExecuted",
+    "overallStackGoClaimed",
+    "manifestDigest"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.media_qa_bind_manifest.r40.v1"
+    },
+    "state": {
+      "const": "LOCAL_REHEARSAL_COMPLETE"
+    },
+    "readinessState": {
+      "const": "SOURCE_READY"
+    },
+    "finalDisposition": {
+      "const": "LOCAL_REHEARSAL_COMPLETE / LIVE_AUTHORIZATION_FALSE"
+    },
+    "authorityBindingDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "qaCertificateDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "qaCertificateRawSha256": {
+      "const": "1e0d788ff59814eac1482d03c8f1934d48c08358ae5835413793c961aa361f1d"
+    },
+    "sourceMatrixDigest": {
+      "const": "831804bedce4652156ac052e1c50f1e6f3642cd36dadbc58a00907804e646a54"
+    },
+    "bridgeRefreshDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "selectedBridgeAuthoritySha": {
+      "const": "a6adf698764776856567239b07b0687e8ac89fa5"
+    },
+    "bridgeAuthorityRefreshed": {
+      "const": false
+    },
+    "r39ManifestDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "r39AuthoritySetDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "mediaQaAccepted": {
+      "const": true
+    },
+    "mediaQaFixtureOnly": {
+      "const": false
+    },
+    "localRehearsalReady": {
+      "const": true
+    },
+    "providerEffects": {
+      "const": 0
+    },
+    "networkEffects": {
+      "const": 0
+    },
+    "browserEffects": {
+      "const": 0
+    },
+    "liveAuthorization": {
+      "const": false
+    },
+    "publishAllowed": {
+      "const": false
+    },
+    "liveBridgeCutover": {
+      "const": false
+    },
+    "actualLocalPcE2EExecuted": {
+      "const": false
+    },
+    "overallStackGoClaimed": {
+      "const": false
+    },
+    "manifestDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
