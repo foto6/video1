@@ -29,6 +29,7 @@ creator-proof-release-r36 = "creator_orchestrator.proof_carrying_release_r36:mai
 creator-local-integration-r37 = "creator_orchestrator.local_integration_driver_r37:main"
 creator-local-fullstack-r38 = "creator_orchestrator.local_fullstack_rehearsal_r38:main"
 creator-current-authority-r39 = "creator_orchestrator.current_authority_binder_r39:main"
+creator-media-qa-bind-r40 = "creator_orchestrator.media_qa_bind_r40:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
