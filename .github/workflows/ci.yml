@@ -32,6 +32,7 @@ on:
       - agent/creator-r37-local-integration-driver-20261006
       - agent/creator-r38-local-fullstack-rehearsal-20261006
       - agent/creator-r39-current-authority-binder-20261006
+      - agent/creator-r40-media-qa-bind-20261007
   pull_request:
 
 jobs:
@@ -1794,6 +1795,122 @@ jobs:
             conformance/creator.current_authority_binder.r39.v1/**
             docs/CURRENT_AUTHORITY_BINDER_R39.md
             TASKS/R39_CURRENT_AUTHORITY_BINDER.md
+
+
+  focused-r40-media-qa-bind:
+    needs: full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Creator
+        run: python -m pip install -e .
+      - name: Run R40 Media QA bind tests
+        run: |
+          creator-media-qa-bind-r40 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_media_qa_bind_r40.py' -v
+      - name: Verify pinned certificate and SOURCE_READY boundary
+        run: |
+          creator-media-qa-bind-r40 validate-certificate \
+            --certificate conformance/creator.media_qa_bind.r40.v1/source/creator.media_r27_independent_qa.r39.v1.json \
+            --out .r40-certificate-validation.json > .r40-certificate-validation.stdout.json
+          creator-media-qa-bind-r40 readiness --out .r40-readiness.json > .r40-readiness.stdout.json
+          python - <<'PY'
+          import json
+          r=json.load(open(".r40-readiness.json"))
+          assert r["state"] == "SOURCE_READY"
+          assert r["localRehearsalReady"] is True
+          assert r["mediaR27QaAccepted"] is True
+          assert r["mediaR27QaFixtureOnly"] is False
+          assert r["qaProducerSha"] == "6ab529846e99e572d77006dee48d6c4b01caea12"
+          assert r["qaCiRunId"] == 37452884976
+          assert r["qaArtifactId"] == 11407720740
+          assert r["qaMatrixDigest"] == "831804bedce4652156ac052e1c50f1e6f3642cd36dadbc58a00907804e646a54"
+          assert r["acceptedMediaSha"] == "183838a24205c6885b2366ad6ffa394164283d91"
+          assert r["bridgeCurrentAcceptedSha"] == "a6adf698764776856567239b07b0687e8ac89fa5"
+          assert r["bridgeObservedSuccessorSha"] == "46dc74dd65bae303ecda1236e52680f7532b0912"
+          assert r["bridgeObservedSuccessorSourceGreen"] is True
+          assert r["bridgeObservedSuccessorAcceptedForCurrentControlPlane"] is False
+          assert r["bridgeAuthorityRefreshed"] is False
+          assert r["liveAuthorization"] is False
+          assert r["publishAllowed"] is False
+          assert r["liveBridgeCutover"] is False
+          assert r["actualLocalPcE2EExecuted"] is False
+          assert r["overallStackGoClaimed"] is False
+          PY
+      - name: Run deterministic R40 fixture and exact replay
+        run: |
+          creator-media-qa-bind-r40 fixture --workspace .r40-fixture > .r40-fixture.stdout.json
+          cp .r40-fixture/evidence/final-media-qa-bind-manifest.r40.json .r40-first-manifest.json
+          before="$(wc -l < .r40-fixture/r39-bind/ledger/stage-ledger.r38.jsonl)"
+          creator-media-qa-bind-r40 fixture --workspace .r40-fixture > .r40-replay.stdout.json
+          after="$(wc -l < .r40-fixture/r39-bind/ledger/stage-ledger.r38.jsonl)"
+          test "$before" -eq "$after"
+          cmp .r40-first-manifest.json .r40-fixture/evidence/final-media-qa-bind-manifest.r40.json
+          python - <<'PY'
+          import json
+          s=json.load(open(".r40-fixture/evidence/status.r40.json"))
+          m=json.load(open(".r40-fixture/evidence/final-media-qa-bind-manifest.r40.json"))
+          assert s["state"] == "LOCAL_REHEARSAL_COMPLETE"
+          assert s["readinessState"] == "SOURCE_READY"
+          assert s["mediaQaAccepted"] is True
+          assert m["finalDisposition"] == "LOCAL_REHEARSAL_COMPLETE / LIVE_AUTHORIZATION_FALSE"
+          assert m["bridgeAuthorityRefreshed"] is False
+          assert m["providerEffects"] == 0
+          assert m["networkEffects"] == 0
+          assert m["browserEffects"] == 0
+          assert m["liveAuthorization"] is False
+          assert m["publishAllowed"] is False
+          assert m["liveBridgeCutover"] is False
+          assert m["actualLocalPcE2EExecuted"] is False
+          assert m["overallStackGoClaimed"] is False
+          PY
+      - name: Emit deterministic R40 evidence
+        run: |
+          creator-media-qa-bind-r40 evidence --out .r40-evidence > .r40-evidence.stdout.json
+          python - <<'PY'
+          import json
+          s=json.load(open(".r40-evidence/evidence-summary.r40.json"))
+          a=json.load(open(".r40-evidence/adversarial-cases.r40.json"))
+          assert s["state"] == "SOURCE_READY"
+          assert s["localRehearsalReady"] is True
+          assert s["fixtureState"] == "LOCAL_REHEARSAL_COMPLETE"
+          assert s["fixtureReadinessState"] == "SOURCE_READY"
+          assert s["mediaR27QaAccepted"] is True
+          assert s["bridgeAuthorityRefreshed"] is False
+          assert s["adversarialCaseCount"] >= 50
+          assert s["allAdversarialCasesPassed"] is True
+          assert a["caseCount"] >= 50
+          assert a["allCasesPassed"] is True
+          assert all(a["cases"].values())
+          assert s["liveAuthorization"] is False
+          assert s["publishAllowed"] is False
+          PY
+      - name: Upload deterministic R40 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r40-media-qa-bind-${{ github.sha }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r40-certificate-validation.json
+            .r40-certificate-validation.stdout.json
+            .r40-readiness.json
+            .r40-readiness.stdout.json
+            .r40-fixture/**
+            .r40-fixture.stdout.json
+            .r40-replay.stdout.json
+            .r40-first-manifest.json
+            .r40-evidence/**
+            .r40-evidence.stdout.json
+            reports/CREATOR_R40_MEDIA_QA_BIND_READINESS.json
+            conformance/creator.media_qa_bind.r40.v1/**
+            docs/MEDIA_QA_BIND_R40.md
+            TASKS/R40_MEDIA_QA_BIND.md
 
 
   full:
