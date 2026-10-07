@@ -1,0 +1,51 @@
+{
+  "contractVersion": "creator.bridge_authority_refresh.r40.v1",
+  "currentAccepted": {
+    "authorityClass": "CURRENT_ACCEPTED_CONTROL_PLANE",
+    "sourceSha": "a6adf698764776856567239b07b0687e8ac89fa5",
+    "ciRunId": 37416629592,
+    "contract": "bridge.projects_live_control_plane_cutover.r42.v1",
+    "accepted": true
+  },
+  "observedSuccessor": {
+    "sourceSha": "46dc74dd65bae303ecda1236e52680f7532b0912",
+    "ciRunId": 37644197933,
+    "ciConclusion": "success",
+    "contract": "bridge.porcelain_cutover_fix.r43.v1",
+    "readiness": "EXACT_HEAD_READY_FOR_CONTROLLED_PREFLIGHT",
+    "artifacts": [
+      {
+        "platform": "ubuntu-latest",
+        "id": 11493541528,
+        "name": "r43-porcelain-cutover-ubuntu-latest",
+        "digest": "sha256:fc10936a555ff2036d6fb31191c59c0b5644fb6983be44e6397abe4a415d5e05"
+      },
+      {
+        "platform": "windows-latest",
+        "id": 11493447112,
+        "name": "r43-porcelain-cutover-windows-latest",
+        "digest": "sha256:89bbce0a0a1b3a510cf18f1723bcf86969213d1a8e1067f26dbe54bbea5e724d"
+      }
+    ],
+    "blobs": {
+      "workflow": "f15e099449dd09991d34c4dcdb344ec0b883daf8",
+      "cutover": "8ba74f87ace7b4c93852d3dab55e4155342276bb",
+      "rollback": "7af54b91825ace5d5c57e476c85bf1bd47f838d4",
+      "parser": "d9ac826fa87acd44a6e595cac0635df99a5fdacb",
+      "adversarial": "d6e838f73472cd879d7830a15ae5eab97a1f35c7",
+      "contractTests": "2a6182d000cb7ac9da9430d7486d0f3c3b16b93a",
+      "filterOnlySwitchRegression": "7f945fddf136718ac39f152e69d853726239ee72",
+      "readiness": "0fb349e263f975f630c543b93787dc309e8d8daf"
+    },
+    "acceptedForCurrentControlPlane": false,
+    "missingAcceptanceEvidence": [
+      "controlled_preflight_at_exact_successor_sha",
+      "controlled_cutover_at_exact_successor_sha",
+      "projects_reconcile_and_current_control_plane_acceptance"
+    ]
+  },
+  "selectedAuthoritySha": "a6adf698764776856567239b07b0687e8ac89fa5",
+  "authorityRefreshed": false,
+  "movingRefsAccepted": false,
+  "liveCutoverAuthorized": false
+}
