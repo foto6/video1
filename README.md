@@ -372,3 +372,10 @@ R38 adds the Windows-first creator-local-fullstack-r38 coordinator for determini
 ## Creator R39 current-authority binder
 
 R39 adds `creator.current_authority_binder.r39.v1` over immutable R38 history. It binds exact current Creator/Growth/Bridge/Media authority manifests and refuses moving refs. Media R27 is exact-green but remains `PENDING_INDEPENDENT_QA`, so default readiness is `WAITING_MEDIA_R27_QA`. The deterministic fixture proves `LOCAL_REHEARSAL_COMPLETE / LIVE_AUTHORIZATION_FALSE` with zero provider/browser/publish effects. See `docs/CURRENT_AUTHORITY_BINDER_R39.md`.
+
+
+## Creator R40 Media QA bind
+
+R40 consumes the exact non-fixture Media R27 independent-QA certificate from `foto6/boss@06ade2b1e8d40c4ab6559f3ffe1d69b0ee36fd78` and advances Creator readiness from `WAITING_MEDIA_R27_QA` to `SOURCE_READY`. The certificate binds the exact QA producer/CI/artifact/matrix and exact Media R27 tuple; stale, mismatched, fixture-only, and moving-ref certificates fail closed.
+
+R43 is observed exact-green at `46dc74dd65bae303ecda1236e52680f7532b0912` / CI `37644197933`, but it is not promoted because its readiness is only `EXACT_HEAD_READY_FOR_CONTROLLED_PREFLIGHT` and no exact accepted cutover/reconcile evidence exists. Accepted Bridge R42 remains selected. No live publish, provider/browser mutation, or Bridge cutover is authorized. See `docs/MEDIA_QA_BIND_R40.md`.
