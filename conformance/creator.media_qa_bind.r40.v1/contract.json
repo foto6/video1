@@ -1,0 +1,56 @@
+{
+  "contractVersion": "creator.media_qa_bind.r40.v1",
+  "parent": {
+    "contractVersion": "creator.current_authority_binder.r39.v1",
+    "producerSha": "69b4cb17ba81e79b15583fbbf64c0b6e9de51c0e",
+    "ciRunId": 37457718418,
+    "artifactId": 11410406339,
+    "artifactDigest": "sha256:5f20fae0cce19a0ddacc1d9cda6af96b99b3379717ee4de9fe11dd42e237ef43"
+  },
+  "assignmentAnchor": {
+    "sourceSha": "6a21591b84a1654efd91c425eabfe6a5c2ae1619",
+    "task": "TASKS/R40_MEDIA_QA_BIND.md"
+  },
+  "mediaQaSource": {
+    "repository": "foto6/boss",
+    "certificateRefreshSourceSha": "06ade2b1e8d40c4ab6559f3ffe1d69b0ee36fd78",
+    "certificateBlob": "93a0713048ad4a8fe04cea5a1c9dbbec154fcefb",
+    "qaProducerSha": "6ab529846e99e572d77006dee48d6c4b01caea12",
+    "qaCiRunId": 37452884976,
+    "qaArtifactId": 11407720740,
+    "qaArtifactDigest": "sha256:910326676dd9371745cb70099ec3db76a21ad7f0d5e171bcd59bddfa091bd7d8",
+    "matrixDigest": "831804bedce4652156ac052e1c50f1e6f3642cd36dadbc58a00907804e646a54",
+    "fixtureOnly": false
+  },
+  "acceptedMedia": {
+    "producerSha": "183838a24205c6885b2366ad6ffa394164283d91",
+    "ciRunId": 37451069045,
+    "artifactId": 11406357346,
+    "artifactDigest": "sha256:9cfa2ddd358f2b25a3066ee60792c44c460c62715590210bacf5c5430d14a4b5",
+    "contract": "media.real_input_local_rehearsal.r27.v1",
+    "growthBundleContract": "media.real_input_growth_bundle.r27.v1"
+  },
+  "bridgePolicy": {
+    "selectedAcceptedSha": "a6adf698764776856567239b07b0687e8ac89fa5",
+    "observedR43ExactGreenSha": "46dc74dd65bae303ecda1236e52680f7532b0912",
+    "observedR43CiRunId": 37644197933,
+    "observedR43Readiness": "EXACT_HEAD_READY_FOR_CONTROLLED_PREFLIGHT",
+    "r43Promoted": false,
+    "reason": "No exact accepted controlled preflight/cutover/Projects-reconcile control-plane evidence exists."
+  },
+  "readiness": "SOURCE_READY",
+  "rules": {
+    "staleCertificateRejected": true,
+    "mismatchedCertificateRejected": true,
+    "fixtureCertificateRejected": true,
+    "movingRefsRejected": true,
+    "r39FailClosedBinderReused": true,
+    "bridgeSuccessorRequiresExactAcceptanceEvidence": true,
+    "actualLocalPcE2EClaimed": false,
+    "overallStackGoClaimed": false,
+    "providerMutation": false,
+    "browserMutation": false,
+    "livePublish": false,
+    "liveAuthorization": false
+  }
+}
