@@ -1,0 +1,42 @@
+{
+  "reportVersion": "creator.media_qa_bind_readiness.r40.v1",
+  "state": "SOURCE_READY",
+  "localRehearsalReady": true,
+  "mediaR27QaAccepted": true,
+  "mediaR27QaFixtureOnly": false,
+  "qaCertificateSource": {
+    "repository": "foto6/boss",
+    "sourceSha": "06ade2b1e8d40c4ab6559f3ffe1d69b0ee36fd78",
+    "certificateBlob": "93a0713048ad4a8fe04cea5a1c9dbbec154fcefb",
+    "qaProducerSha": "6ab529846e99e572d77006dee48d6c4b01caea12",
+    "ciRunId": 37452884976,
+    "artifactId": 11407720740,
+    "artifactDigest": "sha256:910326676dd9371745cb70099ec3db76a21ad7f0d5e171bcd59bddfa091bd7d8",
+    "matrixDigest": "831804bedce4652156ac052e1c50f1e6f3642cd36dadbc58a00907804e646a54"
+  },
+  "acceptedMedia": {
+    "sha": "183838a24205c6885b2366ad6ffa394164283d91",
+    "ciRunId": 37451069045,
+    "artifactId": 11406357346,
+    "artifactDigest": "sha256:9cfa2ddd358f2b25a3066ee60792c44c460c62715590210bacf5c5430d14a4b5"
+  },
+  "bridge": {
+    "selectedAcceptedSha": "a6adf698764776856567239b07b0687e8ac89fa5",
+    "observedR43Sha": "46dc74dd65bae303ecda1236e52680f7532b0912",
+    "observedR43CiRunId": 37644197933,
+    "observedR43SourceGreen": true,
+    "observedR43AcceptedForCurrentControlPlane": false,
+    "authorityRefreshed": false
+  },
+  "actualLocalPcE2EExecuted": false,
+  "overallStackGoClaimed": false,
+  "safety": {
+    "providerEffects": 0,
+    "networkEffects": 0,
+    "browserEffects": 0,
+    "liveAuthorization": false,
+    "publishAllowed": false,
+    "liveBridgeCutover": false,
+    "mergePerformed": false
+  }
+}
