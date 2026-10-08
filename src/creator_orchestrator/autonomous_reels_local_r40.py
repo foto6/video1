@@ -283,11 +283,18 @@ def validate_growth_authority(value: Mapping[str, Any], *, allow_fixture: bool =
     if value["repository"] != "foto6/video3" or value["taskAnchorSha"] != GROWTH_R39_TASK_SHA:
         raise AuthorityBlocked("Growth R39 task lineage mismatch")
     _hex(value["producerSha"], 40, "growth.producerSha")
+    if value["producerSha"] == GROWTH_R39_TASK_SHA:
+        raise AuthorityBlocked("Growth R39 task-pointer SHA cannot self-promote to implementation authority")
     _positive(value["ciRunId"], "growth.ciRunId")
     _positive(value["artifactId"], "growth.artifactId")
     if value["ciConclusion"] != "success":
         raise AuthorityBlocked("Growth R39 CI is not success")
-    if not isinstance(value["artifactDigest"], str) or not value["artifactDigest"].startswith("sha256:"):
+    if (
+        not isinstance(value["artifactDigest"], str)
+        or len(value["artifactDigest"]) != 71
+        or not value["artifactDigest"].startswith("sha256:")
+        or any(ch not in "0123456789abcdef" for ch in value["artifactDigest"][7:])
+    ):
         raise AuthorityBlocked("Growth R39 artifact digest invalid")
     if value["growthContract"] != "growth.media_qa_bind.r39.v1":
         raise AuthorityBlocked("Growth R39 contract mismatch")
@@ -337,10 +344,22 @@ def validate_boss_go(value: Mapping[str, Any], *, allow_fixture: bool = False) -
     _hex(value["producerSha"], 40, "boss.producerSha")
     _positive(value["ciRunId"], "boss.ciRunId")
     _positive(value["artifactId"], "boss.artifactId")
+    if (
+        not isinstance(value["artifactDigest"], str)
+        or len(value["artifactDigest"]) != 71
+        or not value["artifactDigest"].startswith("sha256:")
+        or any(ch not in "0123456789abcdef" for ch in value["artifactDigest"][7:])
+    ):
+        raise PublishGateError("Boss R9 GO artifact digest invalid")
     if value["ciConclusion"] != "success" or value["disposition"] != "LOCAL_PC_REHEARSAL_GO":
         raise PublishGateError("Boss R9 GO disposition missing")
     if value["mediaProducerSha"] != MEDIA_SHA or value["bridgeProducerSha"] != BRIDGE_R44_SHA:
         raise PublishGateError("Boss R9 GO authority tuple mismatch")
+    if not allow_fixture:
+        _hex(value["creatorHeadSha"], 40, "boss.creatorHeadSha")
+        creator_head = _git(ROOT, "rev-parse", "HEAD")
+        if value["creatorHeadSha"] != creator_head:
+            raise PublishGateError("Boss R9 GO does not bind the executing Creator exact head")
     if value["fixtureOnly"] is True and not allow_fixture:
         raise PublishGateError("fixture Boss GO cannot authorize real readiness")
     return _clone(value)
