@@ -16,7 +16,7 @@ Media R27 is independently accepted:
 
 Growth R39 exact observed SHA `887567bb62a3df0879505d68ac6a2be725b57173` is **not** accepted as an R39 implementation. Comparing it to parent `608ec634d9f38ecf054ccd63ba6e7f3a1cd79cae` shows exactly one changed file: `TASKS/R39_MEDIA_QA_BIND.md`. Its run `37645554562` is green but uploads inherited R38-and-earlier artifacts and no Growth R39 successor artifact. Creator therefore fails closed before autonomous real quality review.
 
-Bridge R44 current head `004bca97fe0db5c3cbba9d086f5000345af4e843` has exact-head CI `37647792789 SUCCESS` and Ubuntu/Windows artifacts `11493954827` and `11495056376`. Its own readiness is `EXACT_HEAD_READY_FOR_NEW_LOCAL_PREFLIGHT`; local preflight/cutover acceptance is still a separate required operation and Creator does not authorize it.
+Bridge R44 current head `9a8898a70355bbae2d465ee49739030aa27e9f4e` has exact-head CI `37726498161 SUCCESS` and Ubuntu/Windows artifacts `11527694819` and `11527109716`. Its own readiness is `EXACT_HEAD_READY_FOR_NEW_LOCAL_PREFLIGHT`; local preflight/cutover acceptance is still a separate required operation and Creator does not authorize it.
 
 Boss Integration R9 current observed SHA `9f439b41c2b11640451a803cee8b8d6198ddd04b` is likewise task-pointer-only over `06ade2b1e8d40c4ab6559f3ffe1d69b0ee36fd78`; no R9 CI/GO disposition exists.
 
