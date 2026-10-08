@@ -87,6 +87,14 @@ class GrowthAuthorityTests(unittest.TestCase):
         with self.assertRaises(reels.ReelsLocalError):
             reels.validate_growth_authority(value)
 
+    def test_task_pointer_rejected_even_with_plausible_ci_artifact_fields(self):
+        value = reels.fixture_growth_authority()
+        value["producerSha"] = reels.GROWTH_R39_TASK_SHA
+        value["fixtureOnly"] = False
+        value["artifactId"] = 12999999040
+        with self.assertRaises(reels.AuthorityBlocked):
+            reels.validate_growth_authority(value)
+
 
 class MediaBundleTests(unittest.TestCase):
     def _make_bundle(self, root: Path):
@@ -331,6 +339,14 @@ class EscrowPublishTests(unittest.TestCase):
             self.assertTrue(a["readOnlyReconciliationOnlyAfterUnknownOutcome"])
             self.assertFalse(a["networkPermitted"])
             self.assertFalse(a["livePublish"])
+
+    def test_boss_go_rejects_wrong_bridge_tuple_before_any_send(self):
+        growth = reels.fixture_growth_authority()
+        boss = reels.fixture_boss_go(growth["producerSha"])
+        boss["fixtureOnly"] = False
+        boss["bridgeProducerSha"] = "0" * 40
+        with self.assertRaises(reels.PublishGateError):
+            reels.validate_boss_go(boss, allow_fixture=False)
 
     def test_publish_identity_changes_when_final_changes(self):
         with tempfile.TemporaryDirectory() as td:
