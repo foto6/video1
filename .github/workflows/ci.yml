@@ -1913,6 +1913,111 @@ jobs:
             TASKS/R40_MEDIA_QA_BIND.md
 
 
+  focused-r40-autonomous-reels-local:
+    needs: full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Creator
+        run: python -m pip install -e .
+      - name: Run autonomous local Reels tests
+        run: |
+          creator-autonomous-reels-local-r40 --help
+          PYTHONPATH=src python -m unittest discover -s tests -p 'test_autonomous_reels_local_r40.py' -v
+      - name: Diagnose current real-local blockers without side effects
+        run: |
+          set +e
+          creator-autonomous-reels-local-r40 diagnose --out .r40-reels-diagnosis.json > .r40-reels-diagnosis.stdout.json
+          code=$?
+          set -e
+          test "$code" -eq 4
+          python - <<'PY'
+          import json
+          r=json.load(open(".r40-reels-diagnosis.json"))
+          assert r["state"] == "BLOCKED_BEFORE_AUTONOMOUS_REAL_REVIEW"
+          assert r["mediaR27AuthorityReady"] is True
+          assert r["growthR39AuthorityReady"] is False
+          assert r["bridgeR44SourceGreen"] is True
+          assert r["bridgeR44LocalCutoverAccepted"] is False
+          assert r["bossR9GoAccepted"] is False
+          assert r["actualLocalInputOutputReceiptPresent"] is False
+          assert r["authorities"]["growthR39"]["observedSha"] == "887567bb62a3df0879505d68ac6a2be725b57173"
+          assert r["authorities"]["growthR39"]["commitClass"] == "TASK_POINTER_ONLY"
+          assert r["authorities"]["bridgeR44"]["producerSha"] == "004bca97fe0db5c3cbba9d086f5000345af4e843"
+          assert r["authorities"]["bridgeR44"]["ciRunId"] == 37647792789
+          assert r["authorities"]["bossR9"]["observedSha"] == "9f439b41c2b11640451a803cee8b8d6198ddd04b"
+          assert r["liveSend"] is False
+          assert r["livePublish"] is False
+          assert r["liveAuthorization"] is False
+          PY
+      - name: Run deterministic four-candidate two-reedit fixture and replay
+        run: |
+          creator-autonomous-reels-local-r40 fixture --workspace .r40-reels-fixture > .r40-reels-fixture.stdout.json
+          cp .r40-reels-fixture/evidence/fixture-autonomous-reels.r40.json .r40-reels-first.json
+          before="$(wc -l < .r40-reels-fixture/ledger/stage-ledger.autonomous-reels-r40.jsonl)"
+          creator-autonomous-reels-local-r40 fixture --workspace .r40-reels-fixture > .r40-reels-replay.stdout.json
+          after="$(wc -l < .r40-reels-fixture/ledger/stage-ledger.autonomous-reels-r40.jsonl)"
+          test "$before" -eq "$after"
+          cmp .r40-reels-first.json .r40-reels-fixture/evidence/fixture-autonomous-reels.r40.json
+          python - <<'PY'
+          import json
+          f=json.load(open(".r40-reels-fixture/evidence/fixture-autonomous-reels.r40.json"))
+          p=json.load(open(".r40-reels-fixture/evidence/publish-readiness.r40.json"))
+          e=json.load(open(".r40-reels-fixture/evidence/release-escrow.r40.json"))
+          assert f["state"] == "FIXTURE_LOOP_COMPLETE"
+          assert f["candidateCount"] == 4
+          assert len(set(f["candidateHashes"])) == 4
+          assert f["reeditRounds"] == 2
+          assert f["actualLocalPcE2EExecuted"] is False
+          assert f["sendPermitted"] is False
+          assert p["state"] == "PREPARED_HUMAN_BOSS_GATE"
+          assert p["sendCommandImplemented"] is False
+          assert p["sendPermitted"] is False
+          assert p["blindRetryPermitted"] is False
+          assert p["networkPermitted"] is False
+          assert p["livePublish"] is False
+          assert e["liveAuthorization"] is False
+          assert e["publishAllowed"] is False
+          PY
+      - name: Prove hosted CI did not create a real-local receipt
+        run: |
+          test ! -e .r40-reels-fixture/evidence/real-input-output-receipt.r40.json
+          python - <<'PY'
+          import json
+          r=json.load(open("reports/CREATOR_R40_AUTONOMOUS_REELS_LOCAL_READINESS.json"))
+          assert r["actualLocalPcE2EExecuted"] is False
+          assert r["actualInputOutputReceiptPresent"] is False
+          assert r["implementationReady"]["maxTwoReeditEnforcement"] is True
+          assert r["implementationReady"]["transactionalPublishReadiness"] is True
+          assert r["implementationReady"]["noLiveSendPath"] is True
+          assert r["safety"]["liveSend"] is False
+          assert r["safety"]["livePublish"] is False
+          PY
+      - name: Upload deterministic autonomous Reels control evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-r40-autonomous-reels-local-\${{ github.sha }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            .r40-reels-diagnosis.json
+            .r40-reels-diagnosis.stdout.json
+            .r40-reels-fixture/**
+            .r40-reels-fixture.stdout.json
+            .r40-reels-replay.stdout.json
+            .r40-reels-first.json
+            reports/CREATOR_R40_AUTONOMOUS_REELS_LOCAL_READINESS.json
+            conformance/creator.autonomous_reels_local.r40.v1/**
+            docs/AUTONOMOUS_REELS_LOCAL_R40.md
+            tools/creator-autonomous-reels-local-r40.ps1
+            tools/creator-autonomous-reels-local-r40.cmd
+
+
   full:
     runs-on: ubuntu-latest
     steps:

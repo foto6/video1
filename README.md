@@ -379,3 +379,10 @@ R39 adds `creator.current_authority_binder.r39.v1` over immutable R38 history. I
 R40 consumes the exact non-fixture Media R27 independent-QA certificate from `foto6/boss@06ade2b1e8d40c4ab6559f3ffe1d69b0ee36fd78` and advances Creator readiness from `WAITING_MEDIA_R27_QA` to `SOURCE_READY`. The certificate binds the exact QA producer/CI/artifact/matrix and exact Media R27 tuple; stale, mismatched, fixture-only, and moving-ref certificates fail closed.
 
 R43 is observed exact-green at `46dc74dd65bae303ecda1236e52680f7532b0912` / CI `37644197933`, but it is not promoted because its readiness is only `EXACT_HEAD_READY_FOR_CONTROLLED_PREFLIGHT` and no exact accepted cutover/reconcile evidence exists. Accepted Bridge R42 remains selected. No live publish, provider/browser mutation, or Bridge cutover is authorized. See `docs/MEDIA_QA_BIND_R40.md`.
+
+
+## Creator R40 autonomous local Reels closure
+
+The Media-QA binder is source-ready, but source CI is not a real local montage receipt. The companion `creator.autonomous_reels_local.r40.v1` adds a Windows-first, fail-closed path for real input -> exact Media R27 four-candidate rendering -> real Growth quality review -> at most two Media R19 re-edits -> `final.mp4` -> release escrow -> deterministic publish transaction readiness.
+
+The current audit deliberately remains blocked before autonomous real review: Growth R39 `887567bb62a3df0879505d68ac6a2be725b57173` is a task-pointer-only commit with no R39 artifact; Boss R9 `9f439b41c2b11640451a803cee8b8d6198ddd04b` has not emitted GO. Bridge R44 `004bca97fe0db5c3cbba9d086f5000345af4e843` is exact-head source-green but still requires a new local preflight/cutover acceptance. The runner contains no live Send command and never claims hosted fixtures are real local E2E. See `docs/AUTONOMOUS_REELS_LOCAL_R40.md`.
