@@ -1,0 +1,83 @@
+{
+  "contractVersion": "creator.autonomous_reels_authorities.r40.v1",
+  "inspectedCreatorHead": "5235a237d893f6ed322deed952af60980ec19cc4",
+  "mediaR27": {
+    "repository": "foto6/video2",
+    "producerSha": "183838a24205c6885b2366ad6ffa394164283d91",
+    "ciRunId": 37451069045,
+    "artifactId": 11406357346,
+    "artifactDigest": "sha256:9cfa2ddd358f2b25a3066ee60792c44c460c62715590210bacf5c5430d14a4b5",
+    "contract": "media.real_input_local_rehearsal.r27.v1",
+    "growthBundleContract": "media.real_input_growth_bundle.r27.v1",
+    "independentQa": {
+      "repository": "foto6/boss",
+      "refreshSourceSha": "06ade2b1e8d40c4ab6559f3ffe1d69b0ee36fd78",
+      "producerSha": "6ab529846e99e572d77006dee48d6c4b01caea12",
+      "ciRunId": 37452884976,
+      "artifactId": 11407720740,
+      "artifactDigest": "sha256:910326676dd9371745cb70099ec3db76a21ad7f0d5e171bcd59bddfa091bd7d8",
+      "matrixDigest": "831804bedce4652156ac052e1c50f1e6f3642cd36dadbc58a00907804e646a54",
+      "fixtureOnly": false,
+      "accepted": true
+    }
+  },
+  "growthR39": {
+    "repository": "foto6/video3",
+    "observedSha": "887567bb62a3df0879505d68ac6a2be725b57173",
+    "parentSha": "608ec634d9f38ecf054ccd63ba6e7f3a1cd79cae",
+    "ciRunId": 37645554562,
+    "ciConclusion": "success",
+    "compare": {
+      "aheadBy": 1,
+      "behindBy": 0,
+      "changedFiles": [
+        "TASKS/R39_MEDIA_QA_BIND.md"
+      ]
+    },
+    "successorArtifactPresent": false,
+    "implementationAccepted": false,
+    "authorityClass": "TASK_POINTER_ONLY"
+  },
+  "bridgeR44": {
+    "repository": "foto6/WebAIBridge",
+    "producerSha": "004bca97fe0db5c3cbba9d086f5000345af4e843",
+    "ciRunId": 37647792789,
+    "ciConclusion": "success",
+    "contract": "bridge.hotfix_r43_integration.r44.v1",
+    "readiness": "EXACT_HEAD_READY_FOR_NEW_LOCAL_PREFLIGHT",
+    "ubuntuArtifact": {
+      "id": 11493954827,
+      "digest": "sha256:c8669575ad90ebe85049aa42224676ac5f132aade9e322f98edbec1994b0b828"
+    },
+    "windowsArtifact": {
+      "id": 11495056376,
+      "digest": "sha256:3d97a34538ee4c84a23537646ca6718c0f5617a7eaa5add122925f2806ed9e81"
+    },
+    "sourceGreen": true,
+    "localPreflightCutoverAccepted": false,
+    "providerMutationAuthorized": false
+  },
+  "bossR9": {
+    "repository": "foto6/boss",
+    "observedSha": "9f439b41c2b11640451a803cee8b8d6198ddd04b",
+    "parentSha": "06ade2b1e8d40c4ab6559f3ffe1d69b0ee36fd78",
+    "compare": {
+      "aheadBy": 1,
+      "behindBy": 0,
+      "changedFiles": [
+        "TASKS/INTEGRATION_R9_CURRENT_STACK_REFRESH.md"
+      ]
+    },
+    "ciRunId": null,
+    "goDisposition": null,
+    "acceptedGo": false,
+    "authorityClass": "TASK_POINTER_ONLY"
+  },
+  "safety": {
+    "movingRefsAccepted": false,
+    "providerMutation": false,
+    "browserMutation": false,
+    "liveSend": false,
+    "livePublish": false
+  }
+}
