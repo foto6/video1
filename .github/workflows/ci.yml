@@ -1999,7 +1999,7 @@ jobs:
       - name: Upload deterministic autonomous Reels control evidence
         uses: actions/upload-artifact@v4
         with:
-          name: creator-r40-autonomous-reels-local-\${{ github.sha }}
+          name: creator-r40-autonomous-reels-local-${{ github.sha }}
           compression-level: 0
           include-hidden-files: true
           if-no-files-found: error
