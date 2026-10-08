@@ -1,0 +1,37 @@
+{
+  "contractVersion": "creator.autonomous_reels_local.r40.v1",
+  "goal": "real local short-form input -> 4 distinct Media R27 candidates -> real Growth quality review -> at most 2 Media R19 re-edits -> final.mp4 -> release escrow -> idempotent publish readiness",
+  "exactAuthorityFile": "conformance/creator.autonomous_reels_local.r40.v1/authority.json",
+  "stages": [
+    "AUTHORITY_PREFLIGHT",
+    "MEDIA_R27_REAL_RENDER",
+    "FOUR_CANDIDATE_VERIFICATION",
+    "QUALITY_REVIEW",
+    "BOUNDED_REEDIT",
+    "FINAL_EXPORT",
+    "RELEASE_ESCROW",
+    "PUBLISH_TRANSACTION_PREPARE"
+  ],
+  "maxReeditRounds": 2,
+  "currentState": "BLOCKED_BEFORE_AUTONOMOUS_REAL_REVIEW",
+  "blockers": [
+    "R39_IMPLEMENTATION_AND_ARTIFACT_REQUIRED",
+    "REAL_LOCAL_INPUT_OUTPUT_RECEIPT_REQUIRED",
+    "BOSS_R9_LOCAL_PC_REHEARSAL_GO_REQUIRED",
+    "HUMAN_REVIEW_REQUIRED_BEFORE_SEND"
+  ],
+  "constraints": {
+    "sourceMaterialDeleted": false,
+    "draftsDeleted": false,
+    "worktreesReset": false,
+    "forceOverwrite": false,
+    "liveSendImplemented": false,
+    "livePublish": false,
+    "providerMutation": false,
+    "networkPublish": false
+  },
+  "realReceiptContract": "creator.autonomous_reels_local_receipt.r40.v1",
+  "reviewInputContract": "creator.growth_quality_review_input.r40.v1",
+  "releaseEscrowContract": "creator.autonomous_reels_release_escrow.r40.v1",
+  "publishReadinessContract": "creator.autonomous_reels_publish_readiness.r40.v1"
+}
