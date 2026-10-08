@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creator.autonomous_reels_local_receipt.r40.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "state",
+    "source",
+    "mediaProducerSha",
+    "mediaBundleDigest",
+    "candidateCount",
+    "candidateHashes",
+    "growthProducerSha",
+    "reviewChain",
+    "reviewChainDigest",
+    "reeditRounds",
+    "final",
+    "releaseEscrowDigest",
+    "publishTransactionId",
+    "publishIdempotencyKey",
+    "actualLocalPcE2EExecuted",
+    "realInputBytes",
+    "realEncodedCandidates",
+    "providerMutation",
+    "networkEffects",
+    "liveSend",
+    "livePublish",
+    "liveAuthorization",
+    "ledgerDigest",
+    "receiptDigest"
+  ],
+  "properties": {
+    "contractVersion": {
+      "const": "creator.autonomous_reels_local_receipt.r40.v1"
+    },
+    "state": {
+      "const": "LOCAL_REAL_REELS_REHEARSAL_COMPLETE"
+    },
+    "source": {
+      "type": "object"
+    },
+    "mediaProducerSha": {
+      "const": "183838a24205c6885b2366ad6ffa394164283d91"
+    },
+    "mediaBundleDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "candidateCount": {
+      "const": 4
+    },
+    "candidateHashes": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "growthProducerSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "reviewChain": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3
+    },
+    "reviewChainDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "reeditRounds": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "final": {
+      "type": "object"
+    },
+    "releaseEscrowDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "publishTransactionId": {
+      "type": "string"
+    },
+    "publishIdempotencyKey": {
+      "type": "string"
+    },
+    "actualLocalPcE2EExecuted": {
+      "const": true
+    },
+    "realInputBytes": {
+      "const": true
+    },
+    "realEncodedCandidates": {
+      "const": true
+    },
+    "providerMutation": {
+      "const": false
+    },
+    "networkEffects": {
+      "const": 0
+    },
+    "liveSend": {
+      "const": false
+    },
+    "livePublish": {
+      "const": false
+    },
+    "liveAuthorization": {
+      "const": false
+    },
+    "ledgerDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "receiptDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
