@@ -51,11 +51,11 @@ class AuthorityDiagnosisTests(unittest.TestCase):
 
     def test_bridge_r44_exact_source_is_green_but_not_live_accepted(self):
         auth = reels.authority_observation()["bridgeR44"]
-        self.assertEqual(auth["producerSha"], "004bca97fe0db5c3cbba9d086f5000345af4e843")
-        self.assertEqual(auth["ciRunId"], 37647792789)
+        self.assertEqual(auth["producerSha"], "9a8898a70355bbae2d465ee49739030aa27e9f4e")
+        self.assertEqual(auth["ciRunId"], 37726498161)
         self.assertEqual(auth["readiness"], "EXACT_HEAD_READY_FOR_NEW_LOCAL_PREFLIGHT")
-        self.assertEqual(auth["ubuntuArtifact"]["id"], 11493954827)
-        self.assertEqual(auth["windowsArtifact"]["id"], 11495056376)
+        self.assertEqual(auth["ubuntuArtifact"]["id"], 11527694819)
+        self.assertEqual(auth["windowsArtifact"]["id"], 11527109716)
         self.assertTrue(auth["sourceGreen"])
         self.assertFalse(auth["localPreflightCutoverAccepted"])
         self.assertFalse(auth["providerMutationAuthorized"])
