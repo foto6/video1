@@ -13,11 +13,13 @@ import shutil
 import threading
 import time
 import urllib.parse
+import uuid
 
 from creator_orchestrator.local_studio import ROOT, probe
 from .bridge import ApiError, BridgeClient
 from .production import Production
 from .store import Store, Wait, file_hash
+from .stateful import chat_binding
 
 
 class Blob(ctypes.Structure):
@@ -60,12 +62,14 @@ class Settings:
     def public(self):
         value = self.read()
         return {'baseUrl': value['baseUrl'], 'configured': bool(value['token']), 'geminiConfigured': bool(value['geminiKey']), 'library': value.get('library', {}),
+                'chatUrl': value.get('binding', {}).get('chatUrl', ''), 'profileName': value.get('binding', {}).get('profileName', ''),
                 'audio': 'Gemini TTS available when key is configured; bridge output requires probe', 'nativeVideo': 'not_verified'}
 
     def save(self, updates):
         with self.lock:
             old = json.loads(self.path.read_text(encoding='utf-8')) if self.path.exists() else {}
             previous_base = old.get('baseUrl', 'http://127.0.0.1:17448/v1')
+            previous_binding = old.get('binding')
             for field, storage in [('token', 'bridgeProtected'), ('geminiKey', 'geminiProtected')]:
                 value = updates.get(field)
                 if value:
@@ -79,6 +83,16 @@ class Settings:
                 old['revision'] = int(old.get('revision', 0)) + 1
             if 'library' in updates:
                 old['library'] = updates['library']
+            if 'chatUrl' in updates or 'profileName' in updates:
+                chat_url = updates.get('chatUrl', old.get('binding', {}).get('chatUrl', ''))
+                profile_name = updates.get('profileName', old.get('binding', {}).get('profileName', ''))
+                if chat_url:
+                    namespace = old.setdefault('instanceId', uuid.uuid4().hex)
+                    old['binding'] = chat_binding(chat_url, profile_name, namespace)
+                else:
+                    old.pop('binding', None)
+                if old.get('binding') != previous_binding:
+                    old['revision'] = int(old.get('revision', 0)) + 1
             self.path.parent.mkdir(parents=True, exist_ok=True)
             temp = self.path.with_suffix('.tmp')
             temp.write_text(json.dumps(old, ensure_ascii=False), encoding='utf-8')
@@ -210,7 +224,9 @@ def handler(app):
                 if route == '/api/capabilities':
                     return self.json({'audits': [{k: x[k] for k in ('id', 'state', 'stage', 'error')} for x in app.store.list() if x['profile'].get('kind') == 'capability_audit']})
                 if route == '/api/voice-download':
-                    status = Path('E:/AI-Video-Studio/models/voice-download-status.json')
+                    status = Path('E:/AI-Video-Studio/models/voice-download-watch.json')
+                    if not status.exists():
+                        status = Path('E:/AI-Video-Studio/models/voice-download-status.json')
                     return self.json(json.loads(status.read_text(encoding='utf-8')) if status.exists() else {'status': 'not_started'})
                 match = re.fullmatch(r'/api/videos/(vid-[a-f0-9]{32})/(final|preview)\.mp4', route)
                 if match:
@@ -242,7 +258,7 @@ def handler(app):
                 route, body = urllib.parse.urlsplit(self.path).path, self.body()
                 if method == 'PUT' and route == '/api/connection':
                     # Save independently: temporary provider failure must not lose the user's key.
-                    app.settings.save({k: body[k] for k in ('baseUrl', 'token', 'geminiKey') if k in body})
+                    app.settings.save({k: body[k] for k in ('baseUrl', 'token', 'geminiKey', 'chatUrl', 'profileName') if k in body})
                     return self.json(app.settings.public())
                 if method == 'POST' and route == '/api/connection/check':
                     settings = app.settings.read()

@@ -8,6 +8,7 @@ from creator_orchestrator.local_studio import make_score, run
 from growth_analytics.shorts_review import DIMENSIONS, validate_review
 from . import contracts
 from .bridge import BridgeClient
+from .audio_probe import probe_audio
 from .capabilities import ensure_perception
 from .store import Wait, file_hash, fingerprint
 from .voice import GeminiVoice
@@ -45,7 +46,7 @@ class Production:
             return entry['result']
         self.profile = entry['profile']
         config = self.settings()
-        bridge = BridgeClient(config['baseUrl'], config.get('token', ''), self.store)
+        bridge = BridgeClient(config['baseUrl'], config.get('token', ''), self.store, binding=config.get('binding'))
         if not config.get('token'):
             raise Wait('WAITING_INPUT', 'Введи API-токен моста в настройках видеоприложения')
         folder = self.store.folder(identifier)
@@ -96,23 +97,18 @@ class Production:
                     assets[beat_id] = self.store.artifact(identifier, name, asset)
                 references.append(assets[beat_id]['path'])
         self.stage(identifier, 'VOICE_TIMING', 'Озвучка: реальные аудиофайлы и измерение длительности')
-        # The current public bridge only has documented image download routes.
-        # One real audio request tests what the account returns; absence is explicit.
+        # Reuse the account-wide audit instead of submitting another audio task
+        # per video or sending an already-known-broken generic ChatGPT request.
         voice_source = self.profile.get('voice_source', 'auto')
         if voice_source in {'auto', 'bridge'}:
-            probe = self.store.read(identifier, 'bridge-audio-probe')
-            if probe is None:
-                try:
-                    result = bridge.execute(identifier, 'audio-capability', {'model': self.profile['text_model'], 'modalities': ['audio'],
-                        'prompt': 'Синтезируй короткую русскую озвучку: «Проверка голоса для видеостудии». Нужен настоящий аудиофайл, не текст и не ссылка.'})
-                    probe = {'tested': True, 'supported': False, 'job_id': result['id'], 'reason': 'No documented public audio download contract; returned fields: ' + ', '.join(sorted(result))}
-                except Wait as exc:
-                    if exc.state != 'WAITING_CAPABILITY':
-                        raise
-                    probe = {'tested': True, 'supported': False, 'reason': str(exc)}
-                self.store.artifact(identifier, 'bridge-audio-probe', probe)
-            if voice_source == 'bridge' or not config.get('geminiKey'):
-                raise Wait('WAITING_CAPABILITY' if voice_source == 'bridge' else 'WAITING_INPUT', 'Аудиовыход моста не подтверждён. Для текущего прогона подключи Gemini TTS в настройках; локальная модель скачивается отдельно')
+            probe = probe_audio(self.root, config)
+            if voice_source == 'bridge':
+                if probe['state'] == 'PENDING':
+                    raise Wait('PENDING', probe['message'])
+                raise Wait('WAITING_CAPABILITY', 'Аудиовыход моста не подтверждён: нет проверенного публичного получения аудиофайла')
+            if not config.get('geminiKey'):
+                pending = ' Проба Gemini web ещё ожидает обработки.' if probe['state'] == 'PENDING' else ''
+                raise Wait('WAITING_INPUT', 'Голос пока не готов: локальная модель скачивается, ключ Gemini TTS не настроен.' + pending)
         speech = GeminiVoice(self.store, config.get('geminiKey', ''), voice=self.profile.get('voice', 'Kore'))
         measured = [speech.speak(identifier, beat['id'], beat['narration'], folder / 'voice') for beat in screenplay['beats']]
         measured_duration = sum(x['voice_seconds'] for x in measured)

@@ -13,30 +13,57 @@ import urllib.request
 import wave
 
 from creator_orchestrator.shorts import contracts
-from creator_orchestrator.shorts.bridge import BridgeClient, NoRedirect
+from creator_orchestrator.shorts.bridge import BridgeClient, NoRedirect, PREFLIGHT_BUSY
 from creator_orchestrator.shorts.server import Application, crypt, handler
 from creator_orchestrator.shorts.store import Store, Wait, file_hash
 from creator_orchestrator.shorts.voice import GeminiVoice
 from creator_orchestrator.shorts.capabilities import validate_observation
+from creator_orchestrator.shorts.stateful import chat_binding, normalized_reply
 from growth_analytics.shorts_review import DIMENSIONS, validate_review
 
 
 class BridgeHandler(BaseHTTPRequestHandler):
     posts = []
     jobs = []
+    cancels = []
+    busy_remaining = 0
     def log_message(self, *args): pass
     def send(self, value, status=200):
         data = json.dumps(value).encode()
         self.send_response(status); self.send_header('Content-Length', str(len(data))); self.end_headers(); self.wfile.write(data)
     def do_POST(self):
         value = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+        if self.path.endswith('/cancel'):
+            type(self).cancels.append(self.path)
+            job = next(j for j in type(self).jobs if self.path == '/v1/jobs/'+j['id']+'/cancel')
+            job.update(status='cancelled',raw_status='cancelled')
+            return self.send(job)
         type(self).posts.append(value)
-        job = {'id': 'job-123', 'status': 'completed', 'raw_status': 'completed', 'output_text': '{"ok":true}', 'task': {'idempotencyKey': value['idempotency_key']}}
+        job = {'id': 'job-' + str(122 + len(type(self).posts)), 'status': 'completed', 'raw_status': 'completed', 'output_text': '{"ok":true}', 'task': {'idempotencyKey': value['idempotency_key']}}
+        if self.path == '/v1/replies':
+            job['output_text'] = json.dumps({'action': 'reply', 'messages': ['{"ok":true}'], 'reason': 'fixture'})
+            job['kind'] = 'project_thread_reply'
+        if type(self).busy_remaining:
+            type(self).busy_remaining -= 1
+            job.update(status='failed', raw_status='failed', error={'message': PREFLIGHT_BUSY}, output_text='')
         type(self).jobs.append(job)
+        if self.path == '/v1/replies':
+            return self.send({'id': 'run-' + job['id'][4:], 'status': 'queued', 'job': {'id': job['id'], 'status': 'queued'}})
         self.send({'id': job['id'], 'status': 'queued'})
     def do_GET(self):
         if self.path == '/v1/jobs?limit=200': return self.send({'data': type(self).jobs})
-        if self.path == '/v1/jobs/job-123': return self.send(type(self).jobs[-1])
+        if self.path.startswith('/v1/jobs/job-'):
+            matches = [j for j in type(self).jobs if self.path.endswith(j['id'])]
+            if matches: return self.send(matches[-1])
+        if self.path.startswith('/v1/runs/run-'):
+            matches = [j for j in type(self).jobs if self.path == '/v1/runs/run-' + j['id'][4:]]
+            job = matches[-1]
+            envelope = json.loads(job['output_text']) if job['output_text'] else {}
+            body = next(x for x in type(self).posts if x['idempotency_key'] == job['task']['idempotencyKey'])
+            binding = body['thread']['native_provider']
+            return self.send({'id': 'run-' + job['id'][4:], 'job': job, 'status': job['status'], 'thread_id': 'fixture-thread',
+                              'provider':binding['provider'], 'profile_id':body['thread'].get('profile_id',''),
+                              'chat_url':binding.get('chat_url','https://chatgpt.com/'), **envelope})
         self.send({}, 404)
 
 
@@ -45,7 +72,7 @@ class ShortsTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.store = Store(self.tmp.name)
         self.id = self.store.create('Test fixture brief', {'version': 1}, 'same-request')
-        BridgeHandler.posts, BridgeHandler.jobs = [], []
+        BridgeHandler.posts, BridgeHandler.jobs, BridgeHandler.cancels, BridgeHandler.busy_remaining = [], [], [], 0
         self.server = ThreadingHTTPServer(('127.0.0.1', 0), BridgeHandler)
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True); self.thread.start()
         self.client = BridgeClient(f'http://127.0.0.1:{self.server.server_port}/v1', 'fixture-not-a-real-key', self.store)
@@ -132,6 +159,16 @@ class ShortsTests(unittest.TestCase):
             with self.assertRaises(Wait) as caught: voice.speak(self.id, 'hook', 'Test', Path(self.tmp.name) / 'voice')
             self.assertEqual(caught.exception.state, 'WAITING_RECONCILIATION')
             self.assertEqual(opened.call_count, 1)
+    def test_audio_probe_is_shared_across_videos_and_restarts(self):
+        from creator_orchestrator.shorts.audio_probe import probe_audio
+        settings = {'baseUrl':self.client.base_url, 'token':self.client.token}
+        first = probe_audio(self.tmp.name, settings)
+        second = probe_audio(self.tmp.name, settings)
+        self.assertEqual(first, second)
+        self.assertEqual(first['job_id'], 'job-123')
+        self.assertFalse(first['audio_download_supported'])
+        self.assertEqual(len(BridgeHandler.posts), 1)
+        self.assertEqual(BridgeHandler.posts[0]['model'], 'gemini-web')
     def test_gemini_rest_decodes_real_wav_and_recovers_from_saved_response(self):
         output = io.BytesIO()
         with wave.open(output, 'wb') as f:
@@ -153,6 +190,125 @@ class ShortsTests(unittest.TestCase):
         self.assertEqual(validate_observation(actual, expected), actual)
         for changes in ({'codes': ['187', '309', '652']}, {'direction': 'right_to_left'}, {'spoken_text': ''}, {'observed_modalities': ['image']}):
             with self.assertRaises(Wait): validate_observation({**actual, **changes}, expected)
+    def bound_client(self):
+        binding = chat_binding('https://chatgpt.com/c/11111111-2222-3333-4444-555555555555', 'Fixture Profile', 'a'*32)
+        return BridgeClient(self.client.base_url, self.client.token, self.store, binding=binding)
+    def test_stateful_uses_own_project_exact_chat_and_returns_inner_json(self):
+        client = self.bound_client()
+        response = client.execute(self.id, 'script', {'model': 'chatgpt-web', 'prompt': 'Make JSON', 'modalities': ['text']})
+        self.assertEqual(json.loads(response['output_text']), {'ok': True})
+        self.assertEqual(response['bridge_run_id'], 'run-123')
+        body = BridgeHandler.posts[0]
+        self.assertEqual(body['thread']['native_provider']['chat_url'], client.binding['chatUrl'])
+        self.assertEqual(body['thread']['profile_id'], 'Fixture Profile')
+        self.assertTrue(body['project']['id'].startswith('proj_video_'))
+        self.assertFalse(body['bootstrap_memory']); self.assertFalse(body['allow_brain_consult']); self.assertFalse(body['defer_brain_sync'])
+        self.assertFalse(body['project']['brain_chat_enabled']); self.assertFalse(body['project']['brain_sync_enabled'])
+        self.assertEqual(body['delivery_mode'], 'return')
+        self.assertFalse(body['metadata']['providerFallback'])
+        client.execute(self.id, 'script', {'model': 'chatgpt-web', 'prompt': 'Make JSON', 'modalities': ['text']})
+        self.assertEqual(len(BridgeHandler.posts), 1)
+    def test_stateful_lost_ack_reconciles_public_job_without_second_reply(self):
+        client = self.bound_client(); original = client.request
+        def lost(route, body=None, binary=False):
+            value = original(route, body, binary)
+            if body is not None: raise Wait('WAITING_PROVIDER', 'fixture lost reply ACK')
+            return value
+        payload = {'model': 'chatgpt-web', 'prompt': 'Make JSON', 'modalities': ['text']}
+        with patch.object(client, 'request', side_effect=lost):
+            with self.assertRaises(Wait): client.execute(self.id, 'script', payload)
+        response = self.bound_client().execute(self.id, 'script', payload)
+        self.assertEqual(response['output_text'], '{"ok":true}'); self.assertEqual(len(BridgeHandler.posts), 1)
+    def test_new_chat_is_profile_scoped_and_not_saved_as_conversation(self):
+        from creator_orchestrator.shorts.stateful import new_chat_binding
+        binding = new_chat_binding('11111111-2222-3333-4444-555555555555', 'a'*32)
+        client = BridgeClient(self.client.base_url, self.client.token, self.store, binding=binding)
+        client.execute(self.id, 'new-chat', {'model':'chatgpt-web','modalities':['text'],'prompt':'Initialize'})
+        body = BridgeHandler.posts[0]
+        self.assertEqual(body['thread']['profile_id'], binding['profileName'])
+        self.assertFalse(body['thread']['native_provider']['enabled'])
+        self.assertNotIn('chat_url', body['thread']['native_provider'])
+        with self.assertRaises(ValueError): chat_binding(binding['chatUrl'], '', 'a'*32)
+    def test_stateful_does_not_reuse_failed_generic_route(self):
+        payload = {'model': 'chatgpt-web', 'prompt': 'Make JSON', 'modalities': ['text']}
+        self.client.execute(self.id, 'script', payload)
+        self.bound_client().execute(self.id, 'script', payload)
+        self.assertEqual(len(BridgeHandler.posts), 2)
+        self.assertNotEqual(BridgeHandler.posts[0]['idempotency_key'], BridgeHandler.posts[1]['idempotency_key'])
+    def test_changed_route_is_rejected_even_when_result_completed(self):
+        client = self.bound_client(); original = client.request
+        def redirected(route, body=None, binary=False):
+            result = original(route, body, binary)
+            if route.startswith('/runs/'):
+                result.update(provider='gemini', chat_url='https://gemini.google.com/app', profile_id='another')
+            return result
+        with patch.object(client,'request',side_effect=redirected):
+            with self.assertRaises(Wait) as caught:
+                client.execute(self.id,'script',{'model':'chatgpt-web','modalities':['text'],'prompt':'Make JSON'})
+        self.assertEqual(caught.exception.state,'WAITING_PROVIDER')
+        with self.store.connect() as db:
+            self.assertEqual(db.execute('SELECT state FROM operations').fetchone()[0],'blocked')
+    def test_queued_fallback_is_cancelled_once_and_never_reposted_after_restart(self):
+        client = self.bound_client(); original = client.request
+        def redirected(route, body=None, binary=False):
+            result = original(route, body, binary)
+            if route.startswith('/jobs/job-') and body is None:
+                result.update(status='queued',raw_status='pending')
+            if route.startswith('/runs/'):
+                result.update(provider='gemini',chat_url='https://gemini.google.com/app')
+            return result
+        payload = {'model':'chatgpt-web','modalities':['text'],'prompt':'Make JSON'}
+        with patch.object(client,'request',side_effect=redirected):
+            with self.assertRaises(Wait): client.execute(self.id,'script',payload)
+        with self.assertRaises(Wait): self.bound_client().execute(self.id,'script',payload)
+        self.assertEqual(BridgeHandler.cancels,['/v1/jobs/job-123/cancel'])
+        self.assertEqual(len(BridgeHandler.posts),1)
+    def test_legacy_accepted_request_keeps_its_key_without_resubmission(self):
+        client=self.bound_client(); payload={'model':'chatgpt-web','modalities':['text'],'prompt':'Make JSON'}
+        client.execute(self.id,'script',payload)
+        with self.store.connect() as db:
+            row=db.execute('SELECT key,request FROM operations').fetchone()
+            previous=json.loads(row['request']); previous['metadata'].pop('providerFallback')
+            db.execute('UPDATE operations SET request=? WHERE key=?',(json.dumps(previous),row['key']))
+        self.bound_client().execute(self.id,'script',payload)
+        self.assertEqual(len(BridgeHandler.posts),1)
+    def test_binding_rejects_unknown_host_and_provider_mismatch_before_send(self):
+        for url in ['http://chatgpt.com/c/'+'1'*36, 'https://untrusted.example/c/'+'1'*36, 'https://chatgpt.com/', 'https://chatgpt.com/c/'+'1'*36+'?token=x']:
+            with self.assertRaises(ValueError): chat_binding(url, '', 'a'*32)
+        with self.assertRaises(Wait): self.bound_client().execute(self.id, 'script', {'model':'gemini-web','prompt':'A'})
+        self.assertEqual(BridgeHandler.posts, [])
+    def test_stateful_ask_user_or_split_json_never_becomes_success(self):
+        job = {'id': 'job-fixture', 'output_text': 'raw'}
+        for changes in ({'action':'ask_user'}, {'messages':['{"a":','1}']}, {'id':'run-wrong'}):
+            run = {'id':'run-fixture','job':job,'action':'reply','messages':['{"a":1}'],**changes}
+            with self.assertRaises((Wait,ValueError)): normalized_reply(job,run)
+    def test_stateful_preserves_json_larger_than_public_message_limit(self):
+        complete = json.dumps({'visual_prompt':'x'*12000})
+        job = {'id':'job-fixture','output_text':json.dumps({'action':'reply','messages':[complete]})}
+        run = {'id':'run-fixture','job':job,'action':'reply','messages':[complete[:10000]]}
+        self.assertEqual(normalized_reply(job,run)['output_text'],complete)
+    def test_explicit_unsent_busy_refusal_has_one_delayed_retry(self):
+        BridgeHandler.busy_remaining = 1
+        client = self.bound_client(); payload = {'model':'chatgpt-web','prompt':'Make JSON','modalities':['text']}
+        for _ in range(2):
+            with self.assertRaises(Wait) as caught: client.execute(self.id,'script',payload)
+            self.assertEqual(caught.exception.state,'PENDING')
+        self.assertEqual(len(BridgeHandler.posts),1)
+        with self.store.connect() as db: db.execute('UPDATE operations SET updated=updated-31')
+        self.assertEqual(client.execute(self.id,'script',payload)['output_text'],'{"ok":true}')
+        self.assertEqual(len(BridgeHandler.posts),2)
+        self.assertEqual(BridgeHandler.posts[1]['metadata']['preflight_retry_of'],'job-123')
+        self.bound_client().execute(self.id,'script',payload)
+        self.assertEqual(len(BridgeHandler.posts),2)
+    def test_second_busy_refusal_stops_without_third_send_even_after_restart(self):
+        BridgeHandler.busy_remaining = 2
+        payload = {'model':'chatgpt-web','prompt':'Make JSON','modalities':['text']}
+        with self.assertRaises(Wait): self.bound_client().execute(self.id,'script',payload)
+        with self.store.connect() as db: db.execute('UPDATE operations SET updated=updated-31')
+        for _ in range(2):
+            with self.assertRaises(Wait) as caught: self.bound_client().execute(self.id,'script',payload)
+            self.assertEqual(caught.exception.state,'WAITING_PROVIDER')
+        self.assertEqual(len(BridgeHandler.posts),2)
 
 
 class HttpTests(unittest.TestCase):

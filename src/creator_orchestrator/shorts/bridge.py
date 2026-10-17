@@ -2,11 +2,13 @@
 import json
 from pathlib import Path
 import re
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
 from .store import Wait, file_hash, fingerprint
+from .stateful import build_reply, normalized_reply, validate_route
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -20,13 +22,17 @@ class ApiError(RuntimeError):
         super().__init__(f'Bridge API HTTP {status}')
 
 
+PREFLIGHT_BUSY = 'Provider is still generating; refusing to interrupt or send another request'
+
+
 class BridgeClient:
-    def __init__(self, base_url, token, store, timeout=30):
+    def __init__(self, base_url, token, store, timeout=30, binding=None):
         parsed = urllib.parse.urlparse(base_url)
         if parsed.scheme not in {'http', 'https'} or parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path.rstrip('/') != '/v1':
             raise ValueError('Bridge base URL must end in /v1, without credentials')
         self.base_url, self.token, self.store, self.timeout = base_url.rstrip('/'), token, store, timeout
         self.http = urllib.request.build_opener(NoRedirect)
+        self.binding = binding
 
     def request(self, route, body=None, binary=False):
         if not self.token:
@@ -58,14 +64,32 @@ class BridgeClient:
             raise ValueError('Invalid bridge job ID')
         return value
 
-    def execute(self, run_id, label, payload):
-        key = 'shorts:' + run_id + ':' + label + ':' + fingerprint(payload)[:24]
-        request = {**payload, 'idempotency_key': key, 'metadata': {**payload.get('metadata', {}), 'video_id': run_id, 'stage': label}}
+    def execute(self, run_id, label, payload, _busy_retry_of=None):
+        # Audio has no confirmed stateful artifact contract and keeps its explicit probe path.
+        stateful = bool(self.binding) and 'audio' not in payload.get('modalities', [])
+        identity = {'payload': payload, 'binding': self.binding, 'transport': 'stateful_reply_v1'} if stateful else payload
+        key = 'shorts:' + run_id + ':' + label + ':' + fingerprint(identity)[:24]
+        request = build_reply(self.binding, run_id, label, payload, key) if stateful else {**payload, 'idempotency_key': key, 'metadata': {**payload.get('metadata', {}), 'video_id': run_id, 'stage': label}}
+        if stateful:
+            previous = self.store.op(key)
+            # Preserve already-submitted wire requests from before the explicit
+            # no-fallback option was added. Poll them; do not create a new key.
+            if previous and 'providerFallback' not in previous['request'].get('metadata', {}):
+                request['metadata'].pop('providerFallback', None)
         op = self.store.prepare(key, run_id, 'bridge', request)
         if op['state'] == 'completed':
             return op['response']
         if op['state'] == 'blocked':
-            raise Wait('WAITING_PROVIDER', op['response']['safe_error'])
+            result = op['response'].get('result', {})
+            error = result.get('error', {})
+            # This exact API-worker refusal occurs before sendAndWait. It is
+            # distinct from a timeout/unknown send outcome, which is never retried.
+            if not _busy_retry_of and isinstance(error, dict) and error.get('message') == PREFLIGHT_BUSY:
+                if time.time() - op['updated'] < 30:
+                    raise Wait('PENDING', 'Модель занята. Один повтор после отказа до отправки будет разрешён через 30 секунд')
+                retry = {**payload, 'metadata': {**payload.get('metadata', {}), 'preflight_retry_of': op['external_id']}}
+                return self.execute(run_id, label, retry, _busy_retry_of=op['external_id'])
+            raise Wait(op['response'].get('waiting_state', 'WAITING_PROVIDER'), op['response']['safe_error'])
         if op['state'] == 'rejected':
             raise Wait('WAITING_CAPABILITY', 'Мост отклонил запрос: ' + str(op['response'].get('http_status')))
         if op['state'] == 'submitting' and not op['external_id']:
@@ -82,7 +106,7 @@ class BridgeClient:
                 raise Wait('WAITING_INPUT', 'Введи API-токен моста в настройках видеоприложения')
             self.store.operation(key, 'submitting')
             try:
-                accepted = self.request('/jobs', request)
+                accepted = self.request('/replies' if stateful else '/jobs', request)
             except ApiError as exc:
                 if exc.status in {400, 404, 405, 422}:
                     self.store.operation(key, 'rejected', response={'http_status': exc.status})
@@ -90,18 +114,47 @@ class BridgeClient:
                 if exc.status in {401, 403, 429}:
                     self.store.operation(key, 'prepared')
                 raise
-            self.store.operation(key, 'accepted', self.job_id(accepted['id']))
+            accepted_id = accepted.get('job', {}).get('id') if stateful else accepted['id']
+            self.store.operation(key, 'accepted', self.job_id(accepted_id), response={'bridge_run_id': accepted.get('id')} if stateful else None)
             op = self.store.op(key)
         result = self.request('/jobs/' + self.job_id(op['external_id']))
+        run_result = None
+        if stateful:
+            run_result = self.request('/runs/run-' + op['external_id'][4:])
+            try:
+                validate_route(self.binding, run_result)
+            except Wait as exc:
+                evidence = {'safe_error': str(exc), 'waiting_state': exc.state, 'job': result, 'run': run_result}
+                if result.get('raw_status') in {'pending', 'buffered', 'delayed', 'leased', 'uploading'}:
+                    # Persist before cancellation. An uncertain cancellation is
+                    # never repeated; its outcome can be inspected by job ID.
+                    evidence['route_cancel'] = 'submitting'
+                    self.store.operation(key, 'blocked', response=evidence)
+                    try:
+                        cancelled = self.request('/jobs/' + op['external_id'] + '/cancel', {})
+                        evidence['route_cancel'] = cancelled.get('raw_status', 'unknown')
+                    except (Wait, ApiError):
+                        evidence['route_cancel'] = 'unknown; inspect existing job ID, no blind retry'
+                self.store.operation(key, 'blocked', response=evidence)
+                raise
         if result.get('status') == 'completed' or result.get('raw_status') == 'completed':
+            if stateful:
+                # The public API maps job-<task UUID> to run-<task UUID>.
+                try:
+                    result = normalized_reply(result, run_result, 'image' in payload.get('modalities', []))
+                except Wait as exc:
+                    self.store.operation(key, 'blocked', response={'safe_error': str(exc), 'waiting_state': exc.state, 'job': result, 'run': run_result})
+                    raise
             self.store.operation(key, 'completed', response=result)
             return result
         if result.get('status') in {'failed', 'cancelled', 'requires_action'} or result.get('raw_status') in {'blocked', 'needs_login', 'needs_review', 'failed', 'cancelled'}:
             error = result.get('error', {})
             code = error.get('message', '') if isinstance(error, dict) else str(error)
-            safe_code = code if re.fullmatch(r'[A-Z0-9_]{4,160}', code) else result.get('raw_status') or result.get('status')
+            safe_code = 'Модель ещё генерирует; мост отказался отправлять новый запрос' if code == PREFLIGHT_BUSY else code if re.fullmatch(r'[A-Z0-9_]{4,160}', code) else result.get('raw_status') or result.get('status')
             message = f"Мост остановил задание {op['external_id']}: {safe_code}"
             self.store.operation(key, 'blocked', response={'safe_error': message, 'result': result})
+            if code == PREFLIGHT_BUSY and not _busy_retry_of:
+                raise Wait('PENDING', 'Модель занята. Ожидается пауза перед единственным повтором после отказа до отправки')
             raise Wait('WAITING_PROVIDER', message)
         raise Wait('PENDING', 'Ожидается результат моста: ' + op['external_id'])
 
