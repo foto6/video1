@@ -5,6 +5,9 @@ import unittest
 
 from creator_orchestrator.shorts import contracts
 from creator_orchestrator.shorts.server import Application
+from creator_orchestrator.shorts.animation import AnimationAuthor
+from creator_orchestrator.shorts.production import Production
+from unittest.mock import patch
 
 SCRIPT={'title':'Робот и океан','beats':[{'id':x,'purpose':'Показать событие','narration':'Робот увидел океан.','screen_text':'Океан'} for x in ['hook','body','payoff']]}
 PLAN={'style':{'description':'Светлый робот с голубыми глазами, оранжевые ботинки, бирюзовая вода','background':'#101827','foreground':'#FFFFFF','accent':'#6E8EFF'},'shots':[{'beat_id':x['id'],'purpose':'Нарисовать событие','mode':'code_animation','motion':'procedural_motion','visual_prompt':'Робот поднимает руку, волны движутся','requires_object_motion':True} for x in SCRIPT['beats']]}
@@ -37,5 +40,17 @@ class AnimationProductionTests(unittest.TestCase):
             parent=app.store.create('Первый сюжет',{},'original-run')
             app.store.artifact(parent,'script',SCRIPT)
             with self.assertRaises(ValueError):app.create_video({'topic':'Совсем другой сюжет','idempotencyKey':'second-run','sourceVideoId':parent})
+
+    def test_compact_author_migration_reuses_completed_scene_without_model_call(self):
+        with tempfile.TemporaryDirectory() as folder:
+            app=Application(root=Path(folder),data=Path(folder)/'data')
+            identifier=app.store.create('Робот и океан',{},'original-run')
+            source={'beat_id':'hook','source':'function Scene({frame}) { return <div>{frame}</div>; }','design_notes':'Робот'}
+            app.store.artifact(identifier,'animation-code-0-hook',source)
+            production=Production(app.store,folder,lambda:{})
+            receipt={'request_sha256':'a'*64,'path':'rendered-scene.mp4'}
+            with patch.object(AnimationAuthor,'render',return_value=receipt),patch.object(production,'structured') as model:
+                self.assertEqual(AnimationAuthor(production).author(None,identifier,SCRIPT,PLAN,PLAN['shots'][0],{}, {},Path(folder)),receipt)
+                model.assert_not_called()
 
 if __name__=='__main__':unittest.main()

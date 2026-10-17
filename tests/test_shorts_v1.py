@@ -29,6 +29,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
     jobs = []
     cancels = []
     busy_remaining = 0
+    insert_timeout_remaining = 0
     def log_message(self, *args): pass
     def send(self, value, status=200):
         data = json.dumps(value).encode()
@@ -48,6 +49,10 @@ class BridgeHandler(BaseHTTPRequestHandler):
         if type(self).busy_remaining:
             type(self).busy_remaining -= 1
             job.update(status='failed', raw_status='failed', error={'message': PREFLIGHT_BUSY}, output_text='')
+        if type(self).insert_timeout_remaining:
+            type(self).insert_timeout_remaining-=1
+            job.update(status='failed',raw_status='failed',error={'message':'Input.insertText timed out'},output_text='')
+            job['task'].update(apiRequest={'type':'project.reply'},metadata=value['metadata'],resolvedChatUrl=value['thread']['native_provider']['chat_url'])
         type(self).jobs.append(job)
         if self.path == '/v1/replies':
             return self.send({'id': 'run-' + job['id'][4:], 'status': 'queued', 'job': {'id': job['id'], 'status': 'queued'}})
@@ -75,6 +80,7 @@ class ShortsTests(unittest.TestCase):
         self.store = Store(self.tmp.name)
         self.id = self.store.create('Test fixture brief', {'version': 1}, 'same-request')
         BridgeHandler.posts, BridgeHandler.jobs, BridgeHandler.cancels, BridgeHandler.busy_remaining = [], [], [], 0
+        BridgeHandler.insert_timeout_remaining=0
         self.server = ThreadingHTTPServer(('127.0.0.1', 0), BridgeHandler)
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True); self.thread.start()
         self.client = BridgeClient(f'http://127.0.0.1:{self.server.server_port}/v1', 'fixture-not-a-real-key', self.store)
@@ -412,6 +418,40 @@ class ShortsTests(unittest.TestCase):
             with self.assertRaises(Wait) as caught: self.bound_client().execute(self.id,'script',payload)
             self.assertEqual(caught.exception.state,'WAITING_PROVIDER')
         self.assertEqual(len(BridgeHandler.posts),2)
+    def test_proved_text_insertion_failure_has_one_delayed_retry(self):
+        BridgeHandler.insert_timeout_remaining=1
+        payload={'model':'chatgpt-web','prompt':'Make code','modalities':['text']}
+        for _ in range(2):
+            with self.assertRaises(Wait) as caught:self.bound_client().execute(self.id,'code',payload)
+            self.assertEqual(caught.exception.state,'PENDING')
+        self.assertEqual(len(BridgeHandler.posts),1)
+        with self.store.connect() as db:db.execute('UPDATE operations SET updated=updated-31')
+        self.assertEqual(self.bound_client().execute(self.id,'code',payload)['output_text'],'{"ok":true}')
+        self.bound_client().execute(self.id,'code',payload)
+        self.assertEqual(len(BridgeHandler.posts),2)
+    def test_second_insertion_failure_never_gets_a_third_send(self):
+        BridgeHandler.insert_timeout_remaining=2
+        payload={'model':'chatgpt-web','prompt':'Make code','modalities':['text']}
+        with self.assertRaises(Wait):self.bound_client().execute(self.id,'code',payload)
+        with self.store.connect() as db:db.execute('UPDATE operations SET updated=updated-31')
+        for _ in range(2):
+            with self.assertRaises(Wait) as caught:self.bound_client().execute(self.id,'code',payload)
+            self.assertEqual(caught.exception.state,'WAITING_PROVIDER')
+        self.assertEqual(len(BridgeHandler.posts),2)
+    def test_timeout_without_exact_presend_proof_is_not_retried(self):
+        client=self.bound_client();payload={'model':'chatgpt-web','prompt':'Make code','modalities':['text']}
+        result={'raw_status':'failed','error':{'message':'Input.insertText timed out'}}
+        self.assertFalse(client.unsent_refusal(result,self.id,payload))
+        result['task']={'apiRequest':{'type':'project.reply'},'metadata':{'video_id':self.id},'resolvedChatUrl':client.binding['chatUrl']}
+        self.assertTrue(client.unsent_refusal(result,self.id,payload))
+        result['task'].update(resolvedChatUrl='',chatUrl=client.binding['chatUrl'])
+        self.assertTrue(client.unsent_refusal(result,self.id,payload))
+        result['task']['chatUrl']='https://chatgpt.com/c/different'
+        self.assertFalse(client.unsent_refusal(result,self.id,payload))
+        result['task']['chatUrl']=client.binding['chatUrl']
+        for message in ['Input.dispatchKeyEvent timed out','Runtime.evaluate timed out','ChatGPT did not start responding within 5 min; delivery is uncertain']:
+            result['error']['message']=message
+            self.assertFalse(client.unsent_refusal(result,self.id,payload))
 
 
 class HttpTests(unittest.TestCase):

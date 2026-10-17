@@ -94,6 +94,22 @@ class BridgeClient:
             if self.operation_key(run_id,label,payload)==row['key']:return payload
         return None
 
+    def unsent_refusal(self,result,run_id,payload):
+        error=result.get('error',{})
+        message=error.get('message','') if isinstance(error,dict) else ''
+        if message==PREFLIGHT_BUSY:return True
+        task=result.get('task',{})
+        # Audited worker ordering: insertTextReliable completes before the first
+        # clickSendReliable. project.reply disables the post-send follow-up path.
+        # Restrict this exact insertion failure to bound, attachment-free text;
+        # a Send/response/HTTP timeout remains an uncertain outcome, never retry.
+        return bool(message=='Input.insertText timed out' and self.binding
+            and result.get('raw_status')=='failed' and not result.get('output_text') and not result.get('output_images')
+            and payload.get('modalities')==['text'] and not payload.get('attachments')
+            and task.get('apiRequest',{}).get('type')=='project.reply'
+            and task.get('metadata',{}).get('video_id')==run_id
+            and (task.get('resolvedChatUrl') or task.get('chatUrl'))==self.binding['chatUrl'])
+
     def execute(self, run_id, label, payload, _busy_retry_of=None):
         # Audio has no confirmed stateful artifact contract and keeps its explicit probe path.
         stateful = bool(self.binding) and 'audio' not in payload.get('modalities', [])
@@ -113,11 +129,9 @@ class BridgeClient:
                 raise InvalidModelResponse(op['response']['safe_error'], op['response']['job'])
             result = op['response'].get('result', {})
             error = result.get('error', {})
-            # This exact API-worker refusal occurs before sendAndWait. It is
-            # distinct from a timeout/unknown send outcome, which is never retried.
-            if not _busy_retry_of and isinstance(error, dict) and error.get('message') == PREFLIGHT_BUSY:
+            if not _busy_retry_of and self.unsent_refusal(result,run_id,payload):
                 if time.time() - op['updated'] < 30:
-                    raise Wait('PENDING', 'Модель занята. Один повтор после отказа до отправки будет разрешён через 30 секунд')
+                    raise Wait('PENDING', 'Подтверждён отказ до отправки. Единственный повтор будет разрешён через 30 секунд')
                 retry = {**payload, 'metadata': {**payload.get('metadata', {}), 'preflight_retry_of': op['external_id']}}
                 return self.execute(run_id, label, retry, _busy_retry_of=op['external_id'])
             raise Wait(op['response'].get('waiting_state', 'WAITING_PROVIDER'), op['response']['safe_error'])
@@ -186,8 +200,8 @@ class BridgeClient:
             safe_code = 'Модель ещё генерирует; мост отказался отправлять новый запрос' if code == PREFLIGHT_BUSY else code if re.fullmatch(r'[A-Z0-9_]{4,160}', code) else result.get('raw_status') or result.get('status')
             message = f"Мост остановил задание {op['external_id']}: {safe_code}"
             self.store.operation(key, 'blocked', response={'safe_error': message, 'result': result})
-            if code == PREFLIGHT_BUSY and not _busy_retry_of:
-                raise Wait('PENDING', 'Модель занята. Ожидается пауза перед единственным повтором после отказа до отправки')
+            if self.unsent_refusal(result,run_id,payload) and not _busy_retry_of:
+                raise Wait('PENDING', 'Подтверждён отказ до отправки. Ожидается пауза перед единственным повтором')
             raise Wait('WAITING_PROVIDER', message)
         raise Wait('PENDING', 'Ожидается результат моста: ' + op['external_id'])
 

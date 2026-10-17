@@ -8,21 +8,13 @@ from . import contracts
 from .store import Wait, file_hash, fingerprint
 
 
-AUTHORING_RULES = '''Write a bespoke animated scene as one JavaScript function Scene({frame, fps, width, height, durationInFrames, palette}).
-Return React JSX, no imports or exports. Canvas 1080x1920, 30 fps, local frame starts at zero. Use the supplied measured duration.
-This is original motion design: animate actual vector objects, geometry, character poses, parallax, waves or light according to this beat.
-Do not deliver a generic dashboard, progress bar, list of cards or static title slide. Match the shared character identity, art direction and story.
-Keep important subjects within x=80..1000 and y=350..1350. Subtitles are overlaid separately at y=1480..1650. Put scene-specific titles at y=280..450 if useful.
-Maintain a clear focal point, contrast, large readable typography, deliberate anticipation and a visible payoff. No tiny labels or unintended overflow.
-Use const, arithmetic, ternaries, if/return, template strings, arrays and .map/.slice/.join/.toFixed, local pure helper functions.
-Reusable local JSX components such as const Robot=({x,y})=><g>...</g> are supported inside Scene; keep recurring character proportions and colors identical between beats.
-Allowed elements: div/span/p/strong/br; SVG svg/g/path/rect/circle/ellipse/line/polyline/polygon/text/tspan/defs/linearGradient/radialGradient/stop/clipPath/mask/filter/feGaussianBlur/feDropShadow/feColorMatrix/feBlend/feComposite/feMerge/feMergeNode.
-SVG gradients/clips may use static local IDs with fill="url(#id)" or clipPath="url(#id)"; external resources are unavailable. Use a few deliberate layers; avoid costly large animated blur filters.
-Use Math (except random); helpers clamp(value,min=0,max=1), range(n) capped at 64; interpolate(frame,[a,b],[x,y],{extrapolateLeft:'clamp',extrapolateRight:'clamp'}); spring({frame,fps,config:{damping:16}}).
-Palette has background/accent/foreground. All animation must be a deterministic function of frame. No hooks, effects, CSS animation or transitions.
-No loops, assignments, mutation, classes, new, async, DOM, browser/network/Node globals, computed property access, prototype access, imports, remote resources, event handlers, ref, href/src or spread syntax.
-Use array.map((item,index)=>...) rather than array[index]. Helpers may be declared inside Scene. Local coordinates and transforms may be computed freely.
-Output exactly the requested JSON with complete source string and concrete design_notes. Do not include markdown.'''
+AUTHORING_RULES = '''Create bespoke narrative vector animation, 1080x1920/30fps. Return ONE function Scene({frame,fps,width,height,durationInFrames,palette}) returning JSX, no imports/exports.
+Match the shared identity and previous scenes in this conversation. Animate meaningful character poses/objects, waves, parallax/light with anticipation and payoff; no generic dashboard, cards or static slide.
+Safe subject area x80..1000/y350..1350; separate subtitles occupy y1480..1650. Titles, if useful, y280..450. Keep strong composition and readable contrast.
+Allowed: const, pure helper/local JSX components, if/return, arithmetic, ternaries, template strings, arrays .map/.slice/.join/.toFixed; standard SVG shapes/groups/text/gradients/clipPath/mask and div/span. Local url(#id) supported. Avoid expensive blur.
+Globals: Math except random; clamp(v,a=0,b=1); range(n), capped64; interpolate(frame,[a,b],[x,y],{extrapolateLeft:'clamp',extrapolateRight:'clamp'}); spring({frame,fps,config:{damping:16}}). Palette: background/accent/foreground.
+Pure deterministic frame code only: no hooks, effects, CSS animation/transition, loops, mutation, assignment, classes/new/async, DOM/network/Node globals, imports, computed property/prototype access, event handlers/ref/href/src, resources or spread. Use .map rather than array[index].
+Return complete source and concrete design_notes in requested JSON, no markdown.'''
 
 
 class AnimationAuthor:
@@ -63,12 +55,17 @@ class AnimationAuthor:
         return {**receipt,'kind':'code_animation','source':value['source'],'design_notes':value['design_notes']}
 
     def author(self,bridge,identifier,screenplay,plan,shot,voice,editing,folder,revision=0,prior=None):
+        legacy=f'animation-code-{revision}-{shot["beat_id"]}'
+        saved=self.store.read(identifier,legacy)
+        if saved is not None:
+            rendered=self.render(identifier,saved,shot,voice,editing,plan['style'],folder)
+            return self.store.artifact(identifier,legacy+'-render-'+rendered['request_sha256'][:16],rendered)
         if not (self.root/'media/remotion/node_modules/@remotion/renderer/package.json').is_file():
             raise Wait('WAITING_CAPABILITY','Не установлен локальный движок Remotion')
         beat=next(b for b in screenplay['beats'] if b['id']==shot['beat_id'])
-        name=f'animation-code-{revision}-{shot["beat_id"]}'
-        prompt=AUTHORING_RULES+'\n'+json.dumps({'title':screenplay['title'],'story':screenplay['beats'],'shared_style':plan['style'],
-            'all_shots':plan['shots'],'current_beat':beat,'current_shot':shot,'measured_voice_seconds':voice['voice_seconds'],
+        name=f'animation-code-v2-{revision}-{shot["beat_id"]}'
+        prompt=AUTHORING_RULES+'\n'+json.dumps({'title':screenplay['title'],'story':[b['narration'] for b in screenplay['beats']],'shared_style':plan['style'],
+            'current_beat':beat,'current_shot':shot,'measured_voice_seconds':voice['voice_seconds'],
             'editing':editing,'total_frames':math.ceil((voice['voice_seconds']+editing['lead_seconds']+editing['tail_seconds'])*30),
             'previous_scene_source_to_revise':prior.get('source') if prior else None},ensure_ascii=False)
         def validate(value):
