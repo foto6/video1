@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { configureWindowsFonts } from "./windows-media-runtime.mjs";
 
 const EXPECTED_MEDIA_SHA = "ad4e0ba487a3cabc84dd339d412e19a0db0f9add";
 const EXPECTED_COMPAT_VERSION = "media.creator_consumer_compat.r13.v1";
@@ -229,6 +230,7 @@ const exportSpec = {
 
 const store = new media.PersistentRenderJobStore({ filePath: path.join(workDir, "media-jobs.json") });
 const processExecutor = new media.DeterministicProcessExecutor({ defaultTimeoutMs: 180000, maxOutputBytes: 2 * 1024 * 1024 });
+configureWindowsFonts(processExecutor);
 const executor = new media.ShortformFfmpegExecutor({ store, sandboxRoot: workDir, executor: processExecutor });
 const probe = new media.FfmpegQaProbe({ store, sandboxRoot: workDir });
 const runtime = new media.RenderRuntimeV2({
