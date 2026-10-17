@@ -1,11 +1,11 @@
-"""Small declarative production language; model output cannot execute code."""
+"""Production contracts. Authored frame code has a separate AST/browser boundary."""
 import json
 import math
 import re
 
 
-MODES = {'illustration', 'motion_graphics', 'kinetic_text', 'library_video', 'native_video'}
-MOTIONS = {'push_in', 'pull_out', 'pan_left', 'pan_right', 'graphic_build', 'text_reveal', 'source_motion'}
+MODES = {'illustration', 'motion_graphics', 'kinetic_text', 'library_video', 'native_video', 'code_animation'}
+MOTIONS = {'push_in', 'pull_out', 'pan_left', 'pan_right', 'graphic_build', 'text_reveal', 'source_motion', 'procedural_motion'}
 PRESETS = {'cards', 'comparison', 'steps', 'stat', 'signal'}
 
 
@@ -85,10 +85,20 @@ def shot_plan(value, screenplay):
                 text(label, 'graphic label', 60)
         if shot['mode'] == 'kinetic_text' and shot['motion'] != 'text_reveal':
             raise ValueError('Kinetic text requires text_reveal')
-        if shot.get('requires_object_motion') and shot['mode'] not in {'native_video', 'library_video'}:
+        if shot['mode'] == 'code_animation' and shot['motion'] != 'procedural_motion':
+            raise ValueError('Authored animation requires procedural_motion')
+        if shot.get('requires_object_motion') and shot['mode'] not in {'native_video', 'library_video', 'code_animation'}:
             raise ValueError('Object motion requires a real video source')
-    if len({s['mode'] for s in shots}) < 2:
+    if len({s['mode'] for s in shots}) < 2 and not any(s['mode']=='code_animation' for s in shots):
         raise ValueError('Dynamic Shorts profile requires at least two visual modes')
+    return value
+
+
+def animation(value, beat_id):
+    if value.get('beat_id') != beat_id:
+        raise ValueError('Animation must belong to the requested beat')
+    text(value.get('design_notes'), 'animation design notes', 1200)
+    text(value.get('source'), 'animation source', 18000)
     return value
 
 
@@ -111,3 +121,4 @@ def edit_plan(value, measured):
 SCRIPT_SCHEMA = {'title': 'Russian title', 'beats': [{'id': 'hook', 'purpose': 'why this beat exists', 'narration': 'exact Russian voice text', 'screen_text': 'short readable phrase'}]}
 SHOT_SCHEMA = {'style': {'description': 'shared art direction, recurring character/object details', 'background': '#101827', 'accent': '#6E8EFF', 'foreground': '#FFFFFF'}, 'shots': [{'beat_id': 'hook', 'purpose': 'semantic reason', 'mode': 'motion_graphics', 'motion': 'graphic_build', 'preset': 'steps', 'labels': ['A', 'B'], 'visual_prompt': 'exact appearance/action', 'requires_object_motion': False}]}
 EDIT_SCHEMA = {'music': 'procedural', 'shots': [{'beat_id': 'hook', 'lead_seconds': 0.15, 'tail_seconds': 0.2, 'transition': 'cut'}]}
+ANIMATION_SCHEMA = {'beat_id': 'hook', 'design_notes': 'composition, movement and relationship to narration', 'source': 'function Scene({frame, fps, width, height, durationInFrames, palette}) { const x = 200 + frame * 2; return <svg width={width} height={height} viewBox="0 0 1080 1920"><circle cx={x} cy={900} r={100} fill={palette.accent}/></svg>; }'}

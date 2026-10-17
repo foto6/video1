@@ -139,7 +139,45 @@ class Application:
         for revision in range(3):
             if self.store.read(entry['id'], f'media-{revision}'):
                 draft = {'url': f"/api/videos/{entry['id']}/preview.mp4", 'revision': revision}
-        return {k: entry[k] for k in ('id', 'topic', 'state', 'stage', 'error', 'events', 'created', 'updated')} | {'status': entry['state'], 'final': final, 'draft': draft}
+        return {k: entry[k] for k in ('id', 'topic', 'state', 'stage', 'error', 'events', 'created', 'updated')} | {'status': entry['state'], 'final': final, 'draft': draft,'visualEngine':entry['profile'].get('visual_engine','classic')}
+
+    def create_video(self,body):
+        topic=body.get('topic','').strip()
+        if not 5<=len(topic)<=1500:
+            raise ValueError('Тема должна содержать 5–1500 символов')
+        key=body.get('idempotencyKey')
+        if not isinstance(key,str) or not re.fullmatch(r'[A-Za-z0-9_-]{8,100}',key):
+            raise ValueError('Invalid request key')
+        voice=body.get('voiceSource','auto')
+        engine=body.get('visualEngine','remotion')
+        if voice not in {'auto','bridge','gemini','local_piper'} or engine not in {'remotion','classic'}:
+            raise ValueError('Invalid voice source or visual engine')
+        profile={'version':2,'text_model':'chatgpt-web','image_model':'chatgpt-web','voice_source':voice,'voice':'Kore','visual_engine':engine}
+        if 'animationOnly' in body:
+            if not isinstance(body['animationOnly'],bool):
+                raise ValueError('animationOnly must be boolean')
+            profile['animation_only']=body['animationOnly']
+        source_id=body.get('sourceVideoId')
+        screenplay=None
+        if source_id:
+            source=self.store.get(source_id)
+            if source['topic']!=topic:
+                raise ValueError('Reused script must belong to the same brief')
+            screenplay=self.store.read(source_id,'script')
+            if not screenplay:
+                raise ValueError('The source video has no validated script')
+            from .contracts import script
+            script(screenplay)
+            profile['source_run_id']=source_id
+        identifier=self.store.create(topic,profile,key,initial_state='PREPARING')
+        # No worker sees a half-created inherited script. Repeating the request
+        # never resumes an existing paused run or duplicates model operations.
+        if self.store.get(identifier)['state']=='PREPARING':
+            if screenplay:
+                self.store.artifact(identifier,'script',screenplay,dependencies=[source_id+':script'])
+                self.store.artifact(identifier,'script-provenance',{'source_run_id':source_id,'artifact':'script','reuse':'validated bridge-authored screenplay, new visual production'})
+            self.store.update(identifier,'queued','BRIEF')
+        return identifier
 
 
 def handler(app):
@@ -285,17 +323,7 @@ def handler(app):
                     app.settings.save({'library': library})
                     return self.json({'id': asset_id, **library[asset_id]})
                 if method == 'POST' and route == '/api/videos':
-                    topic = body.get('topic', '').strip()
-                    if not 5 <= len(topic) <= 1500:
-                        raise ValueError('Тема должна содержать 5–1500 символов')
-                    key = body.get('idempotencyKey')
-                    if not isinstance(key, str) or not re.fullmatch(r'[A-Za-z0-9_-]{8,100}', key):
-                        raise ValueError('Invalid request key')
-                    voice_source = body.get('voiceSource', 'auto')
-                    if voice_source not in {'auto', 'bridge', 'gemini', 'local_piper'}:
-                        raise ValueError('Invalid voice source')
-                    profile = {'version': 1, 'text_model': 'chatgpt-web', 'image_model': 'chatgpt-web', 'voice_source': voice_source, 'voice': 'Kore'}
-                    identifier = app.store.create(topic, profile, key)
+                    identifier = app.create_video(body)
                     return self.json(app.visible(app.store.get(identifier)), 202)
                 match = re.fullmatch(r'/api/videos/(vid-[a-f0-9]{32})/resume', route)
                 if method == 'POST' and match:

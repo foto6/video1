@@ -13,6 +13,7 @@ from .capabilities import ensure_perception
 from .store import Wait, file_hash, fingerprint
 from .voice import GeminiVoice
 from .local_voice import LocalPiperVoice, MANIFEST as LOCAL_VOICE_MANIFEST
+from .animation import AnimationAuthor
 
 
 class Production:
@@ -23,7 +24,7 @@ class Production:
         previous = self.store.get(identifier)
         if previous['state'] == 'PAUSED':
             raise Wait('PAUSED', 'Производство приостановлено')
-        order = ['BRIEF', 'SCRIPT', 'SHOT_PLAN', 'ASSETS', 'VOICE_TIMING', 'EDIT_PLAN', 'PREVIEW', 'REVIEW', 'FINAL_QA', 'READY']
+        order = ['BRIEF', 'SCRIPT', 'SHOT_PLAN', 'ASSETS', 'VOICE_TIMING', 'EDIT_PLAN', 'ANIMATION_CODE', 'PREVIEW', 'REVIEW', 'FINAL_QA', 'READY']
         if previous['stage'] in order and stage in order and order.index(stage) < order.index(previous['stage']):
             return
         if previous['stage'] != stage or previous['state'] != 'running':
@@ -87,15 +88,31 @@ class Production:
             '\nIf the topic is factual, avoid unsupported statistics and citations. Do not invent research. Use a fictional demonstration when the topic asks for a demo.',
             contracts.SCRIPT_SCHEMA, contracts.script)
         self.stage(identifier, 'SHOT_PLAN', 'Режиссёр: общий стиль и способ визуализации каждого фрагмента')
+        coded=self.profile.get('visual_engine')=='remotion'
+        directing=('\nThis production uses code-authored Remotion animation as its primary engine. Prefer code_animation/procedural_motion for bespoke '
+            'vector characters, illustrated shapes, waves, particles, camera layers, transitions and typography. Animated vector object action is supported '
+            'and may set requires_object_motion=true; it is stylized procedural animation, never photorealistic source video. '
+            'Use at least half code_animation shots; the entire story may use code_animation if each beat has a distinct meaningful composition and action. '
+            'Describe exact objects, positions, anticipation and payoff in visual_prompt, not generic cards or dashboards. '
+            'Illustration camera shots and registered library clips remain available when semantically useful. Native video is not required for stylized vector action.') if coded else ''
+        if self.profile.get('animation_only'):
+            directing+='\nThis particular production is fully drawn vector animation: EVERY beat must use code_animation/procedural_motion. Draw the objects and characters in code, no external image or video generation.'
+        def validate_plan(value):
+            value=contracts.shot_plan(value,screenplay)
+            if coded and sum(s['mode']=='code_animation' for s in value['shots'])<math.ceil(len(value['shots'])/2):
+                raise ValueError('Remotion production requires at least half authored animation scenes')
+            if self.profile.get('animation_only') and any(s['mode']!='code_animation' for s in value['shots']):
+                raise ValueError('This production requires vector code_animation for every beat')
+            return value
         plan = self.structured(bridge, identifier, 'shot-plan',
             'Direct this Short. Script:\n' + json.dumps(screenplay, ensure_ascii=False) +
-            '\nChoose each visual mode by semantic purpose, with at least two different modes. Available: illustration (AI image + camera push_in/pull_out/pan_left/pan_right), '
+            ('\nChoose meaningful varied visual compositions, primarily authored vector animation. Available: ' if coded else '\nChoose each visual mode by semantic purpose, with at least two different modes. Available: ')+'illustration (AI image + camera push_in/pull_out/pan_left/pan_right), '
             'motion_graphics (graphic_build, presets cards/comparison/steps/stat/signal, 1-4 short labels), kinetic_text (text_reveal). '
             'library_video (source_motion) ONLY using these registered assets: ' + json.dumps({k: {'description': v['description'], 'duration': v['duration']} for k, v in library.items()}, ensure_ascii=False) +
             '. Put chosen ID in library_asset_id. Native video output is not confirmed: if actual object action is essential and library cannot supply it, use native_video/source_motion and requires_object_motion=true; this will wait for the capability. '
             'Do not claim a moving still is real object motion. Define a shared style and recurring character/object descriptions. One shot per beat in script order. '
-            'Screen text and graphic labels must remain short and readable on a phone.',
-            contracts.SHOT_SCHEMA, lambda v: contracts.shot_plan(v, screenplay))
+            'Screen text and graphic labels must remain short and readable on a phone.'+directing,
+            contracts.SHOT_SCHEMA, validate_plan)
         if any(s['mode']=='native_video' for s in plan['shots']):
             plan=self.structured(bridge,identifier,'feasible-shot-plan',
                 'Rework this director plan for capabilities that are actually available. Native generated video output is unavailable. '
@@ -104,9 +121,9 @@ class Production:
                 'Be honest: illustration camera motion is not object motion. If a beat truly cannot be conveyed without continuous physical action, '
                 'keep native_video/requires_object_motion=true and the application will stop. Otherwise choose a key state/composition that conveys '
                 'the meaning without pretending objects move inside the image. Preserve beat IDs and shared identity/style.\n'
-                +json.dumps({'brief':entry['topic'],'script':screenplay,'prior_plan':plan,
+                +directing+json.dumps({'brief':entry['topic'],'script':screenplay,'prior_plan':plan,
                              'library':{k:{'description':v['description'],'duration':v['duration']} for k,v in library.items()}},ensure_ascii=False),
-                contracts.SHOT_SCHEMA,lambda v:contracts.shot_plan(v,screenplay))
+                contracts.SHOT_SCHEMA,validate_plan)
         self.stage(identifier, 'ASSETS', 'Получение иллюстраций и проверка исходников для сцен')
         assets = {}
         references = []
@@ -153,6 +170,13 @@ class Production:
             'lead_seconds 0.05-0.5, tail_seconds 0.05-0.7, transition cut/fade, music procedural/none. Preserve narrative order.\n' +
             json.dumps({'script': screenplay, 'shots': plan, 'measured_voice': measured}, ensure_ascii=False), contracts.EDIT_SCHEMA,
             lambda v: contracts.edit_plan(v, measured))
+        if any(s['mode']=='code_animation' for s in plan['shots']):
+            self.stage(identifier,'ANIMATION_CODE','Художник-аниматор пишет код сцен и проверяет рендер по измеренной речи')
+            author=AnimationAuthor(self)
+            for shot,voice,editing in zip(plan['shots'],measured,edit['shots']):
+                if shot['mode']=='code_animation':
+                    self.active(identifier)
+                    assets[shot['beat_id']]=author.author(bridge,identifier,screenplay,plan,shot,voice,editing,folder)
         return self.finish(bridge,identifier,screenplay,plan,edit,assets,measured,config,folder)
 
     def narrate(self,bridge,identifier,screenplay,config,folder):
@@ -201,9 +225,9 @@ class Production:
             review = self.structured(bridge, identifier, f'review-{revision}',
                 'Review the ACTUAL attached preview video, audio and scene frames. State only modalities you actually perceived, not merely received. '
                 'If video motion or audio could not be inspected, mark relevant dimensions unobserved, decision blocked. '
-                'Do not approve from stills alone. Evaluate ' + ', '.join(sorted(DIMENSIONS)) + '. '
+                'Do not approve from stills alone. Code_animation means actual stylized vector animation, not photorealistic generated video. Evaluate ' + ', '.join(sorted(DIMENSIONS)) + '. '
                 'Issues and patches need beat_id and seconds inside this exact draft. Supported patch fields: screen_text, visual_prompt, motion, preset, labels, lead_seconds, tail_seconds, transition. '
-                'Do not change narration; request blocked if it needs rewriting. Approve only if every dimension passes and no issues remain.\n' +
+                'For code_animation, use visual_prompt to describe a concrete improvement to the authored scene. Do not change narration; request blocked if it needs rewriting. Approve only if every dimension passes and no issues remain.\n' +
                 json.dumps({'draft_sha256': result['final']['sha256'], 'script': screenplay, 'plan': plan, 'scene_timing': result['scenes'],
                             'duration': result['duration'], 'caption_timing': result['caption_timing']}, ensure_ascii=False),
                 {'draft_sha256': result['final']['sha256'], 'decision': 'blocked', 'observed_modalities': [],
@@ -265,6 +289,15 @@ class Production:
         for patch in review['patches']:
             index = next(i for i, b in enumerate(screenplay['beats']) if b['id'] == patch['beat_id'])
             changes = patch['changes']
+            if plan['shots'][index]['mode']=='code_animation':
+                author=AnimationAuthor(self)
+                shot=plan['shots'][index]
+                old=assets[patch['beat_id']]
+                if set(changes)&{'screen_text','visual_prompt','motion','preset','labels'}:
+                    assets[patch['beat_id']]=author.author(bridge,identifier,screenplay,plan,shot,measured[index],edit['shots'][index],folder,revision+1,old)
+                else:
+                    value={'beat_id':shot['beat_id'],'source':old['source'],'design_notes':old['design_notes']}
+                    assets[patch['beat_id']]=author.render(identifier,value,shot,measured[index],edit['shots'][index],plan['style'],folder)
             if 'visual_prompt' in changes and plan['shots'][index]['mode'] == 'illustration':
                 self.active(identifier)
                 old = assets[patch['beat_id']]
