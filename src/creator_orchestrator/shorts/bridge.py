@@ -22,6 +22,12 @@ class ApiError(RuntimeError):
         super().__init__(f'Bridge API HTTP {status}')
 
 
+class InvalidModelResponse(Wait):
+    def __init__(self, message, result):
+        super().__init__('NEEDS_REVIEW', message)
+        self.result = result
+
+
 PREFLIGHT_BUSY = 'Provider is still generating; refusing to interrupt or send another request'
 
 
@@ -64,11 +70,34 @@ class BridgeClient:
             raise ValueError('Invalid bridge job ID')
         return value
 
+    def operation_key(self,run_id,label,payload):
+        stateful=bool(self.binding) and 'audio' not in payload.get('modalities',[])
+        identity={'payload':payload,'binding':self.binding,'transport':'stateful_reply_v1'} if stateful else payload
+        return 'shorts:'+run_id+':'+label+':'+fingerprint(identity)[:24]
+
+    def saved_text_request(self,run_id,label):
+        """Recover the first exact request of a logical stage from older journals.
+
+        Only an identical operation key in this binding is eligible. This never
+        reuses another profile/chat or a different model request as a fallback.
+        """
+        with self.store.connect() as db:
+            rows=db.execute('SELECT key,request FROM operations WHERE run_id=? AND provider=? ORDER BY rowid',(run_id,'bridge')).fetchall()
+        for row in rows:
+            request=json.loads(row['request'])
+            if request.get('metadata',{}).get('stage')!=label or request.get('metadata',{}).get('preflight_retry_of'):continue
+            if 'thread' in request:
+                payload={'model':request['model'],'prompt':request['messages'][0]['content'],
+                         'attachments':request.get('attachments',[]),'modalities':['text']}
+            else:
+                payload={k:request[k] for k in ['model','prompt','attachments','modalities'] if k in request}
+            if self.operation_key(run_id,label,payload)==row['key']:return payload
+        return None
+
     def execute(self, run_id, label, payload, _busy_retry_of=None):
         # Audio has no confirmed stateful artifact contract and keeps its explicit probe path.
         stateful = bool(self.binding) and 'audio' not in payload.get('modalities', [])
-        identity = {'payload': payload, 'binding': self.binding, 'transport': 'stateful_reply_v1'} if stateful else payload
-        key = 'shorts:' + run_id + ':' + label + ':' + fingerprint(identity)[:24]
+        key = self.operation_key(run_id,label,payload)
         request = build_reply(self.binding, run_id, label, payload, key) if stateful else {**payload, 'idempotency_key': key, 'metadata': {**payload.get('metadata', {}), 'video_id': run_id, 'stage': label}}
         if stateful:
             previous = self.store.op(key)
@@ -80,6 +109,8 @@ class BridgeClient:
         if op['state'] == 'completed':
             return op['response']
         if op['state'] == 'blocked':
+            if op['response'].get('waiting_state') == 'NEEDS_REVIEW' and op['response'].get('job'):
+                raise InvalidModelResponse(op['response']['safe_error'], op['response']['job'])
             result = op['response'].get('result', {})
             error = result.get('error', {})
             # This exact API-worker refusal occurs before sendAndWait. It is
@@ -144,6 +175,8 @@ class BridgeClient:
                     result = normalized_reply(result, run_result, 'image' in payload.get('modalities', []))
                 except Wait as exc:
                     self.store.operation(key, 'blocked', response={'safe_error': str(exc), 'waiting_state': exc.state, 'job': result, 'run': run_result})
+                    if exc.state == 'NEEDS_REVIEW':
+                        raise InvalidModelResponse(str(exc), result) from None
                     raise
             self.store.operation(key, 'completed', response=result)
             return result
@@ -178,4 +211,38 @@ class BridgeClient:
                 raise ValueError('Existing image differs; refused overwrite')
         else:
             path.write_bytes(data)
-        return {'path': str(path.resolve()), 'sha256': digest, 'bridge_job_id': result['id'], 'kind': 'illustration'}
+        return {'path': str(path.resolve()), 'sha256': digest, 'bridge_job_id': result['id'],
+                **({'generation_job_id':result['generation_job_id'],'capture_recovery':True} if result.get('capture_recovery') else {}), 'kind': 'illustration'}
+
+    def execute_image(self,run_id,label,payload):
+        """One read-only capture after a proved post-send reader failure.
+
+        Uses the bridge worker's existing recoverExistingResult metadata path;
+        that path never resets the composer, uploads, types or presses Send.
+        A newer task in this dedicated chat makes recovery ambiguous and stops.
+        """
+        try:return self.execute(run_id,label,payload)
+        except Wait as original:
+            if not self.binding or 'image' not in payload.get('modalities',[]):raise
+            key=self.operation_key(run_id,label,payload)
+            op=self.store.op(key) or {}
+            failed=(op.get('response') or {}).get('result',{})
+            task=failed.get('task',{})
+            error=failed.get('error',{})
+            message=error.get('message','') if isinstance(error,dict) else ''
+            if not (failed.get('raw_status')=='failed' and message.startswith('ChatGPT did not start responding within ')
+                    and 'delivery is uncertain' in message and task.get('resolvedChatUrl')==self.binding['chatUrl']
+                    and task.get('apiRequest',{}).get('type')=='project.reply'
+                    and task.get('metadata',{}).get('video_id')==run_id):raise
+            with self.store.connect() as db:
+                parent=db.execute('SELECT rowid FROM operations WHERE key=?',(key,)).fetchone()[0]
+                newer=db.execute('SELECT request FROM operations WHERE rowid>? AND provider=? AND state!=?',(parent,'bridge','prepared')).fetchall()
+            for row in newer:
+                request=json.loads(row['request'])
+                if request.get('metadata',{}).get('video_recovery_of')==op['external_id']:continue
+                if request.get('thread',{}).get('native_provider',{}).get('chat_url')==self.binding['chatUrl']:
+                    raise Wait('NEEDS_REVIEW','После неудачного чтения в этот чат уже отправлялась другая задача; автоматическое получение старого изображения неоднозначно') from None
+            recovered=self.execute(run_id,label+'-capture-recovery',{'model':payload['model'],'modalities':['image'],
+                'prompt':'Read-only capture of the existing generated image from operation '+op['external_id']+'. Do not submit another provider message.',
+                'attachments':[],'metadata':{'recoverExistingResult':True,'video_recovery_of':op['external_id']}})
+            return {**recovered,'generation_job_id':op['external_id'],'capture_recovery':True}

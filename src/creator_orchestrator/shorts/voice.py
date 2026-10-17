@@ -39,7 +39,7 @@ class GeminiVoice:
 
     def speak(self, run_id, beat_id, transcript, folder, style='Natural, energetic Russian narration. Clear pronunciation; no background music.'):
         if not self.key:
-            raise Wait('WAITING_INPUT', 'Для озвучки нужен ключ Gemini API в настройках. Локальная TTS ещё не подключена')
+            raise Wait('WAITING_INPUT', 'Для выбранной озвучки Gemini нужен ключ Gemini API в настройках')
         request = {'model': self.model, 'input': [{'type': 'user_input', 'content': [{'type': 'text', 'text': transcript, 'annotations': [{'type': 'speech_metadata', 'style': style}]}]}],
                    'response_format': {'type': 'audio', 'mime_type': 'audio/wav'}, 'generation_config': {'speech_config': [{'voice': self.voice}]}}
         key = 'voice:' + run_id + ':' + beat_id + ':' + fingerprint(request)[:24]

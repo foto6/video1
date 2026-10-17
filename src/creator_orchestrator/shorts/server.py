@@ -20,6 +20,7 @@ from .bridge import ApiError, BridgeClient
 from .production import Production
 from .store import Store, Wait, file_hash
 from .stateful import chat_binding
+from .local_voice import MANIFEST as LOCAL_VOICE_MANIFEST
 
 
 class Blob(ctypes.Structure):
@@ -62,6 +63,7 @@ class Settings:
     def public(self):
         value = self.read()
         return {'baseUrl': value['baseUrl'], 'configured': bool(value['token']), 'geminiConfigured': bool(value['geminiKey']), 'library': value.get('library', {}),
+                'localVoiceConfigured': LOCAL_VOICE_MANIFEST.is_file(),
                 'chatUrl': value.get('binding', {}).get('chatUrl', ''), 'profileName': value.get('binding', {}).get('profileName', ''),
                 'audio': 'Gemini TTS available when key is configured; bridge output requires probe', 'nativeVideo': 'not_verified'}
 
@@ -290,7 +292,7 @@ def handler(app):
                     if not isinstance(key, str) or not re.fullmatch(r'[A-Za-z0-9_-]{8,100}', key):
                         raise ValueError('Invalid request key')
                     voice_source = body.get('voiceSource', 'auto')
-                    if voice_source not in {'auto', 'bridge', 'gemini'}:
+                    if voice_source not in {'auto', 'bridge', 'gemini', 'local_piper'}:
                         raise ValueError('Invalid voice source')
                     profile = {'version': 1, 'text_model': 'chatgpt-web', 'image_model': 'chatgpt-web', 'voice_source': voice_source, 'voice': 'Kore'}
                     identifier = app.store.create(topic, profile, key)

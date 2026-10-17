@@ -88,7 +88,8 @@ def normalized_reply(job, run_result, expects_images=False):
         raise ValueError('Stateful run and job identity mismatch')
     if run_result.get('action') != 'reply':
         # A genuine image artifact can stand alone; plain text cannot bypass the envelope.
-        if not (expects_images and job.get('output_images') and not run_result.get('action')):
+        artifact_only=expects_images and job.get('output_images') and not job.get('output_text','').strip() and run_result.get('action') in {'','ignore'}
+        if not artifact_only:
             raise Wait('NEEDS_REVIEW', 'Мост вернул stateful-ответ без action=reply; исходный ответ сохранён')
     messages = run_result.get('messages', [])
     if not expects_images and (not isinstance(messages, list) or len(messages) != 1 or not isinstance(messages[0], str) or not messages[0].strip()):

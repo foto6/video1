@@ -13,7 +13,9 @@ import urllib.request
 import wave
 
 from creator_orchestrator.shorts import contracts
-from creator_orchestrator.shorts.bridge import BridgeClient, NoRedirect, PREFLIGHT_BUSY
+from creator_orchestrator.shorts.bridge import BridgeClient, NoRedirect, PREFLIGHT_BUSY, InvalidModelResponse
+from creator_orchestrator.shorts.production import Production
+from creator_orchestrator.shorts.local_voice import LocalPiperVoice
 from creator_orchestrator.shorts.server import Application, crypt, handler
 from creator_orchestrator.shorts.store import Store, Wait, file_hash
 from creator_orchestrator.shorts.voice import GeminiVoice
@@ -81,6 +83,55 @@ class ShortsTests(unittest.TestCase):
     def test_request_key_is_bound_to_brief(self):
         self.assertEqual(self.id, self.store.create('Test fixture brief', {'version': 1}, 'same-request'))
         with self.assertRaises(ValueError): self.store.create('Different brief', {'version': 1}, 'same-request')
+    def test_malformed_envelope_is_repaired_through_bridge_then_reused(self):
+        production=Production(self.store,self.tmp.name,lambda:{})
+        production.profile={'text_model':'chatgpt-web'}
+        bad={'id':'job-bad','output_text':'{"action":"reply","messages":["broken "quotes"]}'}
+        good={'id':'job-good','output_text':'{"ok":true}'}
+        with patch.object(self.client,'execute',side_effect=[InvalidModelResponse('Invalid envelope',bad),good]) as execute:
+            for _ in range(2):
+                self.assertEqual(production.structured(self.client,self.id,'plan','Make plan',{'ok':True},lambda x:x),{'ok':True})
+        self.assertEqual(execute.call_count,2)
+        self.assertEqual(execute.call_args_list[1].args[1],'plan-format-repair-1')
+        self.assertEqual(self.store.read(self.id,'plan-invalid-envelope'),bad)
+    def test_format_repair_budget_survives_production_restart(self):
+        production=Production(self.store,self.tmp.name,lambda:{})
+        production.profile={'text_model':'chatgpt-web'}
+        # Real BridgeClient journals each completed but invalid JSON response.
+        payload={'ok':False}
+        def reject(value):raise ValueError('Fixture schema requires different fields')
+        for _ in range(2):
+            with self.assertRaises(Wait) as caught:
+                production.structured(self.client,self.id,'plan','Make plan',payload,reject)
+            self.assertEqual(caught.exception.state,'NEEDS_REVIEW')
+        self.assertEqual(len(BridgeHandler.posts),3)
+    def test_stage_request_is_frozen_when_nested_json_order_changes(self):
+        production=Production(self.store,self.tmp.name,lambda:{})
+        production.profile={'text_model':'chatgpt-web'}
+        original=self.client.execute
+        def pending_after_send(*args):
+            original(*args)
+            raise Wait('PENDING','fixture pending acknowledgement')
+        with patch.object(self.client,'execute',side_effect=pending_after_send):
+            with self.assertRaises(Wait):production.structured(self.client,self.id,'plan',json.dumps({'title':'A','beats':[]}),{},lambda x:x)
+        value=production.structured(self.client,self.id,'plan',json.dumps({'beats':[],'title':'A'}),{},lambda x:x)
+        self.assertEqual(value,{'ok':True});self.assertEqual(len(BridgeHandler.posts),1)
+    def test_pause_prevents_a_new_model_request(self):
+        production=Production(self.store,self.tmp.name,lambda:{})
+        production.profile={'text_model':'chatgpt-web'}
+        self.store.update(self.id,'PAUSED','SCRIPT')
+        with self.assertRaises(Wait) as caught:
+            production.structured(self.client,self.id,'plan','Make plan',{},lambda x:x)
+        self.assertEqual(caught.exception.state,'PAUSED');self.assertEqual(BridgeHandler.posts,[])
+    def test_existing_text_operation_is_recovered_without_resubmitting_reordered_prompt(self):
+        client=self.bound_client()
+        payload={'model':'chatgpt-web','prompt':'Original order','attachments':[],'modalities':['text']}
+        client.execute(self.id,'plan',payload)
+        production=Production(self.store,self.tmp.name,lambda:{})
+        production.profile={'text_model':'chatgpt-web'}
+        value=production.structured(client,self.id,'plan','Reordered equivalent content',{},lambda x:x)
+        self.assertEqual(value,{'ok':True});self.assertEqual(len(BridgeHandler.posts),1)
+        self.assertEqual(self.store.read(self.id,'plan-request'),payload)
     def test_completed_operation_survives_restart_without_new_send(self):
         payload = {'model': 'fixture', 'prompt': 'A', 'modalities': ['text']}
         first = self.client.execute(self.id, 'script', payload)
@@ -159,6 +210,28 @@ class ShortsTests(unittest.TestCase):
             with self.assertRaises(Wait) as caught: voice.speak(self.id, 'hook', 'Test', Path(self.tmp.name) / 'voice')
             self.assertEqual(caught.exception.state, 'WAITING_RECONCILIATION')
             self.assertEqual(opened.call_count, 1)
+    def local_voice_manifest(self):
+        import sys
+        folder=Path(self.tmp.name)/'model';folder.mkdir()
+        model=folder/'fixture.onnx';model.write_bytes(b'fixture model, not executable')
+        config=folder/'fixture.onnx.json';config.write_text('{}')
+        manifest=folder/'ready.json'
+        manifest.write_text(json.dumps({'engine':'piper','engine_version':'1.8.0','python':sys.executable,'model_path':str(model),
+                                       'model_sha256':file_hash(model),'config_sha256':file_hash(config)}))
+        return manifest,model
+    def test_local_voice_wav_receipt_survives_restart_without_new_synthesis(self):
+        import subprocess
+        manifest,model=self.local_voice_manifest()
+        output=io.BytesIO()
+        with wave.open(output,'wb') as f:
+            f.setnchannels(1);f.setsampwidth(2);f.setframerate(22050);f.writeframes(b'\1\0'*22050)
+        with patch('creator_orchestrator.shorts.local_voice.subprocess.run',return_value=subprocess.CompletedProcess([],0,output.getvalue(),b'')) as rendered:
+            first=LocalPiperVoice(self.store,manifest).speak(self.id,'hook','Test narration',Path(self.tmp.name)/'voice')
+            second=LocalPiperVoice(Store(self.tmp.name),manifest).speak(self.id,'hook','Test narration',Path(self.tmp.name)/'voice')
+        self.assertEqual(first,second);self.assertEqual(first['voice_seconds'],1)
+        self.assertEqual(first['provider'],'local_piper');self.assertEqual(rendered.call_count,1)
+        model.write_bytes(b'changed')
+        with self.assertRaises(ValueError):LocalPiperVoice(self.store,manifest)
     def test_audio_probe_is_shared_across_videos_and_restarts(self):
         from creator_orchestrator.shorts.audio_probe import probe_audio
         settings = {'baseUrl':self.client.base_url, 'token':self.client.token}
@@ -282,6 +355,36 @@ class ShortsTests(unittest.TestCase):
         for changes in ({'action':'ask_user'}, {'messages':['{"a":','1}']}, {'id':'run-wrong'}):
             run = {'id':'run-fixture','job':job,'action':'reply','messages':['{"a":1}'],**changes}
             with self.assertRaises((Wait,ValueError)): normalized_reply(job,run)
+    def test_image_only_artifact_accepts_empty_ignore_but_not_nonempty_refusal(self):
+        job={'id':'job-fixture','output_text':'','output_images':[{'sha256':'a'*64}]}
+        result={'id':'run-fixture','job':job,'action':'ignore','messages':[]}
+        self.assertEqual(normalized_reply(job,result,True)['output_images'],job['output_images'])
+        with self.assertRaises(Wait):normalized_reply({**job,'output_text':'I cannot help'},result,True)
+    def failed_image_operation(self):
+        from creator_orchestrator.shorts.stateful import build_reply
+        client=self.bound_client();payload={'model':'chatgpt-web','modalities':['text','image'],'prompt':'Generate fixture image'}
+        key=client.operation_key(self.id,'image',payload)
+        self.store.prepare(key,self.id,'bridge',build_reply(client.binding,self.id,'image',payload,key))
+        failed={'id':'job-source','raw_status':'failed','error':{'message':'ChatGPT did not start responding within 5 min; delivery is uncertain'},
+                'task':{'resolvedChatUrl':client.binding['chatUrl'],'apiRequest':{'type':'project.reply'},'metadata':{'video_id':self.id}}}
+        self.store.operation(key,'blocked','job-source',{'safe_error':'reader failed','result':failed})
+        return client,payload
+    def test_failed_image_capture_uses_read_only_recovery_without_resending_prompt(self):
+        client,payload=self.failed_image_operation()
+        result=client.execute_image(self.id,'image',payload)
+        self.assertEqual(result['generation_job_id'],'job-source')
+        self.assertEqual(len(BridgeHandler.posts),1)
+        request=BridgeHandler.posts[0]
+        self.assertTrue(request['metadata']['recoverExistingResult']);self.assertEqual(request['metadata']['video_recovery_of'],'job-source')
+        self.assertEqual(request['attachments'],[])
+        self.assertNotEqual(request['messages'][0]['content'],payload['prompt'])
+        client.execute_image(self.id,'image',payload)
+        self.assertEqual(len(BridgeHandler.posts),1)
+    def test_newer_same_chat_operation_blocks_ambiguous_image_recovery(self):
+        client,payload=self.failed_image_operation()
+        client.execute(self.id,'another',{'model':'chatgpt-web','modalities':['text'],'prompt':'Another request'})
+        with self.assertRaises(Wait) as caught:client.execute_image(self.id,'image',payload)
+        self.assertEqual(caught.exception.state,'NEEDS_REVIEW');self.assertEqual(len(BridgeHandler.posts),1)
     def test_stateful_preserves_json_larger_than_public_message_limit(self):
         complete = json.dumps({'visual_prompt':'x'*12000})
         job = {'id':'job-fixture','output_text':json.dumps({'action':'reply','messages':[complete]})}
