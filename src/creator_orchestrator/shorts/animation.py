@@ -16,6 +16,11 @@ Globals: Math except random; clamp(v,a=0,b=1); range(n), capped64; interpolate(f
 Pure deterministic frame code only: no hooks, effects, CSS animation/transition, loops, mutation, assignment, classes/new/async, DOM/network/Node globals, imports, computed property/prototype access, event handlers/ref/href/src, resources or spread. Use .map rather than array[index].
 Return complete source and concrete design_notes in requested JSON, no markdown.'''
 
+SHORT_RULES='''Continue this Short using its director plan and earlier scenes in this conversation. Draw the next bespoke animated SVG/JSX scene, matching character identity/style.
+Source: function Scene({frame,fps,width,height,durationInFrames,palette}) returning JSX, 1080x1920/30fps. Safe subjects y350..1350; subtitles added separately y1480..1650.
+Use const/pure expressions, local JSX components, Math, interpolate, spring, clamp, range(n<=64), .map. Standard SVG/HTML, local url(#id). No imports/exports, hooks, CSS animation, loops, mutation, computed properties, DOM/network, events, spread or resources. Meaningful object/character movement, not cards or static slide.
+Return complete working source in JSON.'''
+
 
 class AnimationAuthor:
     def __init__(self, production):
@@ -55,25 +60,25 @@ class AnimationAuthor:
         return {**receipt,'kind':'code_animation','source':value['source'],'design_notes':value['design_notes']}
 
     def author(self,bridge,identifier,screenplay,plan,shot,voice,editing,folder,revision=0,prior=None):
-        legacy=f'animation-code-{revision}-{shot["beat_id"]}'
-        saved=self.store.read(identifier,legacy)
-        if saved is not None:
-            rendered=self.render(identifier,saved,shot,voice,editing,plan['style'],folder)
-            return self.store.artifact(identifier,legacy+'-render-'+rendered['request_sha256'][:16],rendered)
+        for legacy in [f'animation-code-{revision}-{shot["beat_id"]}',f'animation-code-v2-{revision}-{shot["beat_id"]}',f'animation-code-v3-{revision}-{shot["beat_id"]}']:
+            saved=self.store.read(identifier,legacy)
+            if saved is not None:
+                rendered=self.render(identifier,saved,shot,voice,editing,plan['style'],folder)
+                return self.store.artifact(identifier,legacy+'-render-'+rendered['request_sha256'][:16],rendered)
         if not (self.root/'media/remotion/node_modules/@remotion/renderer/package.json').is_file():
             raise Wait('WAITING_CAPABILITY','Не установлен локальный движок Remotion')
         beat=next(b for b in screenplay['beats'] if b['id']==shot['beat_id'])
-        name=f'animation-code-v2-{revision}-{shot["beat_id"]}'
-        prompt=AUTHORING_RULES+'\n'+json.dumps({'title':screenplay['title'],'story':[b['narration'] for b in screenplay['beats']],'shared_style':plan['style'],
-            'current_beat':beat,'current_shot':shot,'measured_voice_seconds':voice['voice_seconds'],
-            'editing':editing,'total_frames':math.ceil((voice['voice_seconds']+editing['lead_seconds']+editing['tail_seconds'])*30),
-            'previous_scene_source_to_revise':prior.get('source') if prior else None},ensure_ascii=False)
+        name=f'animation-code-v4-{revision}-{shot["beat_id"]}'
+        prompt=SHORT_RULES+'\n'+json.dumps({'title':screenplay['title'],'style':plan['style'],
+            'beat_id':beat['id'],'narration':beat['narration'],'screen_text':beat['screen_text'],'visual_action':shot['visual_prompt'],
+            'frames':math.ceil((voice['voice_seconds']+editing['lead_seconds']+editing['tail_seconds'])*30),
+            **({'revise_prior_scene':True,'prior_source_sha256':prior['source_sha256'],'prior_design_notes':prior['design_notes']} if prior else {})},ensure_ascii=False,separators=(',',':'))
         def validate(value):
             contracts.animation(value,shot['beat_id'])
             # A successful source artifact always has a real three-frame preview
             # and MP4. Resumed validation reuses content-addressed output.
             self.render(identifier,value,shot,voice,editing,plan['style'],folder)
             return value
-        code=self.production.structured(bridge,identifier,name,prompt,{**contracts.ANIMATION_SCHEMA,'beat_id':shot['beat_id']},validate)
+        code=self.production.structured(bridge,identifier,name,prompt,{'beat_id':shot['beat_id'],'design_notes':'composition and movement','source':'complete function Scene returning JSX'},validate,compact_repair=True)
         rendered=self.render(identifier,code,shot,voice,editing,plan['style'],folder)
         return self.store.artifact(identifier,name+'-render-'+rendered['request_sha256'][:16],rendered)

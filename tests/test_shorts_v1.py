@@ -100,6 +100,42 @@ class ShortsTests(unittest.TestCase):
         self.assertEqual(execute.call_count,2)
         self.assertEqual(execute.call_args_list[1].args[1],'plan-format-repair-1')
         self.assertEqual(self.store.read(self.id,'plan-invalid-envelope'),bad)
+    def test_long_author_context_is_attached_once_with_exact_utf8_and_stable_request(self):
+        production=Production(self.store,self.tmp.name,lambda:{})
+        production.profile={'text_model':'chatgpt-web'}
+        prompt='Нарисуй робота.\n'+('Detailed context. '*1000)
+        reply={'id':'job-code','output_text':'{"ok":true}'}
+        with patch.object(self.client,'execute',side_effect=[Wait('PENDING','accepted'),reply]) as execute:
+            with self.assertRaises(Wait):production.structured(self.client,self.id,'code-file',prompt,{'ok':True},lambda x:x,context_file=True)
+            production.structured(self.client,self.id,'code-file',prompt,{'ok':True},lambda x:x,context_file=True)
+        first=execute.call_args_list[0].args[2];second=execute.call_args_list[1].args[2]
+        self.assertEqual(first,second)
+        self.assertLess(len(first['prompt']),500)
+        raw=Path(first['attachments'][0]['path']).read_bytes()
+        self.assertTrue(raw.startswith(prompt.encode('utf-8')))
+        self.assertNotIn(b'\r\n',raw)
+    def test_changed_context_file_stops_before_another_model_call(self):
+        production=Production(self.store,self.tmp.name,lambda:{})
+        production.profile={'text_model':'chatgpt-web'}
+        with patch.object(self.client,'execute',side_effect=Wait('PENDING','accepted')):
+            with self.assertRaises(Wait):production.structured(self.client,self.id,'context','Make code',{'ok':True},lambda x:x,context_file=True)
+        request=self.store.read(self.id,'context-request')
+        Path(request['attachments'][0]['path']).write_bytes(b'changed')
+        with patch.object(self.client,'execute') as execute:
+            with self.assertRaises(ValueError):production.structured(self.client,self.id,'context','Make code',{'ok':True},lambda x:x,context_file=True)
+            execute.assert_not_called()
+    def test_compact_repair_keeps_original_output_locally_without_pasting_it_again(self):
+        production=Production(self.store,self.tmp.name,lambda:{})
+        production.profile={'text_model':'chatgpt-web'}
+        bad={'id':'job-bad','output_text':json.dumps({'wrong':'x'*12000})}
+        good={'id':'job-good','output_text':'{"ok":true}'}
+        def validate(value):
+            if value.get('ok') is not True:raise ValueError('Expected ok')
+            return value
+        with patch.object(self.client,'execute',side_effect=[bad,good]) as execute:
+            production.structured(self.client,self.id,'compact','Make one object',{'ok':True},validate,compact_repair=True)
+        self.assertLess(len(execute.call_args_list[1].args[2]['prompt']),2000)
+        self.assertEqual(self.store.read(self.id,'compact-raw'),bad)
     def test_format_repair_budget_survives_production_restart(self):
         production=Production(self.store,self.tmp.name,lambda:{})
         production.profile={'text_model':'chatgpt-web'}
