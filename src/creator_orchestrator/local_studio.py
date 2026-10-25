@@ -85,6 +85,21 @@ def font_filter(name="arial.ttf"):
     return font.as_posix().replace(":", r"\:")
 
 
+def wrapped_text(value, font_name, font_size, max_width=900):
+    from PIL import ImageFont
+    font = ImageFont.truetype(str(Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts" / font_name), font_size)
+    lines = []
+    for paragraph in value.splitlines():
+        current = ""
+        for word in paragraph.split():
+            candidate = (current + " " + word).strip()
+            if current and font.getlength(candidate) > max_width:
+                lines.append(current); current = word
+            else: current = candidate
+        if current: lines.append(current)
+    return "\n".join(lines)
+
+
 def narration(scene, folder, log):
     (folder / "narration.txt").write_text(scene["narration"], encoding="utf-8-sig")
     script = Path(__file__).resolve().parents[2] / "tools" / "studio-speech.ps1"
@@ -149,12 +164,24 @@ def validate_final(path, expected_duration, log=None):
             "creative_review": "not_performed_by_this_renderer"}
 
 
-def render_storyboard(manifest_path, progress=print):
+def render_storyboard(manifest_path, progress=print, out_dir=None):
     manifest_path = Path(manifest_path).resolve()
     manifest = checked_manifest(manifest_path)
     for tool in ("ffmpeg", "ffprobe"):
         if not shutil.which(tool): raise ValueError(f"{tool} is not installed")
-    out = new_output("demo")
+    if out_dir is not None:
+        out = Path(out_dir).resolve()
+        receipt = out / "receipt.json"
+        if receipt.exists():
+            previous = json.loads(receipt.read_text(encoding="utf-8"))
+            if previous.get("manifest_sha256") == sha(manifest_path) and previous.get("qa", {}).get("sha256") == sha(out / "final.mp4"):
+                validate_final(out / "final.mp4", previous["qa"]["duration_seconds"])
+                progress(f"Готово: {out / 'final.mp4'}")
+                return out
+            raise ValueError("Existing render receipt does not match storyboard or output bytes")
+        out.mkdir(parents=True, exist_ok=False)
+    else:
+        out = new_output("demo")
     log = out / "render.log"
     save(out / "storyboard.json", manifest)
     save(out / "status.json", {"state": "running", "version": VERSION})
@@ -168,8 +195,8 @@ def render_storyboard(manifest_path, progress=print):
             if seconds > 20: raise ValueError("Narration is too long for a scene")
             source = manifest_path.parent / scene["image"]
             shutil.copy2(source, folder / "image.png")
-            (folder / "title.txt").write_text(scene["title"], encoding="utf-8", newline="\n")
-            (folder / "caption.txt").write_text(textwrap.fill(scene["caption"], 29), encoding="utf-8", newline="\n")
+            (folder / "title.txt").write_text(wrapped_text(scene["title"], 'arialbd.ttf', 82), encoding="utf-8", newline="\n")
+            (folder / "caption.txt").write_text(wrapped_text(scene["caption"], 'arial.ttf', 46), encoding="utf-8", newline="\n")
             (folder / "chapter.txt").write_text(f"0{index+1}  /  0{len(manifest['scenes'])}     {manifest['title'].upper()}", encoding="utf-8", newline="\n")
             frames = round(seconds * 30)
             zoom = "1.03+0.08*on/" + str(frames) if index % 2 == 0 else "1.11-0.08*on/" + str(frames)
@@ -307,13 +334,13 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="AI Video Studio")
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("gui"); sub.add_parser("doctor")
-    render = sub.add_parser("render"); render.add_argument("--storyboard", default=str(ROOT / "assets/demo/storyboard.json"))
+    render = sub.add_parser("render"); render.add_argument("--storyboard", default=str(ROOT / "assets/demo/storyboard.json")); render.add_argument("--out")
     edit = sub.add_parser("edit"); edit.add_argument("--input", required=True); edit.add_argument("--brief", required=True)
     args = parser.parse_args(argv)
     try:
         if args.command in {None, "gui"}: gui()
         elif args.command == "doctor": print(json.dumps(doctor(), ensure_ascii=False, indent=2))
-        elif args.command == "render": render_storyboard(args.storyboard)
+        elif args.command == "render": render_storyboard(args.storyboard, out_dir=args.out)
         else: edit_input(args.input, args.brief)
         return 0
     except Exception as exc:
